@@ -110,12 +110,4 @@ export class MistralOCRProvider implements OCRProvider {
             return ['error', err instanceof Error ? err : new Error(String(err))]
         }
     }
-}
-
-/**
- * Factory function to create a Mistral OCR provider instance
- * @deprecated Use MistralOCRProvider class directly
- */
-export const createMistralProvider = (io: IoE, config: MistralConfig): OCRProvider => {
-    return new MistralOCRProvider(io, config)
 } 

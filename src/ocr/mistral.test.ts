@@ -1,5 +1,5 @@
 import { DocumentType, type IoE } from './types'
-import { createMistralProvider } from './mistral'
+import { MistralOCRProvider } from './mistral'
 
 describe('MistralOCR', () => {
     const mockIo: IoE = {
@@ -66,7 +66,7 @@ describe('MistralOCR', () => {
             json: () => Promise.resolve(mockResponse)
         })
 
-        const provider = createMistralProvider(mockIo, { apiKey: 'test-key' })
+        const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' })
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
             type: DocumentType.Image
@@ -86,7 +86,7 @@ describe('MistralOCR', () => {
             text: () => Promise.resolve('Bad Request')
         })
 
-        const provider = createMistralProvider(mockIo, { apiKey: 'test-key' })
+        const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' })
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
             type: DocumentType.Image
@@ -112,7 +112,7 @@ describe('MistralOCR', () => {
                 json: () => Promise.resolve(mockResponses[1])
             })
 
-        const provider = createMistralProvider(mockIo, { apiKey: 'test-key' })
+        const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' })
         const result = await provider.processDocuments([
             { content: new Uint8Array([1, 2, 3]).buffer, type: DocumentType.Image },
             { content: new Uint8Array([4, 5, 6]).buffer, type: DocumentType.Image }

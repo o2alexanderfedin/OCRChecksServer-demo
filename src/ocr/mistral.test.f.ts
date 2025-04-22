@@ -1,5 +1,5 @@
 import type { IoE } from './types'
-import { createMistralProvider } from './mistral'
+import { MistralOCRProvider } from './mistral'
 import { DocumentType } from '../ocr/types'
 
 const mockIo: IoE = {
@@ -97,7 +97,7 @@ const mockIo: IoE = {
 
 async function testMistralOCR(): Promise<void> {
     console.log('Testing MistralOCR provider...')
-    const provider = createMistralProvider(mockIo, { apiKey: 'test-key' })
+    const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' })
     let result
 
     // Test single document processing

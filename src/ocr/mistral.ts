@@ -1,19 +1,12 @@
 import type { Result } from 'functionalscript/types/result/module.f.js'
 import { OCRProvider, OCRResult, Document, OCRProviderConfig, IoE } from './types'
-
-/**
- * Mistral API response type
- */
-interface MistralOCRResponse {
-    text: string
-    confidence: number
-    boundingBox?: {
-        x: number
-        y: number
-        width: number
-        height: number
-    }
-}
+import { Mistral } from '@mistralai/mistralai'
+import type { 
+    OCRResponse, 
+    OCRPageObject,
+    ImageURLChunk,
+    DocumentURLChunk
+} from '@mistralai/mistralai/models/components'
 
 /**
  * Mistral-specific configuration
@@ -28,7 +21,7 @@ export type MistralConfig = OCRProviderConfig & {
  */
 export const createMistralProvider = (io: IoE, config: MistralConfig): OCRProvider => {
     const model = config.model ?? 'mistral-ocr-latest'
-    const baseUrl = config.baseUrl ?? 'https://api.mistral.ai/v1'
+    const client = new Mistral({ apiKey: config.apiKey })
 
     const processDocument = async (doc: Document): Promise<Result<OCRResult[], Error>> => {
         try {
@@ -37,35 +30,30 @@ export const createMistralProvider = (io: IoE, config: MistralConfig): OCRProvid
             const mimeType = doc.type === 'image' ? 'image/jpeg' : 'application/pdf'
             const dataUrl = `data:${mimeType};base64,${base64Content}`
 
-            const response = await io.fetch(`${baseUrl}/ocr/process`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${config.apiKey}`
-                },
-                body: JSON.stringify({
-                    model,
-                    document: {
-                        type: doc.type === 'image' ? 'image_url' : 'document_url',
-                        [doc.type === 'image' ? 'imageUrl' : 'documentUrl']: dataUrl
-                    },
-                    includeImageBase64: true
-                })
+            const document: ImageURLChunk | DocumentURLChunk = doc.type === 'image' 
+                ? { type: 'image_url', imageUrl: dataUrl }
+                : { type: 'document_url', documentUrl: dataUrl }
+
+            const ocrResponse: OCRResponse = await client.ocr.process({
+                model,
+                document,
+                includeImageBase64: doc.type === 'pdf'
             })
 
-            if (!response.ok) {
-                const errorText = await response.text()
-                return ['error', new Error(`Mistral API error: ${response.status} - ${errorText}`)]
-            }
+            // Convert OCR response to our format
+            const results: OCRResult[] = ocrResponse.pages.map((page: OCRPageObject) => ({
+                text: page.markdown,
+                confidence: 1.0, // Mistral doesn't provide confidence scores
+                pageNumber: page.index + 1,
+                boundingBox: page.dimensions ? {
+                    x: 0,
+                    y: 0,
+                    width: page.dimensions.width,
+                    height: page.dimensions.height
+                } : undefined
+            }))
 
-            const result = await response.json() as MistralOCRResponse
-            
-            return ['ok', [{
-                text: result.text,
-                confidence: result.confidence,
-                pageNumber: doc.type === 'pdf' ? 1 : undefined,
-                boundingBox: result.boundingBox
-            }]]
+            return ['ok', results]
         } catch (err) {
             return ['error', err instanceof Error ? err : new Error(String(err))]
         }

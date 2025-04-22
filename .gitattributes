@@ -1,0 +1,2 @@
+Checks/*.jpg filter=lfs diff=lfs merge=lfs -text
+Checks/*.HEIC filter=lfs diff=lfs merge=lfs -text

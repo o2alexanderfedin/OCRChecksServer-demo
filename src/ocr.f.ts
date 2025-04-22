@@ -79,7 +79,7 @@ export const processCheckImage = async (
 
     try {
         return JSON.parse(content) as CheckData
-    } catch (e) {
+    } catch (_e) {
         throw new Error(`Failed to parse Mistral response: ${content}`)
     }
 } 

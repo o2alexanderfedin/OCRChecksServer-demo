@@ -1,0 +1,6 @@
+name = "ocr-checks-worker"
+main = "src/index.ts"
+compatibility_date = "2024-04-22"
+
+[vars]
+MISTRAL_API_KEY = "vYS1jOH55qvFc5Qqzgn2JHXN3cjMCJQp" # You'll need to add your Mistral API key here 

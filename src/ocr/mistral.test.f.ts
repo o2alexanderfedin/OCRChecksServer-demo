@@ -1,5 +1,6 @@
 import type { IoE } from './types'
 import { createMistralProvider } from './mistral'
+import { DocumentType } from '../ocr/types'
 
 const mockIo: IoE = {
     fetch: async (url: string, options?: RequestInit) => {
@@ -41,7 +42,11 @@ const mockIo: IoE = {
         const headers = options?.headers as Record<string, string> | undefined
         const testCase = headers?.['x-test-case']
         if (testCase && mockResponses.has(testCase)) {
-            return mockResponses.get(testCase)!
+            const response = mockResponses.get(testCase)
+            if (!response) {
+                throw new Error(`Response not found for test case: ${testCase}`)
+            }
+            return response
         }
 
         throw new Error('Unexpected request')

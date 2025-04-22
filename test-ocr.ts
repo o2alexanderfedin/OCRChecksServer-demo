@@ -40,7 +40,7 @@ async function processImage(imagePath: string): Promise<OCRResult> {
   }
 }
 
-async function testOCR() {
+async function testOCR(): Promise<void> {
   try {
     const results: Record<string, OCRResult> = {};
     const checksDir = path.join(process.cwd(), 'Checks');

@@ -85,7 +85,7 @@ const mockIo: IoE = {
     }
 };
 
-async function testProcessCheckImage() {
+async function testProcessCheckImage(): Promise<void> {
     try {
         // Create a mock image buffer (just some bytes)
         const mockImage = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46]);

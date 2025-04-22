@@ -95,7 +95,7 @@ const mockIo: IoE = {
     }
 }
 
-async function testMistralOCR() {
+async function testMistralOCR(): Promise<void> {
     console.log('Testing MistralOCR provider...')
     const provider = createMistralProvider(mockIo, { apiKey: 'test-key' })
     let result

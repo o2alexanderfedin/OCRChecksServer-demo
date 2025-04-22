@@ -1,0 +1,36 @@
+{
+  "name": "ocr-checks-worker",
+  "version": "1.0.0",
+  "description": "A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "dev:watch": "wrangler dev --live-reload",
+    "deploy": "wrangler deploy",
+    "test": "node --loader ts-node/esm test-ocr.f.ts"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "ocr",
+    "mistral",
+    "checks"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "@types/node": "^20.11.24",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "wrangler": "^4.12.0"
+  },
+  "dependencies": {
+    "@mistralai/mistralai": "^1.6.0",
+    "functionalscript": "^0.6.6",
+    "heic-convert": "^2.1.0",
+    "hono": "^4.7.7",
+    "sharp": "^0.34.1"
+  }
+}

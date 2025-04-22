@@ -123,7 +123,7 @@ app.post('/', async (c) => {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
-    } catch (_e) {
+    } catch (_) {
       console.error('Failed to parse JSON from response:', result.choices[0].message.content);
       return new Response(JSON.stringify({ 
         error: 'Failed to parse JSON from response', 

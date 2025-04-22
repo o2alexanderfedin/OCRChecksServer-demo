@@ -28,8 +28,10 @@
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
     "eslint": "^9.25.1",
+    "globals": "^16.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
+    "typescript-eslint": "^8.31.0",
     "wrangler": "^4.12.0"
   },
   "dependencies": {

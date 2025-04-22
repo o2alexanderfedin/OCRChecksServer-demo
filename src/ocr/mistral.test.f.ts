@@ -99,7 +99,7 @@ async function testMistralOCR() {
     console.log('Testing single document processing...')
     result = await provider.processDocuments([{
         content: new Uint8Array([1, 2, 3]).buffer,
-        type: 'image',
+        type: DocumentType.Image,
         name: 'test.jpg'
     }])
 
@@ -126,7 +126,7 @@ async function testMistralOCR() {
     console.log('Testing error handling...')
     result = await provider.processDocuments([{
         content: new Uint8Array([1, 2, 3]).buffer,
-        type: 'image',
+        type: DocumentType.Image,
         name: 'error.jpg'
     }])
 
@@ -140,8 +140,8 @@ async function testMistralOCR() {
     // Test multiple documents
     console.log('Testing multiple documents processing...')
     result = await provider.processDocuments([
-        { content: new Uint8Array([1, 2, 3]).buffer, type: 'image', name: 'test1.jpg' },
-        { content: new Uint8Array([4, 5, 6]).buffer, type: 'image', name: 'test2.jpg' }
+        { content: new Uint8Array([1, 2, 3]).buffer, type: DocumentType.Image, name: 'test1.jpg' },
+        { content: new Uint8Array([4, 5, 6]).buffer, type: DocumentType.Image, name: 'test2.jpg' }
     ])
 
     if (result[0] !== 'ok') {

@@ -1,4 +1,4 @@
-import type { IoE } from './types'
+import { DocumentType, type IoE } from './types'
 import { createMistralProvider } from './mistral'
 
 describe('MistralOCR', () => {
@@ -69,7 +69,7 @@ describe('MistralOCR', () => {
         const provider = createMistralProvider(mockIo, { apiKey: 'test-key' })
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
-            type: 'image'
+            type: DocumentType.Image
         }])
 
         expect(result[0]).toBe('ok')
@@ -89,7 +89,7 @@ describe('MistralOCR', () => {
         const provider = createMistralProvider(mockIo, { apiKey: 'test-key' })
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
-            type: 'image'
+            type: DocumentType.Image
         }])
 
         expect(result[0]).toBe('error')
@@ -114,8 +114,8 @@ describe('MistralOCR', () => {
 
         const provider = createMistralProvider(mockIo, { apiKey: 'test-key' })
         const result = await provider.processDocuments([
-            { content: new Uint8Array([1, 2, 3]).buffer, type: 'image' },
-            { content: new Uint8Array([4, 5, 6]).buffer, type: 'image' }
+            { content: new Uint8Array([1, 2, 3]).buffer, type: DocumentType.Image },
+            { content: new Uint8Array([4, 5, 6]).buffer, type: DocumentType.Image }
         ])
 
         expect(result[0]).toBe('ok')

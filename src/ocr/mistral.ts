@@ -1,5 +1,5 @@
 import type { Result } from 'functionalscript/types/result/module.f.js'
-import { OCRProvider, OCRResult, Document, OCRProviderConfig, IoE } from './types'
+import { OCRProvider, OCRResult, Document, OCRProviderConfig, IoE, DocumentType } from './types'
 import { Mistral } from '@mistralai/mistralai'
 import type { 
     OCRResponse, 
@@ -46,7 +46,7 @@ export class MistralOCRProvider implements OCRProvider {
             const ocrResponse = await this.client.ocr.process({
                 model: this.model,
                 document,
-                includeImageBase64: doc.type === 'pdf'
+                includeImageBase64: doc.type === DocumentType.PDF
             })
 
             return ['ok', this.convertResponseToResults(ocrResponse)]
@@ -62,10 +62,10 @@ export class MistralOCRProvider implements OCRProvider {
      */
     private createDocumentChunk(doc: Document): ImageURLChunk | DocumentURLChunk {
         const base64Content = Buffer.from(doc.content).toString('base64')
-        const mimeType = doc.type === 'image' ? 'image/jpeg' : 'application/pdf'
+        const mimeType = doc.type === DocumentType.Image ? 'image/jpeg' : 'application/pdf'
         const dataUrl = `data:${mimeType};base64,${base64Content}`
 
-        return doc.type === 'image' 
+        return doc.type === DocumentType.Image 
             ? { type: 'image_url', imageUrl: dataUrl }
             : { type: 'document_url', documentUrl: dataUrl }
     }

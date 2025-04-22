@@ -8,6 +8,16 @@ export type IoE = Io & {
 }
 
 /**
+ * Document types supported by OCR
+ */
+export enum DocumentType {
+    /** Image document */
+    Image = 'image',
+    /** PDF document */
+    PDF = 'pdf'
+}
+
+/**
  * Represents the result of an OCR operation
  */
 export type OCRResult = {
@@ -33,7 +43,7 @@ export type Document = {
     /** Binary content of the document */
     content: ArrayBuffer
     /** Type of the document */
-    type: 'image' | 'pdf'
+    type: DocumentType
     /** Optional name of the document */
     name?: string
 }

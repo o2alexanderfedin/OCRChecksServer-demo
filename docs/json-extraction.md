@@ -117,8 +117,7 @@ sequenceDiagram
 ## Processing Flow
 
 1. **Text Processing**
-   - Receive markdown text from OCR
-   - Prepare context for extraction
+   - Receive markdown text
    - Format prompt for Mistral
 
 2. **Mistral Processing**
@@ -148,14 +147,12 @@ sequenceDiagram
 
 ### Integration Tests
 - End-to-end extraction flow
-- Integration with OCR output
 - Performance benchmarks
 
 ## Future Enhancements
 
 1. **Extraction Improvements**
    - Enhanced prompt engineering
-   - Better context handling
    - Schema validation
 
 2. **Performance**

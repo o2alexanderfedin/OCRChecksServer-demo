@@ -108,17 +108,10 @@ classDiagram
 ### Sequence Diagram
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Worker
-    participant MistralOCRProvider
-
-    Client->>Worker: Upload Check Image
-    Worker->>MistralOCRProvider: processDocuments([document])
-    MistralOCRProvider->>MistralOCRProvider: Process with Mistral
-    MistralOCRProvider->>MistralOCRProvider: Convert to Results
-    MistralOCRProvider-->>Worker: OCRResult[][]
-    Worker-->>Client: Response
+    Actor1->>+MistralOCRProvider: processDocuments(documents)
+    MistralOCRProvider-->>-Actor1: Promise<Result<OCRResult[][], Error>>
 ```
+
 
 ## Processing Flow
 

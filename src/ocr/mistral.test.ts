@@ -1,10 +1,13 @@
 import { DocumentType, type IoE } from './types'
 import { MistralOCRProvider } from './mistral'
+import { Mistral } from '@mistralai/mistralai'
+import type { OCRResponse } from '@mistralai/mistralai/models/components'
+import 'jasmine'
 
 describe('MistralOCR', () => {
     const mockIo: IoE = {
-        fetch: jest.fn(),
-        atob: jest.fn(),
+        fetch: jasmine.createSpy('fetch'),
+        atob: jasmine.createSpy('atob'),
         console: {
             log: console.log,
             error: console.error
@@ -49,22 +52,32 @@ describe('MistralOCR', () => {
     }
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        (mockIo.fetch as jasmine.Spy).calls.reset();
+        (mockIo.atob as jasmine.Spy).calls.reset();
     })
 
     it('should process a single image document', async () => {
         const mockResponse = {
-            choices: [{
-                message: {
-                    content: 'Sample extracted text'
-                }
+            pages: [{
+                markdown: 'Sample extracted text',
+                index: 0,
+                dimensions: {
+                    width: 100,
+                    height: 50,
+                    dpi: 300
+                },
+                images: []
             }]
-        }
+        };
 
-        ;(mockIo.fetch as jest.Mock).mockResolvedValueOnce({
-            ok: true,
-            json: () => Promise.resolve(mockResponse)
-        })
+        const mockMistral = {
+            ocr: {
+                process: () => Promise.resolve(mockResponse)
+            }
+        };
+
+        spyOn(mockMistral.ocr, 'process').and.callThrough();
+        const mistralConstructorSpy = spyOn(Mistral.prototype, 'constructor').and.returnValue(mockMistral);
 
         const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' })
         const result = await provider.processDocuments([{
@@ -72,19 +85,26 @@ describe('MistralOCR', () => {
             type: DocumentType.Image
         }])
 
-        expect(result[0]).toBe('ok')
-        expect(result[1]).toHaveLength(1)
-        expect(result[1][0]).toHaveLength(1)
+        if (result[0] === 'error') {
+            fail('Expected successful result');
+            return;
+        }
+
+        expect(result[1].length).toBe(1)
+        expect(result[1][0].length).toBe(1)
         expect(result[1][0][0].text).toBe('Sample extracted text')
-        expect(mockIo.fetch).toHaveBeenCalledTimes(1)
+        expect(result[1][0][0].boundingBox).toBeDefined()
     })
 
     it('should handle API errors', async () => {
-        ;(mockIo.fetch as jest.Mock).mockResolvedValueOnce({
-            ok: false,
-            status: 400,
-            text: () => Promise.resolve('Bad Request')
-        })
+        const mockMistral = {
+            ocr: {
+                process: () => Promise.reject(new Error('Bad Request'))
+            }
+        };
+
+        spyOn(mockMistral.ocr, 'process').and.callThrough();
+        const mistralConstructorSpy = spyOn(Mistral.prototype, 'constructor').and.returnValue(mockMistral);
 
         const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' })
         const result = await provider.processDocuments([{
@@ -92,25 +112,51 @@ describe('MistralOCR', () => {
             type: DocumentType.Image
         }])
 
-        expect(result[0]).toBe('error')
-        expect(result[1].message).toContain('Mistral API error: 400')
+        if (result[0] === 'ok') {
+            fail('Expected error result');
+            return;
+        }
+
+        expect(result[1].message).toContain('Bad Request')
     })
 
     it('should process multiple documents', async () => {
         const mockResponses = [
-            { choices: [{ message: { content: 'Text 1' } }] },
-            { choices: [{ message: { content: 'Text 2' } }] }
-        ]
+            {
+                pages: [{
+                    markdown: 'Text 1',
+                    index: 0,
+                    dimensions: {
+                        width: 100,
+                        height: 50,
+                        dpi: 300
+                    },
+                    images: []
+                }]
+            },
+            {
+                pages: [{
+                    markdown: 'Text 2',
+                    index: 0,
+                    dimensions: {
+                        width: 100,
+                        height: 50,
+                        dpi: 300
+                    },
+                    images: []
+                }]
+            }
+        ];
 
-        ;(mockIo.fetch as jest.Mock)
-            .mockResolvedValueOnce({
-                ok: true,
-                json: () => Promise.resolve(mockResponses[0])
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: () => Promise.resolve(mockResponses[1])
-            })
+        let callCount = 0;
+        const mockMistral = {
+            ocr: {
+                process: () => Promise.resolve(mockResponses[callCount++])
+            }
+        };
+
+        spyOn(mockMistral.ocr, 'process').and.callThrough();
+        const mistralConstructorSpy = spyOn(Mistral.prototype, 'constructor').and.returnValue(mockMistral);
 
         const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' })
         const result = await provider.processDocuments([
@@ -118,10 +164,13 @@ describe('MistralOCR', () => {
             { content: new Uint8Array([4, 5, 6]).buffer, type: DocumentType.Image }
         ])
 
-        expect(result[0]).toBe('ok')
-        expect(result[1]).toHaveLength(2)
+        if (result[0] === 'error') {
+            fail('Expected successful result');
+            return;
+        }
+
+        expect(result[1].length).toBe(2)
         expect(result[1][0][0].text).toBe('Text 1')
         expect(result[1][1][0].text).toBe('Text 2')
-        expect(mockIo.fetch).toHaveBeenCalledTimes(2)
     })
 }) 

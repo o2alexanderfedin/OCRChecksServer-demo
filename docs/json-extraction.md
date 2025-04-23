@@ -40,19 +40,16 @@ type MistralJsonConfig = {
 ```typescript
 class MistralJsonExtractorProvider implements JsonExtractor {
     private readonly client: Mistral
-    private readonly model: string
     private readonly io: IoE
 
     /**
      * Creates a new Mistral JSON extractor instance
      * @param io I/O interface for network operations
-     * @param config Provider configuration
-     * @param client Optional Mistral client instance (for testing)
+     * @param client Mistral client instance
      */
-    constructor(io: IoE, config: MistralJsonConfig, client?: Mistral) {
+    constructor(io: IoE, client: Mistral) {
         this.io = io
-        this.client = client ?? new Mistral({ apiKey: config.apiKey })
-        this.model = config.model ?? 'mistral-json-latest'
+        this.client = client
     }
 
     async extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>> {
@@ -76,8 +73,7 @@ classDiagram
     class MistralJsonExtractorProvider {
         -IoE io
         -Mistral client
-        -string model
-        +constructor(io: IoE, config: MistralJsonConfig, client?: Mistral)
+        +constructor(io: IoE, client: Mistral)
         +extract(request: JsonExtractionRequest) Promise~Result<JsonExtractionResult, Error>~
     }
 
@@ -87,11 +83,6 @@ classDiagram
 
     class JsonExtractionRequest {
         +markdown: string
-    }
-
-    class MistralJsonConfig {
-        +apiKey: string
-        +model?: string
     }
 
     class IoE {
@@ -105,7 +96,6 @@ classDiagram
     MistralJsonExtractorProvider --> IoE : uses
     JsonExtractor --> JsonExtractionResult : returns
     JsonExtractor --> JsonExtractionRequest : processes
-    MistralJsonExtractorProvider --> MistralJsonConfig : configures
 ```
 
 ### Sequence Diagram

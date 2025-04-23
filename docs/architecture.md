@@ -53,12 +53,12 @@ sequenceDiagram
     participant Worker
     participant ProcessingProvider
 
-    Client->>Worker: Upload Document
-    Worker->>ProcessingProvider: Process Document
+    Client->>+Worker: Upload Document
+    Worker->>+ProcessingProvider: Process Document
     ProcessingProvider->>ProcessingProvider: Process Content
     ProcessingProvider->>ProcessingProvider: Extract Data
-    ProcessingProvider-->>Worker: Processed Result
-    Worker-->>Client: Response
+    ProcessingProvider-->>-Worker: Processed Result
+    Worker-->>-Client: Response
 ```
 
 ## Data Flow

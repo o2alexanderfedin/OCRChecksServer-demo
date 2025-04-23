@@ -44,6 +44,23 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 - Processes actual check images
 - Validates end-to-end workflow
 
+## UML Diagrams
+
+### Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Worker
+    participant ProcessingProvider
+
+    Client->>Worker: Upload Document
+    Worker->>ProcessingProvider: Process Document
+    ProcessingProvider->>ProcessingProvider: Process Content
+    ProcessingProvider->>ProcessingProvider: Extract Data
+    ProcessingProvider-->>Worker: Processed Result
+    Worker-->>Client: Response
+```
+
 ## Data Flow
 
 1. **Document Upload**

@@ -19,10 +19,6 @@ type JsonExtractionResult = {
 type JsonExtractionRequest = {
     /** Markdown text to process */
     markdown: string
-    /** Optional context for extraction */
-    context?: {
-        [key: string]: string
-    }
 }
 
 // JSON extractor interface
@@ -74,14 +70,15 @@ class MistralJsonExtractorProvider implements JsonExtractor {
 classDiagram
     class JsonExtractor {
         <<interface>>
-        +extract(JsonExtractionRequest) Promise~Result~
+        +extract(request: JsonExtractionRequest) Promise~Result<JsonExtractionResult, Error>~
     }
 
     class MistralJsonExtractorProvider {
         -IoE io
         -Mistral client
         -string model
-        +extract(JsonExtractionRequest) Promise~Result~
+        +constructor(io: IoE, config: MistralJsonConfig, client?: Mistral)
+        +extract(request: JsonExtractionRequest) Promise~Result<JsonExtractionResult, Error>~
     }
 
     class JsonExtractionResult {
@@ -90,7 +87,11 @@ classDiagram
 
     class JsonExtractionRequest {
         +markdown: string
-        +context?: { [key: string]: string }
+    }
+
+    class MistralJsonConfig {
+        +apiKey: string
+        +model?: string
     }
 
     class IoE {
@@ -104,6 +105,7 @@ classDiagram
     MistralJsonExtractorProvider --> IoE : uses
     JsonExtractor --> JsonExtractionResult : returns
     JsonExtractor --> JsonExtractionRequest : processes
+    MistralJsonExtractorProvider --> MistralJsonConfig : configures
 ```
 
 ### Sequence Diagram

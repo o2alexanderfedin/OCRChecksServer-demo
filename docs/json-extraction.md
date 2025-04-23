@@ -29,18 +29,34 @@ type JsonExtractionRequest = {
 interface JsonExtractor {
     extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>>
 }
+
+// Mistral-specific configuration
+type MistralJsonConfig = {
+    /** API key for Mistral */
+    apiKey: string
+    /** Model to use for JSON extraction */
+    model?: string
+}
 ```
 
 ### 2. Implementation
 
 ```typescript
 class MistralJsonExtractorProvider implements JsonExtractor {
+    private readonly client: Mistral
+    private readonly model: string
     private readonly io: IoE
-    private readonly apiKey: string
 
-    constructor(io: IoE, apiKey: string) {
+    /**
+     * Creates a new Mistral JSON extractor instance
+     * @param io I/O interface for network operations
+     * @param config Provider configuration
+     * @param client Optional Mistral client instance (for testing)
+     */
+    constructor(io: IoE, config: MistralJsonConfig, client?: Mistral) {
         this.io = io
-        this.apiKey = apiKey
+        this.client = client ?? new Mistral({ apiKey: config.apiKey })
+        this.model = config.model ?? 'mistral-json-latest'
     }
 
     async extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>> {
@@ -53,6 +69,7 @@ class MistralJsonExtractorProvider implements JsonExtractor {
 ## UML Diagrams
 
 ### Class Diagram
+
 ```mermaid
 classDiagram
     class JsonExtractor {
@@ -62,7 +79,8 @@ classDiagram
 
     class MistralJsonExtractorProvider {
         -IoE io
-        -string apiKey
+        -Mistral client
+        -string model
         +extract(JsonExtractionRequest) Promise~Result~
     }
 
@@ -89,6 +107,7 @@ classDiagram
 ```
 
 ### Sequence Diagram
+
 ```mermaid
 sequenceDiagram
     participant Client

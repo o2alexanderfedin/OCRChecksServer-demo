@@ -355,14 +355,14 @@ The receipt extraction system is integrated with the general JSON extraction fra
 classDiagram
     class JsonExtractor {
         <<interface>>
-        +extract(request: JsonExtractionRequest) Promise~Result<JsonExtractionResult, Error>~
+        +extract(request) Promise
     }
 
     class MistralJsonExtractorProvider {
         -IoE io
         -Mistral client
-        +constructor(io: IoE, client: Mistral)
-        +extract(request: JsonExtractionRequest) Promise~Result<JsonExtractionResult, Error>~
+        +constructor(io, client)
+        +extract(request) Promise
         -constructPrompt(request) string
         -calculateConfidence(response, json) number
         -validateAgainstSchema(json, schema) ValidationResult
@@ -370,24 +370,24 @@ classDiagram
 
     class ReceiptExtractor {
         -JsonExtractor jsonExtractor
-        +constructor(jsonExtractor: JsonExtractor)
-        +extractFromText(ocrText: string) Promise~Result<{json: Receipt, confidence: number}, string>~
+        +constructor(jsonExtractor)
+        +extractFromText(ocrText) Promise
         -generateExtractionPrompt(ocrText) string
         -normalizeReceiptData(receipt) Receipt
     }
 
     class Receipt {
-        +merchant: MerchantInfo
-        +receiptNumber?: string
-        +receiptType?: ReceiptType
-        +timestamp: string
-        +paymentMethod?: PaymentMethod
-        +totals: ReceiptTotals
-        +currency: string
-        +items?: ReceiptLineItem[]
-        +taxes?: ReceiptTaxItem[]
-        +payments?: ReceiptPaymentMethod[]
-        +confidence: number
+        +merchant MerchantInfo
+        +receiptNumber string
+        +receiptType ReceiptType
+        +timestamp string
+        +paymentMethod PaymentMethod
+        +totals ReceiptTotals
+        +currency string
+        +items ReceiptLineItem[]
+        +taxes ReceiptTaxItem[]
+        +payments ReceiptPaymentMethod[]
+        +confidence number
     }
 
     JsonExtractor <|.. MistralJsonExtractorProvider : implements
@@ -471,14 +471,14 @@ sequenceDiagram
     end
     
     JsonExtractor->>JsonExtractor: Calculate Confidence Score
-    JsonExtractor-->>ReceiptExtractor: Result<JsonExtractionResult, Error>
+    JsonExtractor-->>ReceiptExtractor: Result with extraction data
     
     alt Success
         ReceiptExtractor->>ReceiptExtractor: Add confidence to receipt
         ReceiptExtractor->>ReceiptExtractor: Normalize receipt data
     end
     
-    ReceiptExtractor-->>Client: Result<{json: Receipt, confidence}, string>
+    ReceiptExtractor-->>Client: Result with Receipt JSON and confidence
 ```
 
 ## Benefits of Current Implementation

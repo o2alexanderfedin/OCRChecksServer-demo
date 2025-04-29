@@ -12,6 +12,7 @@
     "test:unit": "node --loader ts-node/esm scripts/run-unit-tests.js",
     "test:functional": "node --loader ts-node/esm scripts/run-functional-tests.js",
     "test:semi": "node --loader ts-node/esm scripts/run-semi-tests.js",
+    "test:json-semi": "node --loader ts-node/esm scripts/run-json-semi-tests.js",
     "test:integration": "node --loader ts-node/esm scripts/run-tests.js integration",
     "start-server": "node scripts/start-server.js",
     "lint": "eslint . --ext .ts",

@@ -6,12 +6,12 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-console.log('Running semi-integration tests...');
+console.log('Running JSON extraction semi-integration tests...');
 const jasmine = new Jasmine();
 jasmine.loadConfig({
   spec_dir: 'tests',
   spec_files: [
-    'semi/**/*.test.js'
+    'semi-integration/json/**/*.si.test.ts'
   ],
   helpers: [],
   stopSpecOnExpectationFailure: false,

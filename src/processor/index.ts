@@ -2,5 +2,5 @@
 export * from './types';
 
 // Export implementations
-export * from './unified-processor';
+export * from './receipt-scanner';
 export * from './factory';

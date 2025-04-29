@@ -1,5 +1,5 @@
 import { IoE } from '../ocr/types';
-import { ReceiptScanner } from './unified-processor';
+import { ReceiptScanner } from './receipt-scanner';
 import { DIContainer, TYPES } from '../di/container';
 
 /**

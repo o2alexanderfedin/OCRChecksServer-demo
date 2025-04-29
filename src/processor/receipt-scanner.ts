@@ -1,5 +1,5 @@
 import { OCRProvider, Document, OCRResult } from '../ocr/types';
-import { DocumentProcessor, ProcessingResult } from './types';
+import { DocumentScanner, ProcessingResult } from './types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types';
 
@@ -11,7 +11,7 @@ import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types'
  * Follows Interface Segregation by using minimal interfaces
  * Follows Dependency Inversion by depending on abstractions
  */
-export class ReceiptScanner implements DocumentProcessor {
+export class ReceiptScanner implements DocumentScanner {
   private ocrProvider: OCRProvider;
   private receiptExtractor: IReceiptExtractor;
 

@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2025-04-30
+
+### Added
+- JSON extraction capability from OCR text
+- Confidence scoring for extraction reliability
+- Schema validation for extracted JSON data
+
+### Changed
+- Enhanced JSON extraction design with detailed implementation
+- Simplified MistralJsonExtractorProvider implementation
+- Improved prompt formatting with code blocks for schemas
+
+### Fixed
+- Removed unnecessary parameters from Mistral API calls
+- Fixed JSON schema formatting in prompts for better extraction
+
 ## [1.2.0] - 2025-04-29
 
 ### Added

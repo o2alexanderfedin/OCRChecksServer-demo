@@ -2,14 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.6.2] - 2025-05-15
+## [1.7.1] - 2025-04-29
+
+### Fixed
+- Type compatibility issue in legacy receipt extractor adapter
+- Fixed functional tests for receipt extractor
+- Resolved readonly vs mutable tuple type conflict with functionalscript library
+
+## [1.7.0] - 2025-04-29
+
+### Added
+- Dependency Injection (DI) system using InversifyJS
+- New DIContainer class that manages all service dependencies
+- Support for TypeScript decorators and reflection metadata
 
 ### Changed
 - Renamed `MistralReceiptExtractor` to `ReceiptExtractor` to better reflect its responsibility
 - Renamed `UnifiedProcessor` to `ReceiptScanner` for clarity and consistency
+- Refactored `ProcessorFactory` to use DIContainer for dependency management
 - Updated all references in code and tests to use new class names
 - Improved clarity by removing misleading technology references in class names
-- Refactored `ProcessorFactory` to use InversifyJS for proper dependency injection
 
 ## [1.6.1] - 2025-05-12
 

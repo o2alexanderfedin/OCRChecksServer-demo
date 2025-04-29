@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.6.0] - 2025-05-10
 
 ### Added
 - New `ReceiptExtractor` interface for better abstraction

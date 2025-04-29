@@ -2,58 +2,13 @@ import type { IoE } from './types'
 import { MistralOCRProvider } from './mistral'
 import { DocumentType } from '../ocr/types'
 import 'jasmine'
+import { Mistral } from '@mistralai/mistralai'
+import type { OCRResponse } from '@mistralai/mistralai/models/components'
 
 describe('MistralOCR (Functional Style)', () => {
     const mockIo: IoE = {
-        fetch: async (url: string, options?: RequestInit) => {
-            const mockResponses = new Map([
-                ['success-single', new Response(JSON.stringify({
-                    text: 'Sample extracted text',
-                    confidence: 0.95,
-                    boundingBox: {
-                        x: 0,
-                        y: 0,
-                        width: 100,
-                        height: 50
-                    }
-                }), { status: 200 })],
-                ['success-multiple-1', new Response(JSON.stringify({
-                    text: 'Text 1',
-                    confidence: 0.9,
-                    boundingBox: {
-                        x: 0,
-                        y: 0,
-                        width: 100,
-                        height: 50
-                    }
-                }), { status: 200 })],
-                ['success-multiple-2', new Response(JSON.stringify({
-                    text: 'Text 2',
-                    confidence: 0.85,
-                    boundingBox: {
-                        x: 0,
-                        y: 0,
-                        width: 100,
-                        height: 50
-                    }
-                }), { status: 200 })],
-                ['error', new Response('Bad Request', { status: 400 })]
-            ])
-
-            // For testing purposes, we'll use a custom header to determine which response to return
-            const headers = options?.headers as Record<string, string> | undefined
-            const testCase = headers?.['x-test-case']
-            if (testCase && mockResponses.has(testCase)) {
-                const response = mockResponses.get(testCase)
-                if (!response) {
-                    throw new Error(`Response not found for test case: ${testCase}`)
-                }
-                return response
-            }
-
-            throw new Error('Unexpected request')
-        },
-        atob: (data: string) => data,
+        fetch: jasmine.createSpy('fetch'),
+        atob: jasmine.createSpy('atob'),
         console: {
             log: console.log,
             error: console.error
@@ -98,69 +53,37 @@ describe('MistralOCR (Functional Style)', () => {
     }
 
     let provider: MistralOCRProvider
+    let mockClient: Mistral
 
     beforeEach(() => {
-        provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' })
-        // Mock the fetch function to return appropriate responses based on test case
-        spyOn(mockIo, 'fetch').and.callFake(async (url: string, options?: RequestInit) => {
-            const headers = options?.headers as Record<string, string> | undefined
-            const testCase = headers?.['x-test-case'] || 'success-single'
-            
-            switch(testCase) {
-                case 'success-single':
-                    return new Response(JSON.stringify({
-                        model: '',
-                        usageInfo: { pagesProcessed: 1 },
-                        pages: [{
-                            markdown: 'Sample extracted text',
-                            index: 0,
-                            dimensions: {
-                                width: 100,
-                                height: 50,
-                                dpi: 300
-                            },
-                            images: []
-                        }]
-                    }), { status: 200 })
-                case 'success-multiple-1':
-                    return new Response(JSON.stringify({
-                        model: '',
-                        usageInfo: { pagesProcessed: 1 },
-                        pages: [{
-                            markdown: 'Text 1',
-                            index: 0,
-                            dimensions: {
-                                width: 100,
-                                height: 50,
-                                dpi: 300
-                            },
-                            images: []
-                        }]
-                    }), { status: 200 })
-                case 'success-multiple-2':
-                    return new Response(JSON.stringify({
-                        model: '',
-                        usageInfo: { pagesProcessed: 1 },
-                        pages: [{
-                            markdown: 'Text 2',
-                            index: 0,
-                            dimensions: {
-                                width: 100,
-                                height: 50,
-                                dpi: 300
-                            },
-                            images: []
-                        }]
-                    }), { status: 200 })
-                case 'error':
-                    return new Response('Bad Request', { status: 400 })
-                default:
-                    throw new Error(`Unknown test case: ${testCase}`)
-            }
-        })
+        // Reset spies
+        (mockIo.fetch as jasmine.Spy).calls.reset()
+        
+        // Create mock client
+        mockClient = new Mistral({ apiKey: 'test-key' })
+        
+        // Create provider with mock client
+        provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' }, mockClient)
     })
 
     it('should process a single image document with confidence score', async () => {
+        const mockResponse: OCRResponse = {
+            model: '',
+            usageInfo: { pagesProcessed: 1 },
+            pages: [{
+                markdown: 'Sample extracted text',
+                index: 0,
+                dimensions: {
+                    width: 100,
+                    height: 50,
+                    dpi: 300
+                },
+                images: []
+            }]
+        }
+        
+        spyOn(mockClient.ocr, 'process').and.returnValue(Promise.resolve(mockResponse))
+        
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
             type: DocumentType.Image,
@@ -189,7 +112,7 @@ describe('MistralOCR (Functional Style)', () => {
     })
 
     it('should handle API errors properly', async () => {
-        spyOn(mockIo, 'fetch').and.returnValue(Promise.reject(new Error('Bad Request')))
+        spyOn(mockClient.ocr, 'process').and.returnValue(Promise.reject(new Error('Bad Request')))
         
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
@@ -208,40 +131,39 @@ describe('MistralOCR (Functional Style)', () => {
     })
 
     it('should process multiple documents correctly', async () => {
+        const mockResponses: OCRResponse[] = [
+            {
+                model: '',
+                usageInfo: { pagesProcessed: 1 },
+                pages: [{
+                    markdown: 'Text 1',
+                    index: 0,
+                    dimensions: {
+                        width: 100,
+                        height: 50,
+                        dpi: 300
+                    },
+                    images: []
+                }]
+            },
+            {
+                model: '',
+                usageInfo: { pagesProcessed: 1 },
+                pages: [{
+                    markdown: 'Text 2',
+                    index: 0,
+                    dimensions: {
+                        width: 100,
+                        height: 50,
+                        dpi: 300
+                    },
+                    images: []
+                }]
+            }
+        ]
+        
         let callCount = 0
-        spyOn(mockIo, 'fetch').and.callFake(async () => {
-            const responses = [
-                new Response(JSON.stringify({
-                    model: '',
-                    usageInfo: { pagesProcessed: 1 },
-                    pages: [{
-                        markdown: 'Text 1',
-                        index: 0,
-                        dimensions: {
-                            width: 100,
-                            height: 50,
-                            dpi: 300
-                        },
-                        images: []
-                    }]
-                }), { status: 200 }),
-                new Response(JSON.stringify({
-                    model: '',
-                    usageInfo: { pagesProcessed: 1 },
-                    pages: [{
-                        markdown: 'Text 2',
-                        index: 0,
-                        dimensions: {
-                            width: 100,
-                            height: 50,
-                            dpi: 300
-                        },
-                        images: []
-                    }]
-                }), { status: 200 })
-            ]
-            return responses[callCount++]
-        })
+        spyOn(mockClient.ocr, 'process').and.callFake(() => Promise.resolve(mockResponses[callCount++]))
         
         const result = await provider.processDocuments([
             { content: new Uint8Array([1, 2, 3]).buffer, type: DocumentType.Image, name: 'test1.jpg' },

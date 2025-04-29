@@ -34,15 +34,28 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 ### 3. Testing Infrastructure
 
 #### Unit Tests
-- Tests core processing functionality
-- Uses mock implementations of `IoE`
-- Validates API request/response handling
-- Tests error scenarios
+- Tests are written using Jasmine testing framework
+- Located in files with `.test.ts` or `.test.f.ts` extensions within the `src` directory
+- Tests core functionality with isolated components
+- Follows a BDD (Behavior-Driven Development) pattern with `describe`, `it`, and expectation syntax
+
+#### Mocking Strategy
+- Uses Jasmine spies for mocking external dependencies
+- Implements a comprehensive mock of the `IoE` interface for all functional tests
+- Mocks include network calls, file operations, and environment variables
+- External clients (like Mistral AI) are mocked with spies to simulate responses
+
+#### Running Tests
+- `npm run test:unit`: Runs all unit tests via custom Jasmine configuration
+- Tests are executed using a custom runner (`run-tests.js`) that handles TypeScript files
+- Test configuration is defined in both `jasmine.json` and `run-tests.js`
+- Tests both functional-style components (`.test.f.ts`) and object-oriented components (`.test.ts`)
 
 #### Integration Tests
 - Tests the complete worker functionality
 - Processes actual check images
 - Validates end-to-end workflow
+- Can be run with `npm test` command
 
 ## UML Diagrams
 
@@ -94,8 +107,8 @@ sequenceDiagram
 
 1. **Local Development**
    - `npm run dev`: Start local worker
-   - `npm test`: Run unit tests
-   - `npm run test:integration`: Run integration tests
+   - `npm run test:unit`: Run unit tests with Jasmine
+   - `npm test`: Run integration tests against local server
 
 2. **Deployment**
    - Uses Wrangler for deployment

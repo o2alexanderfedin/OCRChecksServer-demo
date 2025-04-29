@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- UnifiedProcessor that encapsulates OCR and JSON extraction in a single component
+- New `/process` API endpoint for streamlined document processing
+- Factory pattern for easy processor creation
+- Comprehensive confidence scoring (OCR, extraction, and overall)
+- Documentation with UML diagrams for the new component
+
+### Changed
+- Improved architecture following SOLID principles
+- Enhanced API response format with confidence metrics
+
+## [1.4.0] - 2025-05-01
+
+### Added
+- Comprehensive receipt schema implementation with TypeScript interfaces and enums
+- ReceiptExtractor with JSON Schema validation for structured data extraction
+- String-based TypeScript enums for improved type safety
+- UML diagrams in documentation for visual architecture representation
+- Result tuple pattern for consistent error handling (`['ok', value] | ['error', error]`)
+- Field validation rules with comprehensive type definitions
+
+### Changed
+- Updated receipt-extractor.ts to use JsonExtractor interface instead of JsonExtractorProvider
+- Improved integration test stability through enhanced server URL detection
+- Reorganized schema definitions with logical field grouping
+- Enhanced documentation with code examples and implementation details
+
+### Fixed
+- Schema inconsistencies between field names (e.g., totalAmount vs totals.total)
+- Mermaid diagram syntax for proper rendering in documentation
+- Improved error handling for OCR text processing
+
 ## [1.3.0] - 2025-04-30
 
 ### Added

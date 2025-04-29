@@ -33,6 +33,9 @@ describe('MistralOCR Semi-Integration', () => {
   // Create provider with real dependencies
   let provider;
 
+  // Set a longer timeout for API calls
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000; // 60 seconds
+  
   beforeAll(() => {
     console.log('Initializing MistralOCRProvider with real dependencies');
     // Initialize the provider with real dependencies

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.1] - 2025-05-12
+
+### Changed
+- Simplified architecture by directly using the IReceiptExtractor interface
+- Renamed imports for better clarity with interface alias patterns
+- Improved code readability by removing unnecessary abstraction layers
+
 ## [1.6.0] - 2025-05-10
 
 ### Added

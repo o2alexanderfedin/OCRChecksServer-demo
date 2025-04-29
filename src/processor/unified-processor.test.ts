@@ -1,7 +1,7 @@
 import { UnifiedProcessor } from './unified-processor';
 import { OCRProvider, Document, DocumentType } from '../ocr/types';
 import { JsonExtractor } from '../json/types';
-import { ReceiptExtractor } from '../json/extractors/types';
+import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types';
 import { MistralReceiptExtractor } from '../json/extractors/receipt-extractor';
 
 // Mock implementations
@@ -26,7 +26,7 @@ class MockJsonExtractor implements JsonExtractor {
 describe('UnifiedProcessor', () => {
   let ocrProvider: OCRProvider;
   let jsonExtractor: JsonExtractor;
-  let receiptExtractor: ReceiptExtractor;
+  let receiptExtractor: IReceiptExtractor;
   let processor: UnifiedProcessor;
 
   beforeEach(() => {

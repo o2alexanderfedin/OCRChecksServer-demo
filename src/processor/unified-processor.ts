@@ -1,7 +1,7 @@
 import { OCRProvider, Document, OCRResult } from '../ocr/types';
 import { DocumentProcessor, ProcessingResult } from './types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
-import { ReceiptExtractor } from '../json/extractors/types';
+import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types';
 
 /**
  * UnifiedProcessor - Encapsulates OCR and JSON extraction in a single process
@@ -13,7 +13,7 @@ import { ReceiptExtractor } from '../json/extractors/types';
  */
 export class UnifiedProcessor implements DocumentProcessor {
   private ocrProvider: OCRProvider;
-  private receiptExtractor: ReceiptExtractor;
+  private receiptExtractor: IReceiptExtractor;
 
   /**
    * Creates a new UnifiedProcessor
@@ -23,7 +23,7 @@ export class UnifiedProcessor implements DocumentProcessor {
    */
   constructor(
     ocrProvider: OCRProvider,
-    receiptExtractor: ReceiptExtractor
+    receiptExtractor: IReceiptExtractor
   ) {
     this.ocrProvider = ocrProvider;
     this.receiptExtractor = receiptExtractor;

@@ -114,10 +114,13 @@ class ReceiptExtractor {
 // Create the dependencies
 const jsonExtractor = new MistralJsonExtractorProvider(io, mistralClient);
 
-// Create the receipt extractor
+// Create the receipt extractor (implements IReceiptExtractor interface)
 const receiptExtractor = new MistralReceiptExtractor(jsonExtractor);
 
-// Extract data from OCR text
+// Use in UnifiedProcessor (directly accepts IReceiptExtractor)
+const processor = new UnifiedProcessor(ocrProvider, receiptExtractor);
+
+// Or extract data directly from OCR text
 const result = await receiptExtractor.extractFromText(ocrText);
 
 // Handle the result

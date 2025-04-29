@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- New `ReceiptExtractor` interface for better abstraction
+- Refactored `MistralReceiptExtractor` to implement the interface
+- Added backward compatibility adapter for legacy code
+
+### Changed
+- Updated `UnifiedProcessor` to use the new `ReceiptExtractor` interface
+- Improved dependency injection following SOLID principles
+- Restructured code with dedicated extractors directory
+
+### Fixed
+- Improved type safety by using interfaces instead of function types
+
 ## [1.5.0] - 2025-05-05
 
 ### Added

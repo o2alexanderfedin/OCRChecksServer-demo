@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.6.2] - 2025-05-15
+## [1.7.0] - 2025-05-20
+
+### Added
+- Implemented dependency injection system using InversifyJS
+- Added comprehensive DI container in `src/di/container.ts`
+- Created new documentation for the DI system
+- Added documentation for JSON extraction usage
 
 ### Changed
 - Renamed `MistralReceiptExtractor` to `ReceiptExtractor` to better reflect its responsibility

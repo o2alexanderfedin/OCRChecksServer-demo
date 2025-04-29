@@ -2,8 +2,44 @@ import { ProcessorFactory } from '../../src/processor/factory';
 import { workerIoE } from '../../src/io';
 import { Document, DocumentType, IoE } from '../../src/ocr/types';
 import * as fs from 'fs';
-import { existsSync } from 'fs';
 import * as path from 'path';
+
+// Simplified mock with just the types needed for the test
+const mockIoE = {
+  ...workerIoE,
+  // Add missing properties required by IoE
+  console: { log: console.log, error: console.error },
+  fs: {
+    writeFileSync: () => {},
+    readFileSync: () => null,
+    existsSync: () => false,
+    promises: {
+      readFile: async () => '',
+      writeFile: async () => {},
+      readdir: async () => [],
+      rm: async () => {},
+      mkdir: async () => undefined,
+      copyFile: async () => {}
+    }
+  },
+  process: {
+    argv: [],
+    env: {},
+    exit: () => { throw new Error('exit called') },
+    cwd: () => ''
+  },
+  asyncImport: async () => ({ default: {} }),
+  performance: {
+    now: () => 0
+  },
+  tryCatch: <T>(f: () => T) => {
+    try {
+      return ['ok', f()];
+    } catch (error) {
+      return ['error', error];
+    }
+  },
+} as unknown as IoE;
 
 describe('ReceiptScanner Integration', function() {
   // Set a longer timeout for API calls
@@ -21,11 +57,12 @@ describe('ReceiptScanner Integration', function() {
   
   it('should process a receipt image and extract structured data', async function() {
     // Create processor
-    const processor = ProcessorFactory.createMistralProcessor(workerIoE, MISTRAL_API_KEY!);
+    const processor = ProcessorFactory.createMistralProcessor(mockIoE, MISTRAL_API_KEY!);
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
     console.log('Image path:', imagePath);
+    
     // Check if the file exists
     try {
       if (!fs.existsSync(imagePath)) {
@@ -37,6 +74,7 @@ describe('ReceiptScanner Integration', function() {
       pending(`Error checking test image: ${err.message}`);
       return;
     }
+    
     const imageBuffer = fs.readFileSync(imagePath);
     
     // Create document

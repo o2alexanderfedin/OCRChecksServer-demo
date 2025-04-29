@@ -109,7 +109,7 @@ class MistralJsonExtractorProvider implements JsonExtractor {
         let prompt = `Extract the following information from this markdown text as JSON:\n\n${request.markdown}\n\n`;
         
         if (request.schema) {
-            prompt += `Please format the response according to this schema:\n${JSON.stringify(request.schema, null, 2)}\n\n`;
+            prompt += `Please format the response according to this schema:\n\`\`\`json\n${JSON.stringify(request.schema, null, 2)}\n\`\`\`\n\n`;
         }
         
         prompt += "Provide your response as a valid JSON object only.";

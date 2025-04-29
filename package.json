@@ -11,7 +11,8 @@
     "test": "node --loader ts-node/esm test-ocr.f.ts",
     "test:unit": "node --loader ts-node/esm run-tests.js",
     "test:integration": "node --loader ts-node/esm run-integration-tests.js",
-    "test:all": "npm run test:unit && (npm run dev & sleep 5 && npm run test:integration; status=$?; kill %1; exit $status)",
+    "start-server": "node start-server.js",
+    "test:all": "npm run test:unit && (node start-server.js && npm run test:integration)",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix"
   },

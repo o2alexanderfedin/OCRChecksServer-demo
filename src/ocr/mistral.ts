@@ -21,19 +21,17 @@ export type MistralConfig = OCRProviderConfig & {
  */
 export class MistralOCRProvider implements OCRProvider {
     private readonly client: Mistral
-    private readonly model: string
     private readonly io: IoE
 
     /**
      * Creates a new Mistral OCR provider instance
      * @param io I/O interface for network operations
      * @param config Provider configuration
-     * @param client Optional Mistral client instance (for testing)
+     * @param client Mistral client instance (for testing)
      */
-    constructor(io: IoE, config: MistralConfig, client?: Mistral) {
+    constructor(io: IoE, config: MistralConfig, client: Mistral) {
         this.io = io
-        this.client = client ?? new Mistral({ apiKey: config.apiKey })
-        this.model = config.model ?? 'mistral-ocr-latest'
+        this.client = client
     }
 
     /**
@@ -45,7 +43,7 @@ export class MistralOCRProvider implements OCRProvider {
         try {
             const document = this.createDocumentChunk(doc)
             const ocrResponse = await this.client.ocr.process({
-                model: this.model,
+                model: null,
                 document,
                 includeImageBase64: doc.type === DocumentType.PDF
             })

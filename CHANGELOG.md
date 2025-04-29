@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0] - 2025-04-29
+
+### Fixed
+- Fixed DI container TypeScript issues with component instantiation
+- Fixed nested OCR result array access in unified processor
+- Improved error handling for API rate limits
+- Moved tests from src directory to proper tests/unit directory
+- Fixed test interfaces to match implementation
+- Added dedicated test script for receipt scanner tests
+
 ## [1.7.1] - 2025-04-29
 
 ### Fixed

@@ -42,7 +42,13 @@ export class ReceiptScanner implements DocumentProcessor {
       return ['error', `OCR processing failed: ${ocrResult[1].message}`];
     }
 
-    const ocrData = ocrResult[1][0] as OCRResult;
+    // The OCR result is an array of results for each page/image
+    // For simplicity, we'll use the first result if available
+    if (!ocrResult[1][0] || ocrResult[1][0].length === 0) {
+      return ['error', 'OCR processing returned empty results'];
+    }
+    
+    const ocrData = ocrResult[1][0][0]; // First document, first result
     const ocrText = ocrData.text;
     const ocrConfidence = ocrData.confidence;
 

@@ -1,10 +1,11 @@
-import { ReceiptExtractor } from './receipt-extractor';
-import { JsonExtractor } from '../types';
-import { IReceiptExtractor } from './types';
+import { ReceiptExtractor } from '../../../../src/json/extractors/receipt-extractor';
+import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types';
+import { ReceiptExtractor as IReceiptExtractor } from '../../../../src/json/extractors/types';
+import type { Result } from 'functionalscript/types/result/module.f.js';
 
 // Mock implementations
 class MockJsonExtractor implements JsonExtractor {
-  async extract() {
+  async extract(_request: JsonExtractionRequest): Promise<Result<any, Error>> {
     return ['ok', {
       json: {
         merchant: {
@@ -18,14 +19,14 @@ class MockJsonExtractor implements JsonExtractor {
         confidence: 0.9
       },
       confidence: 0.9
-    }];
+    }] as const;
   }
 }
 
 // Failing mock
 class FailingJsonExtractor implements JsonExtractor {
-  async extract() {
-    return ['error', new Error('Extraction failed')];
+  async extract(_request: JsonExtractionRequest): Promise<Result<any, Error>> {
+    return ['error', new Error('Extraction failed')] as const;
   }
 }
 
@@ -48,7 +49,8 @@ describe('ReceiptExtractor', () => {
     // Assert
     expect(result[0]).toBe('ok');
     if (result[0] === 'ok') {
-      expect(result[1].json).toBeDefined();
+      // Replace custom matcher with standard ones
+      expect(result[1].json).not.toBeUndefined();
       expect(result[1].json.merchant.name).toBe('Test Store');
       expect(result[1].json.totals.total).toBe(42.99);
       expect(result[1].json.currency).toBe('USD');
@@ -75,20 +77,22 @@ describe('ReceiptExtractor', () => {
   it('should normalize receipt data', async () => {
     // Arrange
     const jsonExtractor: JsonExtractor = {
-      extract: async () => ['ok', {
-        json: {
-          merchant: {
-            name: 'Test Store'
+      extract: async (_request: JsonExtractionRequest): Promise<Result<any, Error>> => {
+        return ['ok', {
+          json: {
+            merchant: {
+              name: 'Test Store'
+            },
+            timestamp: '2023-01-01',  // Not in ISO format
+            totals: {
+              total: 42.99
+            },
+            currency: 'usd',  // Lowercase
+            confidence: 0.9
           },
-          timestamp: '2023-01-01',  // Not in ISO format
-          totals: {
-            total: 42.99
-          },
-          currency: 'usd',  // Lowercase
           confidence: 0.9
-        },
-        confidence: 0.9
-      }]
+        }] as const;
+      }
     };
     
     const extractor = new ReceiptExtractor(jsonExtractor);

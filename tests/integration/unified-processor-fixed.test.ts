@@ -2,13 +2,61 @@ import { ProcessorFactory } from '../../src/processor/factory';
 import { workerIoE } from '../../src/io';
 import { Document, DocumentType, IoE } from '../../src/ocr/types';
 import * as fs from 'fs';
-import { existsSync } from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Create a complete IoE object with all required properties
+const testIoE = {
+  // From workerIoE
+  fetch: globalThis.fetch,
+  atob: globalThis.atob,
+  asyncTryCatch: async <T>(fn: () => Promise<T>) => {
+    try {
+      const result = await fn();
+      return ['ok', result] as const;
+    } catch (error) {
+      return ['error', error] as const;
+    }
+  },
+  log: (message: string) => console.log(message),
+  
+  // Additional required properties for IoE
+  console: console,
+  fs: {
+    writeFileSync: () => {},
+    readFileSync: () => Buffer.from(''),
+    existsSync: fs.existsSync,  // Use real existsSync to check for test images
+    promises: {
+      readFile: async () => Buffer.from(''),
+      writeFile: async () => {},
+      readdir: async () => [],
+      rm: async () => {},
+      mkdir: async () => undefined,
+      copyFile: async () => {}
+    }
+  },
+  process: {
+    argv: [],
+    env: process.env,  // Use real environment variables
+    exit: () => { throw new Error('exit called'); },
+    cwd: () => process.cwd()
+  },
+  asyncImport: async () => ({ default: {} }),
+  performance: {
+    now: () => Date.now()
+  },
+  tryCatch: <T>(fn: () => T) => {
+    try {
+      return ['ok', fn()] as const;
+    } catch (error) {
+      return ['error', error] as const;
+    }
+  }
+} as unknown as IoE;
 
 describe('ReceiptScanner Integration', function() {
   // Set a longer timeout for API calls
@@ -26,11 +74,12 @@ describe('ReceiptScanner Integration', function() {
   
   it('should process a receipt image and extract structured data', async function() {
     // Create processor
-    const processor = ProcessorFactory.createMistralProcessor(workerIoE, MISTRAL_API_KEY!);
+    const processor = ProcessorFactory.createMistralProcessor(testIoE, MISTRAL_API_KEY!);
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
     console.log('Image path:', imagePath);
+    
     // Check if the file exists
     try {
       if (!fs.existsSync(imagePath)) {
@@ -42,6 +91,7 @@ describe('ReceiptScanner Integration', function() {
       pending(`Error checking test image: ${err.message}`);
       return;
     }
+    
     const imageBuffer = fs.readFileSync(imagePath);
     
     // Create document

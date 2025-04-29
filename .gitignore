@@ -30,3 +30,6 @@ logs/
 
 # Test coverage
 coverage/ 
+
+# Debug test scripts
+debug-test/

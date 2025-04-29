@@ -1,6 +1,6 @@
 {
   "name": "ocr-checks-worker",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks",
   "type": "module",
   "main": "src/index.ts",
@@ -13,6 +13,7 @@
     "test:functional": "node --loader ts-node/esm scripts/run-functional-tests.js",
     "test:semi": "node --loader ts-node/esm scripts/run-semi-tests.js",
     "test:integration": "node --loader ts-node/esm scripts/run-tests.js integration",
+    "test:receipt-scanner": "node --loader ts-node/esm scripts/run-receipt-scanner-test.js",
     "start-server": "node scripts/start-server.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix"

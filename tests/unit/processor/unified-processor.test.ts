@@ -1,25 +1,29 @@
-import { ReceiptScanner } from './unified-processor';
-import { OCRProvider, Document, DocumentType } from '../ocr/types';
-import { JsonExtractor } from '../json/types';
-import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types';
-import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
+import { ReceiptScanner } from '../../../src/processor/unified-processor';
+import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr/types';
+import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
+import { ReceiptExtractor as IReceiptExtractor } from '../../../src/json/extractors/types';
+import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
+import type { Result } from 'functionalscript/types/result/module.f.js';
 
 // Mock implementations
 class MockOCRProvider implements OCRProvider {
-  async processDocuments(documents: Document[]) {
-    return ['ok', documents.map(() => ({
-      text: 'MOCK OCR TEXT',
-      confidence: 0.95
-    }))];
+  async processDocuments(documents: Document[]): Promise<Result<OCRResult[][], Error>> {
+    return ['ok', documents.map(() => [
+      {
+        text: 'MOCK OCR TEXT',
+        confidence: 0.95,
+        pageNumber: 1
+      }
+    ])] as const;
   }
 }
 
 class MockJsonExtractor implements JsonExtractor {
-  async extract() {
+  async extract(_request: JsonExtractionRequest): Promise<Result<any, Error>> {
     return ['ok', {
       json: { mock: 'data' },
       confidence: 0.9
-    }];
+    }] as const;
   }
 }
 
@@ -49,17 +53,20 @@ describe('ReceiptScanner', () => {
     // Assert
     expect(result[0]).toBe('ok');
     if (result[0] === 'ok') {
-      expect(result[1]).toHaveProperty('json');
-      expect(result[1]).toHaveProperty('ocrConfidence');
-      expect(result[1]).toHaveProperty('extractionConfidence');
-      expect(result[1]).toHaveProperty('overallConfidence');
+      // Replace custom matcher with standard ones
+      expect(result[1].json).not.toBeUndefined();
+      expect(result[1].ocrConfidence).not.toBeUndefined();
+      expect(result[1].extractionConfidence).not.toBeUndefined();
+      expect(result[1].overallConfidence).not.toBeUndefined();
     }
   });
 
   it('should handle OCR failure', async () => {
     // Arrange
     const failingOcrProvider: OCRProvider = {
-      processDocuments: async () => ['error', new Error('OCR failed')]
+      processDocuments: async (): Promise<Result<OCRResult[][], Error>> => {
+        return ['error', new Error('OCR failed')] as const;
+      }
     };
     
     processor = new ReceiptScanner(failingOcrProvider, receiptExtractor);
@@ -81,7 +88,9 @@ describe('ReceiptScanner', () => {
   it('should handle JSON extraction failure', async () => {
     // Arrange
     const failingReceiptExtractor = {
-      extractFromText: async () => ['error', 'Extraction failed']
+      extractFromText: async (): Promise<Result<any, string>> => {
+        return ['error', 'Extraction failed'] as const;
+      }
     };
     
     processor = new ReceiptScanner(ocrProvider, failingReceiptExtractor);

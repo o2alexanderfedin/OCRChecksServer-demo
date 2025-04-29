@@ -9,11 +9,53 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Use actual workerIoE instead of a mock to ensure all required properties are present
+// Create a complete IoE object with all required properties
 const testIoE = {
-  ...workerIoE,
-  // Add console for logging
-  console: console
+  // From workerIoE
+  fetch: globalThis.fetch,
+  atob: globalThis.atob,
+  asyncTryCatch: async <T>(fn: () => Promise<T>) => {
+    try {
+      const result = await fn();
+      return ['ok', result] as const;
+    } catch (error) {
+      return ['error', error] as const;
+    }
+  },
+  log: (message: string) => console.log(message),
+  
+  // Additional required properties for IoE
+  console: console,
+  fs: {
+    writeFileSync: () => {},
+    readFileSync: () => Buffer.from(''),
+    existsSync: fs.existsSync,  // Use real existsSync to check for test images
+    promises: {
+      readFile: async () => Buffer.from(''),
+      writeFile: async () => {},
+      readdir: async () => [],
+      rm: async () => {},
+      mkdir: async () => undefined,
+      copyFile: async () => {}
+    }
+  },
+  process: {
+    argv: [],
+    env: process.env,  // Use real environment variables
+    exit: () => { throw new Error('exit called'); },
+    cwd: () => process.cwd()
+  },
+  asyncImport: async () => ({ default: {} }),
+  performance: {
+    now: () => Date.now()
+  },
+  tryCatch: <T>(fn: () => T) => {
+    try {
+      return ['ok', fn()] as const;
+    } catch (error) {
+      return ['error', error] as const;
+    }
+  }
 } as IoE;
 
 describe('ReceiptScanner Integration', function() {

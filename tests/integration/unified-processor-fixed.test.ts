@@ -3,6 +3,11 @@ import { workerIoE } from '../../src/io';
 import { Document, DocumentType, IoE } from '../../src/ocr/types';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// Create dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Simplified mock with just the types needed for the test
 const mockIoE = {

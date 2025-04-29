@@ -27,7 +27,6 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Semi-integration test for Mistral OCR provider
-- Test step scripts for easier testing and debugging
 - Jasmine timeout configuration for API tests
 
 ### Changed

@@ -92,6 +92,9 @@ describe('ReceiptScanner Integration', function() {
     // Process document
     const result = await processor.processDocument(document);
     
+    // Log the result for debugging
+    console.log('Process result:', result);
+    
     // Verify result
     expect(result[0]).toBe('ok');
     

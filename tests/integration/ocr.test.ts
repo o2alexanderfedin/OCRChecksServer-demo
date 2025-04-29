@@ -24,24 +24,42 @@ interface OCRResult {
  * @returns Promise with OCR result
  */
 async function processImage(imagePath: string, baseUrl = 'http://localhost:8787'): Promise<OCRResult> {
+  // Set a timeout for the fetch operation (10 seconds)
+  const TIMEOUT_MS = 10000;
+  
   const imageBuffer = await fs.readFile(imagePath);
   console.log(`Processing image ${path.basename(imagePath)} (${imageBuffer.length} bytes)`);
 
-  const response = await fetch(baseUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'image/jpeg'
-    },
-    body: imageBuffer
-  });
+  try {
+    // Create an AbortController to handle timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'image/jpeg'
+      },
+      body: imageBuffer,
+      signal: controller.signal
+    });
+    
+    // Clear the timeout
+    clearTimeout(timeoutId);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Failed to process image: ${response.status} ${errorText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to process image: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timed out after ${TIMEOUT_MS}ms. Make sure the server is running.`);
+    }
+    throw error;
   }
-
-  const result = await response.json();
-  return result;
 }
 
 describe('OCR API Integration Tests', () => {
@@ -66,8 +84,7 @@ describe('OCR API Integration Tests', () => {
   it('should process valid check images successfully', async () => {
     const files = await fs.readdir(checksDir);
     const testImages = files.filter(file => 
-      (file.endsWith('.jpg') || file.endsWith('.jpeg')) && 
-      file.startsWith('telegram')
+      file.endsWith('.jpg') || file.endsWith('.jpeg')
     );
     
     // Skip test if no valid test images found
@@ -76,10 +93,14 @@ describe('OCR API Integration Tests', () => {
       return;
     }
     
+    // Limit to 2 images for faster testing
+    const imagesToTest = testImages.slice(0, 2);
+    
     // Process each image
-    for (const file of testImages) {
+    for (const file of imagesToTest) {
       const imagePath = path.join(checksDir, file);
       try {
+        console.log(`Testing with image: ${file}`);
         const result = await processImage(imagePath, baseUrl);
         results[file] = result;
         

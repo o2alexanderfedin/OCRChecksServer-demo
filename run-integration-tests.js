@@ -29,5 +29,18 @@ console.log('Starting OCR API Integration Tests...');
 console.log(`API URL: ${process.env.OCR_API_URL || 'http://localhost:8787'}`);
 console.log('Make sure the server is running before starting tests.\n');
 
-// Execute the tests
-jasmine.execute();
+// Execute the tests with a safety timeout
+const testsPromise = jasmine.execute();
+
+// Add a global timeout to prevent hanging
+const timeoutMs = 60000; // 1 minute timeout
+const timeoutPromise = new Promise((_, reject) => {
+  setTimeout(() => reject(new Error(`Tests timed out after ${timeoutMs / 1000} seconds`)), timeoutMs);
+});
+
+// Use Promise.race to handle either completion or timeout
+Promise.race([testsPromise, timeoutPromise])
+  .catch(error => {
+    console.error(`\n⚠️  ${error.message}`);
+    process.exit(1);
+  });

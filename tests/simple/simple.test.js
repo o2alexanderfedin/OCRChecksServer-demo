@@ -30,18 +30,13 @@ describe('MistralOCR Semi-Integration', () => {
   // Create real Mistral client with actual API key
   const realMistralClient = new Mistral({ apiKey: MISTRAL_API_KEY });
   
-  // Create minimal config - only need API key
-  const realConfig = { 
-    apiKey: MISTRAL_API_KEY
-  };
-
   // Create provider with real dependencies
   let provider;
 
   beforeAll(() => {
     console.log('Initializing MistralOCRProvider with real dependencies');
     // Initialize the provider with real dependencies
-    provider = new MistralOCRProvider(realIo, realConfig, realMistralClient);
+    provider = new MistralOCRProvider(realIo, realMistralClient);
   });
 
   it('should process a check image with real Mistral client', async () => {

@@ -63,7 +63,7 @@ describe('MistralOCR (Functional Style)', () => {
         mockClient = new Mistral({ apiKey: 'test-key' })
         
         // Create provider with mock client
-        provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' }, mockClient)
+        provider = new MistralOCRProvider(mockIo, mockClient)
     })
 
     it('should process a single image document with confidence score', async () => {

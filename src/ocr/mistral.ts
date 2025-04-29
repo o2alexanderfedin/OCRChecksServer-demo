@@ -26,10 +26,9 @@ export class MistralOCRProvider implements OCRProvider {
     /**
      * Creates a new Mistral OCR provider instance
      * @param io I/O interface for network operations
-     * @param config Provider configuration
-     * @param client Mistral client instance (for testing)
+     * @param client Mistral client instance
      */
-    constructor(io: IoE, config: MistralConfig, client: Mistral) {
+    constructor(io: IoE, client: Mistral) {
         this.io = io
         this.client = client
     }

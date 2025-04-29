@@ -75,7 +75,7 @@ describe('MistralOCR', () => {
         const mockClient = new Mistral({ apiKey: 'test-key' });
         spyOn(mockClient.ocr, 'process').and.returnValue(Promise.resolve(mockResponse));
 
-        const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' }, mockClient)
+        const provider = new MistralOCRProvider(mockIo, mockClient)
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
             type: DocumentType.Image
@@ -96,7 +96,7 @@ describe('MistralOCR', () => {
         const mockClient = new Mistral({ apiKey: 'test-key' });
         spyOn(mockClient.ocr, 'process').and.returnValue(Promise.reject(new Error('Bad Request')));
 
-        const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' }, mockClient)
+        const provider = new MistralOCRProvider(mockIo, mockClient)
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
             type: DocumentType.Image
@@ -146,7 +146,7 @@ describe('MistralOCR', () => {
         const mockClient = new Mistral({ apiKey: 'test-key' });
         spyOn(mockClient.ocr, 'process').and.callFake(() => Promise.resolve(mockResponses[callCount++]));
 
-        const provider = new MistralOCRProvider(mockIo, { apiKey: 'test-key' }, mockClient)
+        const provider = new MistralOCRProvider(mockIo, mockClient)
         const result = await provider.processDocuments([
             { content: new Uint8Array([1, 2, 3]).buffer, type: DocumentType.Image },
             { content: new Uint8Array([4, 5, 6]).buffer, type: DocumentType.Image }

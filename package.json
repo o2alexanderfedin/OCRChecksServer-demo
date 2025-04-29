@@ -9,6 +9,7 @@
     "dev:watch": "wrangler dev --live-reload",
     "deploy": "wrangler deploy",
     "test": "node --loader ts-node/esm test-ocr.f.ts",
+    "test:unit": "node --loader ts-node/esm run-tests.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix"
   },

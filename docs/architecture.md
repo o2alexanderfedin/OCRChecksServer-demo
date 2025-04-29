@@ -52,10 +52,14 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 - Tests both functional-style components (`.test.f.ts`) and object-oriented components (`.test.ts`)
 
 #### Integration Tests
-- Tests the complete worker functionality
-- Processes actual check images
-- Validates end-to-end workflow
-- Can be run with `npm test` command
+- Tests the complete worker functionality in a live environment
+- Located in the `tests/integration` directory with `.test.ts` extension
+- Uses Jasmine framework with extended timeouts for API calls
+- Processes actual check images from the `Checks` directory
+- Validates end-to-end workflow with real API responses
+- Verifies error handling and edge cases
+- Can be run with `npm run test:integration` command
+- Outputs detailed test results to `integration-test-results.json`
 
 ## UML Diagrams
 
@@ -107,8 +111,10 @@ sequenceDiagram
 
 1. **Local Development**
    - `npm run dev`: Start local worker
+   - `npm run dev:watch`: Start local worker with live reload
    - `npm run test:unit`: Run unit tests with Jasmine
-   - `npm test`: Run integration tests against local server
+   - `npm run test:integration`: Run integration tests against local server
+   - `npm run test:all`: Run all tests (unit + integration) with automatic server management
 
 2. **Deployment**
    - Uses Wrangler for deployment

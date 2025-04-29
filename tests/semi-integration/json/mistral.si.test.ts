@@ -6,6 +6,9 @@ import { MistralJsonExtractorProvider } from '../../../src/json/mistral'
 import { JsonSchema } from '../../../src/json/types'
 import 'jasmine'
 
+// Set longer timeout for all specs (30 seconds)
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000
+
 // Semi-integration test for JSON extraction
 // This test connects to the real Mistral API but uses test data
 describe('MistralJson Semi-Integration', () => {

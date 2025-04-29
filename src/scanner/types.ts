@@ -19,9 +19,9 @@ export type ProcessingResult = {
 };
 
 /**
- * Interface for document processors
+ * Interface for document scanners
  */
-export interface DocumentProcessor {
+export interface DocumentScanner {
   /**
    * Process a document and extract structured data
    * @param document Document to process

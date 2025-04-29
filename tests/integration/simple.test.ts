@@ -8,8 +8,38 @@ const projectRoot = path.resolve(__dirname, '..', '..');
 
 // API endpoint configuration
 const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
+console.log('Using API URL:', API_URL);
 
 describe('Basic Server Health Checks', () => {
+  // Helper function to check server availability
+  async function checkServerAvailability() {
+    try {
+      console.log(`Checking server at ${API_URL}...`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(API_URL, { 
+        method: 'HEAD',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      console.log(`Server responded with status: ${response.status}`);
+      return response;
+    } catch (error) {
+      console.error(`Server check failed: ${error.message}`);
+      return null;
+    }
+  }
+  
+  beforeAll(async () => {
+    // Make sure server is available before running tests
+    const response = await checkServerAvailability();
+    if (!response) {
+      console.error('Server is not available. Tests may fail.');
+    }
+  });
+  
   it('should respond to HEAD requests (server availability check)', async () => {
     const response = await fetch(API_URL, { method: 'HEAD' });
     expect(response.status).toBeLessThan(500); // Any non-server error is acceptable

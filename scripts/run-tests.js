@@ -73,17 +73,33 @@ const config = testConfigs[testType];
 let serverProcess = null;
 if (config.requiresServer) {
   console.log('Starting server for integration tests...');
+  
+  // Use a more robust approach to capture output
   serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
-    stdio: 'inherit',
-    detached: false
+    stdio: ['inherit', 'pipe', 'inherit'],
+    detached: false,
+    env: { ...process.env }
+  });
+  
+  // Capture and parse stdout to get the server URL
+  serverProcess.stdout.on('data', (data) => {
+    const output = data.toString();
+    process.stdout.write(output);
+    
+    // Check for the server URL message from start-server.js
+    const match = output.match(/Found server URL: (http:\/\/localhost:\d+)/);
+    if (match && match[1]) {
+      process.env.OCR_API_URL = match[1];
+      console.log(`Setting OCR_API_URL environment variable to: ${match[1]}`);
+    }
   });
   
   serverProcess.on('error', (err) => {
     console.error('Failed to start server:', err);
   });
   
-  // Give the server a moment to start
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // Give the server a moment to start (longer timeout to be safe)
+  await new Promise(resolve => setTimeout(resolve, 5000));
 }
 
 // Create and configure Jasmine

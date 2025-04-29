@@ -29,13 +29,22 @@ const serverProcess = spawn('npm', ['run', 'dev'], {
 
 // Set up output and error handling
 let serverReady = false;
+let serverUrl = null;
 let errorOutput = '';
 
 serverProcess.stdout.on('data', (data) => {
   const output = data.toString();
   process.stdout.write(output);
   
+  // Check for server ready message and extract the actual URL
   if (output.includes(SERVER_READY_MESSAGE)) {
+    const match = output.match(/Ready on (http:\/\/localhost:\d+)/);
+    if (match && match[1]) {
+      serverUrl = match[1];
+      console.log(`Found server URL: ${serverUrl}`);
+      // Export the URL as an environment variable for tests
+      process.env.OCR_API_URL = serverUrl;
+    }
     serverReady = true;
   }
 });

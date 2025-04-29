@@ -15,10 +15,33 @@ const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
 // Utility functions
 function getFirstCheckImage() {
   try {
+    // Check if directory exists
+    if (!fs.existsSync(checksDir)) {
+      console.warn(`Check images directory not found: ${checksDir}`);
+      // Try parent directory
+      const parentDir = path.join(projectRoot, 'Checks');
+      if (fs.existsSync(parentDir)) {
+        console.log(`Trying parent directory: ${parentDir}`);
+        const images = fs.readdirSync(parentDir)
+          .filter(file => file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.HEIC'))
+          .filter(file => !file.startsWith('._')); // Filter out macOS metadata files
+        return images.length > 0 ? path.join(parentDir, images[0]) : null;
+      }
+      
+      return null;
+    }
+  
     const images = fs.readdirSync(checksDir)
       .filter(file => file.endsWith('.jpg') || file.endsWith('.jpeg'))
       .filter(file => !file.startsWith('._')); // Filter out macOS metadata files
-    return images.length > 0 ? path.join(checksDir, images[0]) : null;
+      
+    if (images.length === 0) {
+      console.warn('No image files found in the directory');
+      return null;
+    }
+    
+    console.log(`Found check image: ${images[0]}`);
+    return path.join(checksDir, images[0]);
   } catch (error) {
     console.error('Error reading check images directory:', error);
     return null;
@@ -51,17 +74,24 @@ describe('Fixed OCR Tests with Expected Results', () => {
   });
   
   it('should match OCR response with expected fields from recorded results', async () => {
+    // Log API URL being used
+    console.log('API URL for OCR test:', API_URL);
+    
     // Skip test if expected results are not available
     if (!expectedResults) {
+      console.warn('Expected results not available. Run semi-integration tests first.');
       pending('Expected results not available. Run semi-integration tests first.');
       return;
     }
     
     const imagePath = getFirstCheckImage();
     if (!imagePath) {
+      console.error('No check images found for testing');
       fail('No check images found for testing');
       return;
     }
+    
+    console.log(`Using image file: ${imagePath}`);
     
     const imageBuffer = fs.readFileSync(imagePath);
     const response = await fetch(API_URL, {

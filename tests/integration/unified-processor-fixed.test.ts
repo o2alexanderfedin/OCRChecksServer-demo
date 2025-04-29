@@ -56,7 +56,7 @@ const testIoE = {
       return ['error', error] as const;
     }
   }
-} as IoE;
+} as unknown as IoE;
 
 describe('ReceiptScanner Integration', function() {
   // Set a longer timeout for API calls

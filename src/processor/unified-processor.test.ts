@@ -1,7 +1,8 @@
 import { UnifiedProcessor } from './unified-processor';
 import { OCRProvider, Document, DocumentType } from '../ocr/types';
 import { JsonExtractor } from '../json/types';
-import { ReceiptExtractor } from '../json/receipt-extractor';
+import { ReceiptExtractor } from '../json/extractors/types';
+import { MistralReceiptExtractor } from '../json/extractors/receipt-extractor';
 
 // Mock implementations
 class MockOCRProvider implements OCRProvider {
@@ -31,7 +32,7 @@ describe('UnifiedProcessor', () => {
   beforeEach(() => {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
-    receiptExtractor = new ReceiptExtractor(jsonExtractor);
+    receiptExtractor = new MistralReceiptExtractor(jsonExtractor);
     processor = new UnifiedProcessor(ocrProvider, receiptExtractor);
   });
 

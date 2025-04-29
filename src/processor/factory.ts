@@ -1,7 +1,7 @@
 import { IoE } from '../ocr/types';
 import { MistralOCRProvider } from '../ocr/mistral';
 import { MistralJsonExtractorProvider } from '../json/mistral';
-import { ReceiptExtractor } from '../json/receipt-extractor';
+import { MistralReceiptExtractor } from '../json/extractors/receipt-extractor';
 import { UnifiedProcessor } from './unified-processor';
 import { Mistral } from '@mistralai/mistralai';
 
@@ -32,7 +32,7 @@ export class ProcessorFactory {
     const jsonExtractor = new MistralJsonExtractorProvider(io, mistralClient);
     
     // Create receipt extractor
-    const receiptExtractor = new ReceiptExtractor(jsonExtractor);
+    const receiptExtractor = new MistralReceiptExtractor(jsonExtractor);
     
     // Create and return unified processor
     return new UnifiedProcessor(ocrProvider, receiptExtractor);

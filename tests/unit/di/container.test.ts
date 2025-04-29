@@ -5,7 +5,7 @@ import { Mistral } from '@mistralai/mistralai';
 import { MistralOCRProvider } from '../../../src/ocr/mistral';
 import { MistralJsonExtractorProvider } from '../../../src/json/mistral';
 import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
-import { ReceiptScanner } from '../../../src/processor/unified-processor';
+import { ReceiptScanner } from '../../../src/scanner/receipt-scanner';
 
 describe('DIContainer', () => {
   // Mock IoE implementation as simple as possible

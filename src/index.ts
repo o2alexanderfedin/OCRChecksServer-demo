@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { workerIoE } from './io';
-import { ProcessorFactory } from './processor/factory';
+import { ScannerFactory } from './scanner/factory';
 import { Document, DocumentType } from './ocr/types';
 
 interface Env {
@@ -165,8 +165,8 @@ app.post('/process', async (c) => {
     // Get image data
     const imageBuffer = await c.req.arrayBuffer();
 
-    // Create processor
-    const processor = ProcessorFactory.createMistralProcessor(workerIoE, c.env.MISTRAL_API_KEY);
+    // Create scanner
+    const scanner = ScannerFactory.createMistralScanner(workerIoE, c.env.MISTRAL_API_KEY);
 
     // Create document
     const document: Document = {
@@ -176,7 +176,7 @@ app.post('/process', async (c) => {
     };
 
     // Process document
-    const result = await processor.processDocument(document);
+    const result = await scanner.processDocument(document);
 
     // Handle result
     if (result[0] === 'error') {

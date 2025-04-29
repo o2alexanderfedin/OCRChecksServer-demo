@@ -45,9 +45,8 @@ export class DIContainer {
     // Register OCR provider
     this.container.bind(TYPES.OCRProvider).toDynamicValue((_context) => {
       const io = this.container.get<IoE>(TYPES.IoE);
-      const mistralApiKey = this.container.get<string>(TYPES.MistralApiKey);
-      // Use any to bypass type checking since apiKey is valid but not in type definition
-      return new MistralOCRProvider(io, { apiKey: mistralApiKey } as any);
+      const mistralClient = this.container.get<Mistral>(TYPES.MistralClient);
+      return new MistralOCRProvider(io, mistralClient);
     }).inSingletonScope();
     
     // Register JSON extractor provider

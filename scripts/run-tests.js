@@ -27,6 +27,7 @@ const projectRoot = join(__dirname, '..');
 // Parse command line arguments
 const testType = process.argv[2]?.toLowerCase() || 'all';
 const watch = process.argv.includes('--watch');
+const dryRun = process.argv.includes('--dry-run');
 
 // Map test types to their configurations
 const testConfigs = {
@@ -151,6 +152,14 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Execute tests with timeout protection
 const timeoutMs = config.timeoutInterval * 2;
+
+// If dry run, just log tests that would be executed
+if (dryRun) {
+  console.log(`Dry run - would execute ${testType} tests with spec files:`, config.spec_files);
+  console.log('Exiting without running tests');
+  process.exit(0);
+}
+
 const testsPromise = jasmine.execute();
 
 // Add timeout protection

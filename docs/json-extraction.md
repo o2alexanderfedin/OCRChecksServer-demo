@@ -35,10 +35,8 @@ interface JsonExtractor {
     extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>>;
 }
 
-// Mistral-specific configuration
-type MistralJsonConfig = {
-    /** API key for Mistral */
-    apiKey: string;
+// Mistral API options
+type MistralApiOptions = {
     /** Model to use for JSON extraction */
     model?: string;
     /** Temperature for generation (0-1) */
@@ -54,18 +52,15 @@ type MistralJsonConfig = {
 class MistralJsonExtractorProvider implements JsonExtractor {
     private readonly client: Mistral;
     private readonly io: IoE;
-    private readonly config: MistralJsonConfig;
 
     /**
      * Creates a new Mistral JSON extractor instance
      * @param io I/O interface for network operations
      * @param client Mistral client instance
-     * @param config Configuration for the extractor
      */
-    constructor(io: IoE, client: Mistral, config: MistralJsonConfig) {
+    constructor(io: IoE, client: Mistral) {
         this.io = io;
         this.client = client;
-        this.config = config;
     }
 
     async extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>> {
@@ -75,7 +70,7 @@ class MistralJsonExtractorProvider implements JsonExtractor {
             
             // Call Mistral API
             const response = await this.client.chat.completions.create({
-                model: this.config.model || 'mistral-large-latest',
+                model: 'mistral-large-latest',
                 messages: [
                     {
                         role: 'system',
@@ -86,8 +81,8 @@ class MistralJsonExtractorProvider implements JsonExtractor {
                         content: prompt
                     }
                 ],
-                temperature: this.config.temperature || 0.0,
-                max_tokens: this.config.maxTokens || 4096,
+                temperature: 0.0,
+                max_tokens: 4096,
                 response_format: { type: 'json_object' }
             });
             
@@ -179,12 +174,8 @@ class MistralJsonExtractorProvider implements JsonExtractor {
 ```typescript
 // Create the extractor
 const io = new IoProvider();
-const mistralClient = new Mistral(config.apiKey);
-const jsonExtractor = new MistralJsonExtractorProvider(io, mistralClient, {
-    apiKey: process.env.MISTRAL_API_KEY,
-    model: 'mistral-large-latest',
-    temperature: 0.0
-});
+const mistralClient = new Mistral(process.env.MISTRAL_API_KEY);
+const jsonExtractor = new MistralJsonExtractorProvider(io, mistralClient);
 
 // Extract JSON from OCR output
 const ocrText = "Check #1234\nDate: 01/15/2024\nPay to: John Smith\nAmount: $500.00\nMemo: Consulting services";
@@ -231,8 +222,7 @@ classDiagram
     class MistralJsonExtractorProvider {
         -IoE io
         -Mistral client
-        -MistralJsonConfig config
-        +constructor(io: IoE, client: Mistral, config: MistralJsonConfig)
+        +constructor(io: IoE, client: Mistral)
         +extract(request: JsonExtractionRequest) Promise~Result<JsonExtractionResult, Error>~
         -constructPrompt(request) string
         -calculateConfidence(response, json) number

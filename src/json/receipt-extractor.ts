@@ -27,9 +27,9 @@ export class ReceiptExtractor {
    * Extracts receipt data from OCR text
    * 
    * @param ocrText - The OCR text from a receipt image
-   * @returns A Result with either an error or the extracted receipt data with confidence
+   * @returns A Result tuple with either an error or the extracted receipt data with confidence
    */
-  async extractFromText(ocrText: string): Promise<Result<{ json: Receipt, confidence: number }, string>> {
+  async extractFromText(ocrText: string): Promise<['ok', { json: Receipt, confidence: number }] | ['error', string]> {
     // Define the schema for extraction
     const receiptSchema: JsonSchema = {
       name: "Receipt",
@@ -148,23 +148,25 @@ export class ReceiptExtractor {
     });
 
     // Handle extraction result
-    if (result.error) {
-      return { error: result.error instanceof Error ? result.error.message : String(result.error) };
+    const [kind, value] = result;
+    if (kind === 'error') {
+      return ['error', value instanceof Error ? value.message : String(value)];
     }
 
     // Add overall confidence to the receipt and normalize
-    const extractedData = result.value.json as Receipt;
-    extractedData.confidence = result.value.confidence;
+    const extractedData = value.json as Receipt;
+    extractedData.confidence = value.confidence;
     
     // Normalize the receipt data
     const normalizedData = this.normalizeReceiptData(extractedData);
 
-    return { 
-      value: {
+    return [
+      'ok', 
+      {
         json: normalizedData,
-        confidence: result.value.confidence
+        confidence: value.confidence
       }
-    };
+    ];
   }
 
   /**

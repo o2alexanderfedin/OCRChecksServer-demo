@@ -89,6 +89,9 @@ if (config.requiresServer) {
 const jasmine = new Jasmine();
 global.jasmine = jasmine;
 
+// Set default timeout interval
+jasmine.jasmine.DEFAULT_TIMEOUT_INTERVAL = config.timeoutInterval;
+
 console.log(`Running ${testType} tests...`);
 jasmine.loadConfig({
   spec_dir: 'tests',

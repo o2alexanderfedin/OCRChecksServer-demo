@@ -382,7 +382,13 @@ sequenceDiagram
         ReceiptExtractor->>ReceiptExtractor: Normalize receipt data
     end
     
+<<<<<<< HEAD
     ReceiptExtractor-->>Client: Result<{json: Receipt, confidence}, string>
+=======
+    MistralJsonExtractorProvider->>MistralJsonExtractorProvider: Calculate Confidence Score
+    MistralJsonExtractorProvider-->>Worker: JsonExtractionResult with Confidence
+    Worker-->>Client: Response
+>>>>>>> feature/update-json-extraction-design
 ```
 
 ## Processing Flow

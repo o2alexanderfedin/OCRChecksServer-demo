@@ -159,6 +159,8 @@ class MistralJsonExtractorProvider implements JsonExtractor {
 
 ## Example Usage
 
+### Basic Usage
+
 ```typescript
 // Create the extractor
 const io = new IoProvider();
@@ -196,6 +198,59 @@ if (result.success) {
 }
 ```
 
+### Receipt Extraction Example
+
+```typescript
+import { ReceiptExtractor } from './json/receipt-extractor';
+import { JsonExtractor } from './json/types';
+import type { Result } from 'functionalscript/types/result/module.f.js';
+
+// Initialize with the JSON extractor
+const jsonExtractor: JsonExtractor = /* your implementation */;
+const receiptExtractor = new ReceiptExtractor(jsonExtractor);
+
+// Extract receipt data from OCR text
+const ocrText = `GROCERY STORE
+123 Main St, Anytown
+Tel: (555) 123-4567
+Date: 09/15/2023 14:30
+-------------------
+1x Milk $3.99
+2x Bread $4.50
+1x Eggs $2.99
+-------------------
+Subtotal: $11.48
+Tax (8%): $0.92
+Total: $12.40
+-------------------
+PAID: VISA ****1234
+Thank you for shopping!`;
+
+const result = await receiptExtractor.extractFromText(ocrText);
+
+if (!result.error) {
+  console.log('Receipt data extracted:', result.value.json);
+  console.log('Confidence score:', result.value.confidence);
+  
+  // Access structured receipt data
+  const receipt = result.value.json;
+  console.log(`Merchant: ${receipt.merchant.name}`);
+  console.log(`Total Amount: ${receipt.totals.total} ${receipt.currency}`);
+  console.log(`Date: ${receipt.timestamp}`);
+  console.log(`Payment Method: ${receipt.paymentMethod}`);
+  
+  // Process line items
+  if (receipt.items && receipt.items.length > 0) {
+    console.log('Items purchased:');
+    receipt.items.forEach(item => {
+      console.log(`- ${item.description}: ${item.totalPrice}`);
+    });
+  }
+} else {
+  console.error('Extraction failed:', result.error);
+}
+```
+
 ## UML Diagrams
 
 ### Class Diagram
@@ -215,6 +270,46 @@ classDiagram
         -constructPrompt(request) string
         -calculateConfidence(response, json) number
         -validateAgainstSchema(json, schema) ValidationResult
+    }
+
+    class ReceiptExtractor {
+        -JsonExtractor jsonExtractor
+        +constructor(jsonExtractor: JsonExtractor)
+        +extractFromText(ocrText: string) Promise~Result<{json: Receipt, confidence: number}, string>~
+        -generateExtractionPrompt(ocrText) string
+        -normalizeReceiptData(receipt) Receipt
+    }
+
+    class Receipt {
+        +merchant: MerchantInfo
+        +receiptNumber?: string
+        +receiptType?: ReceiptType
+        +timestamp: string
+        +paymentMethod?: PaymentMethod
+        +totals: ReceiptTotals
+        +currency: string
+        +items?: ReceiptLineItem[]
+        +taxes?: ReceiptTaxItem[]
+        +payments?: ReceiptPaymentMethod[]
+        +confidence: number
+    }
+
+    class MerchantInfo {
+        +name: string
+        +address?: string
+        +phone?: string
+        +website?: string
+        +taxId?: string
+        +storeId?: string
+        +chainName?: string
+    }
+
+    class ReceiptTotals {
+        +subtotal?: number
+        +tax?: number
+        +tip?: number
+        +discount?: number
+        +total: number
     }
 
     class JsonExtractionResult {
@@ -239,6 +334,10 @@ classDiagram
     MistralJsonExtractorProvider --> IoE : uses
     JsonExtractor --> JsonExtractionResult : returns
     JsonExtractor --> JsonExtractionRequest : processes
+    ReceiptExtractor --> JsonExtractor : uses
+    ReceiptExtractor --> Receipt : creates
+    Receipt --> MerchantInfo : contains
+    Receipt --> ReceiptTotals : contains
 ```
 
 ### Sequence Diagram
@@ -246,25 +345,32 @@ classDiagram
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Worker
-    participant MistralJsonExtractorProvider
+    participant ReceiptExtractor
+    participant JsonExtractor
     participant MistralAPI as "Mistral API"
     participant SchemaValidator
 
-    Client->>Worker: Send Markdown Text
-    Worker->>MistralJsonExtractorProvider: extract({ markdown, schema, options })
-    MistralJsonExtractorProvider->>MistralJsonExtractorProvider: Construct Prompt
-    MistralJsonExtractorProvider->>MistralAPI: Call Mistral Chat API
-    MistralAPI-->>MistralJsonExtractorProvider: Return JSON Response
+    Client->>ReceiptExtractor: extractFromText(ocrText)
+    ReceiptExtractor->>ReceiptExtractor: Generate Extraction Prompt
+    ReceiptExtractor->>ReceiptExtractor: Define Receipt Schema
+    ReceiptExtractor->>JsonExtractor: extract({ markdown, schema })
+    JsonExtractor->>MistralAPI: Call Mistral Chat API
+    MistralAPI-->>JsonExtractor: Return JSON Response
     
     alt Has Schema
-        MistralJsonExtractorProvider->>SchemaValidator: Validate JSON against Schema
-        SchemaValidator-->>MistralJsonExtractorProvider: Validation Result
+        JsonExtractor->>SchemaValidator: Validate JSON against Schema
+        SchemaValidator-->>JsonExtractor: Validation Result
     end
     
-    MistralJsonExtractorProvider->>MistralJsonExtractorProvider: Calculate Confidence Score
-    MistralJsonExtractorProvider-->>Worker: JsonExtractionResult with Confidence
-    Worker-->>Client: Response
+    JsonExtractor->>JsonExtractor: Calculate Confidence Score
+    JsonExtractor-->>ReceiptExtractor: Result<JsonExtractionResult, Error>
+    
+    alt Success
+        ReceiptExtractor->>ReceiptExtractor: Add confidence to receipt
+        ReceiptExtractor->>ReceiptExtractor: Normalize receipt data
+    end
+    
+    ReceiptExtractor-->>Client: Result<{json: Receipt, confidence}, string>
 ```
 
 ## Processing Flow

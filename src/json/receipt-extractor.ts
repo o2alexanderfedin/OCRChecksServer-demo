@@ -4,22 +4,22 @@
  * Processes OCR text to extract structured receipt data according to the receipt schema.
  */
 
-import { Receipt } from './schemas/receipt';
-import { MistralJsonExtractorProvider } from './mistral';
-import { JsonExtractorProvider, SchemaDefinition, extractResult } from './types';
+import { Receipt, ReceiptType, PaymentMethod, CardType, ReceiptFormat, MerchantInfo, ReceiptTotals } from './schemas/receipt';
+import { JsonExtractor, JsonSchema } from './types';
+import type { Result } from 'functionalscript/types/result/module.f.js';
 
 /**
  * Class for extracting receipt data from OCR text
  */
 export class ReceiptExtractor {
-  private jsonExtractor: JsonExtractorProvider;
+  private jsonExtractor: JsonExtractor;
 
   /**
    * Creates a new receipt extractor
    * 
-   * @param jsonExtractor - The JSON extractor provider to use
+   * @param jsonExtractor - The JSON extractor to use
    */
-  constructor(jsonExtractor: JsonExtractorProvider) {
+  constructor(jsonExtractor: JsonExtractor) {
     this.jsonExtractor = jsonExtractor;
   }
 
@@ -27,15 +27,15 @@ export class ReceiptExtractor {
    * Extracts receipt data from OCR text
    * 
    * @param ocrText - The OCR text from a receipt image
-   * @returns A tuple with either an error or the extracted receipt data with confidence
+   * @returns A Result with either an error or the extracted receipt data with confidence
    */
-  async extractFromText(ocrText: string): Promise<extractResult<Receipt>> {
+  async extractFromText(ocrText: string): Promise<Result<{ json: Receipt, confidence: number }, string>> {
     // Define the schema for extraction
-    const receiptSchema: SchemaDefinition = {
+    const receiptSchema: JsonSchema = {
       name: "Receipt",
       schemaDefinition: {
         type: "object",
-        required: ["merchant", "timestamp", "totalAmount", "currency"],
+        required: ["merchant", "timestamp", "totals", "currency", "confidence"],
         properties: {
           merchant: {
             type: "object",
@@ -51,7 +51,15 @@ export class ReceiptExtractor {
             }
           },
           receiptNumber: { type: "string" },
+          receiptType: { 
+            type: "string",
+            enum: ["sale", "return", "refund", "estimate", "proforma", "other"]
+          },
           timestamp: { type: "string", format: "date-time" },
+          paymentMethod: {
+            type: "string",
+            enum: ["credit", "debit", "cash", "check", "gift_card", "store_credit", "mobile_payment", "other"]
+          },
           totals: {
             type: "object",
             required: ["total"],
@@ -63,7 +71,7 @@ export class ReceiptExtractor {
               total: { type: "number", minimum: 0 }
             }
           },
-          currency: { type: "string" },
+          currency: { type: "string", pattern: "^[A-Z]{3}$" },
           items: {
             type: "array",
             items: {
@@ -71,10 +79,14 @@ export class ReceiptExtractor {
               required: ["description", "totalPrice"],
               properties: {
                 description: { type: "string" },
-                quantity: { type: "number" },
-                unit: { type: "string" },
-                unitPrice: { type: "number" },
-                totalPrice: { type: "number" }
+                sku: { type: "string" },
+                quantity: { type: "number", minimum: 0 },
+                unit: { type: "string", enum: ["ea", "kg", "g", "lb", "oz", "l", "ml", "gal", "pc", "pr", "pk", "box", "other"] },
+                unitPrice: { type: "number", minimum: 0 },
+                totalPrice: { type: "number", minimum: 0 },
+                discounted: { type: "boolean" },
+                discountAmount: { type: "number", minimum: 0 },
+                category: { type: "string" }
               }
             }
           },
@@ -85,8 +97,9 @@ export class ReceiptExtractor {
               required: ["taxName", "taxAmount"],
               properties: {
                 taxName: { type: "string" },
-                taxRate: { type: "number" },
-                taxAmount: { type: "number" }
+                taxType: { type: "string", enum: ["sales", "vat", "gst", "pst", "hst", "excise", "service", "other"] },
+                taxRate: { type: "number", minimum: 0, maximum: 1 },
+                taxAmount: { type: "number", minimum: 0 }
               }
             }
           },
@@ -96,13 +109,31 @@ export class ReceiptExtractor {
               type: "object",
               required: ["method", "amount"],
               properties: {
-                method: { type: "string" },
-                cardType: { type: "string" },
-                lastDigits: { type: "string" },
-                amount: { type: "number" }
+                method: { type: "string", enum: ["credit", "debit", "cash", "check", "gift_card", "store_credit", "mobile_payment", "other"] },
+                cardType: { type: "string", enum: ["visa", "mastercard", "amex", "discover", "diners_club", "jcb", "union_pay", "other"] },
+                lastDigits: { type: "string", pattern: "^\\d{4}$" },
+                amount: { type: "number", minimum: 0 },
+                transactionId: { type: "string" }
               }
             }
-          }
+          },
+          notes: {
+            type: "array",
+            items: { type: "string" }
+          },
+          metadata: {
+            type: "object",
+            properties: {
+              confidenceScore: { type: "number", minimum: 0, maximum: 1 },
+              currency: { type: "string", pattern: "^[A-Z]{3}$" },
+              languageCode: { type: "string", pattern: "^[a-z]{2}(-[A-Z]{2})?$" },
+              timeZone: { type: "string" },
+              receiptFormat: { type: "string", enum: ["retail", "restaurant", "service", "utility", "transportation", "accommodation", "other"] },
+              sourceImageId: { type: "string" },
+              warnings: { type: "array", items: { type: "string" } }
+            }
+          },
+          confidence: { type: "number", minimum: 0, maximum: 1 }
         }
       }
     };
@@ -110,25 +141,30 @@ export class ReceiptExtractor {
     // Generate extraction prompt
     const extractionPrompt = this.generateExtractionPrompt(ocrText);
 
-    // Extract JSON using the provider
+    // Extract JSON using the extractor
     const result = await this.jsonExtractor.extract({
       markdown: extractionPrompt,
       schema: receiptSchema
     });
 
     // Handle extraction result
-    if (result[0] === 'error') {
-      return result;
+    if (result.error) {
+      return { error: result.error instanceof Error ? result.error.message : String(result.error) };
     }
 
-    // Add overall confidence to the receipt
-    const extractedData = result[1].json as Receipt;
-    extractedData.confidence = result[1].confidence;
+    // Add overall confidence to the receipt and normalize
+    const extractedData = result.value.json as Receipt;
+    extractedData.confidence = result.value.confidence;
+    
+    // Normalize the receipt data
+    const normalizedData = this.normalizeReceiptData(extractedData);
 
-    return ['ok', {
-      json: extractedData,
-      confidence: result[1].confidence
-    }];
+    return { 
+      value: {
+        json: normalizedData,
+        confidence: result.value.confidence
+      }
+    };
   }
 
   /**

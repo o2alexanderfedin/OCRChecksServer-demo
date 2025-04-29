@@ -4,7 +4,7 @@ import { IoE } from '../ocr/types';
 import { MistralOCRProvider } from '../ocr/mistral';
 import { MistralJsonExtractorProvider } from '../json/mistral';
 import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
-import { ReceiptScanner } from '../processor/receipt-scanner';
+import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { Mistral } from '@mistralai/mistralai';
 
 // Create symbols for dependency identifiers

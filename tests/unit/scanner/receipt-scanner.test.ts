@@ -1,4 +1,4 @@
-import { ReceiptScanner } from '../../../src/processor/receipt-scanner';
+import { ReceiptScanner } from '../../../src/scanner/receipt-scanner';
 import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr/types';
 import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
 import { ReceiptExtractor as IReceiptExtractor } from '../../../src/json/extractors/types';

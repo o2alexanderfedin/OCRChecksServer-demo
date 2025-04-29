@@ -14,9 +14,12 @@ describe('Receipt Schema Validation', () => {
 
   it('should validate a complete valid receipt', () => {
     const receipt: Receipt = {
-      merchantName: "ACME Supermarket",
-      merchantAddress: "123 Main St, Anytown, CA 90210",
-      merchantPhone: "(555) 123-4567",
+      merchant: {
+        name: "ACME Supermarket",
+        address: "123 Main St, Anytown, CA 90210",
+        phone: "(555) 123-4567",
+        storeId: "1035"
+      },
       receiptNumber: "T-59385",
       timestamp: "2025-04-28T15:30:45Z",
       subtotal: 42.97,
@@ -70,7 +73,9 @@ describe('Receipt Schema Validation', () => {
 
   it('should validate a minimal receipt with only required fields', () => {
     const minimalReceipt: Receipt = {
-      merchantName: "Corner Store",
+      merchant: {
+        name: "Corner Store"
+      },
       timestamp: "2025-04-28T10:15:30Z",
       totalAmount: 25.99,
       currency: "USD",
@@ -84,7 +89,9 @@ describe('Receipt Schema Validation', () => {
 
   it('should reject a receipt missing required fields', () => {
     const invalidReceipt = {
-      merchantName: "ACME Store",
+      merchant: {
+        name: "ACME Store"
+      },
       timestamp: "2025-04-28T15:30:45Z",
       // Missing totalAmount
       currency: "USD",
@@ -102,7 +109,9 @@ describe('Receipt Schema Validation', () => {
 
   it('should reject invalid currency format', () => {
     const receiptWithInvalidCurrency: Receipt = {
-      merchantName: "ACME Store",
+      merchant: {
+        name: "ACME Store"
+      },
       timestamp: "2025-04-28T15:30:45Z",
       totalAmount: 45.99,
       currency: "us", // Should be uppercase 3-letter code
@@ -124,7 +133,9 @@ describe('Receipt Schema Validation', () => {
     
     for (const method of paymentMethods) {
       const receipt: Receipt = {
-        merchantName: "Test Store",
+        merchant: {
+          name: "Test Store"
+        },
         timestamp: "2025-04-28T15:30:45Z",
         totalAmount: 100,
         currency: "USD",
@@ -145,7 +156,9 @@ describe('Receipt Schema Validation', () => {
 
   it('should reject negative amounts', () => {
     const receiptWithNegativeAmount: Receipt = {
-      merchantName: "ACME Store",
+      merchant: {
+        name: "ACME Store"
+      },
       timestamp: "2025-04-28T15:30:45Z",
       totalAmount: -45.99, // Negative amount
       currency: "USD",
@@ -165,7 +178,9 @@ describe('Receipt Schema Validation', () => {
   it('should validate confidence score within range 0-1', () => {
     // Valid confidence
     const validReceipt: Receipt = {
-      merchantName: "ACME Store",
+      merchant: {
+        name: "ACME Store"
+      },
       timestamp: "2025-04-28T15:30:45Z",
       totalAmount: 45.99,
       currency: "USD",
@@ -176,7 +191,9 @@ describe('Receipt Schema Validation', () => {
     
     // Invalid confidence - too high
     const tooHighConfidence: Receipt = {
-      merchantName: "ACME Store",
+      merchant: {
+        name: "ACME Store"
+      },
       timestamp: "2025-04-28T15:30:45Z",
       totalAmount: 45.99,
       currency: "USD",
@@ -187,7 +204,9 @@ describe('Receipt Schema Validation', () => {
     
     // Invalid confidence - negative
     const negativeConfidence: Receipt = {
-      merchantName: "ACME Store",
+      merchant: {
+        name: "ACME Store"
+      },
       timestamp: "2025-04-28T15:30:45Z",
       totalAmount: 45.99,
       currency: "USD",

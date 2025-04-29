@@ -35,11 +35,21 @@ export class ReceiptExtractor {
       name: "Receipt",
       schemaDefinition: {
         type: "object",
-        required: ["merchantName", "timestamp", "totalAmount", "currency"],
+        required: ["merchant", "timestamp", "totalAmount", "currency"],
         properties: {
-          merchantName: { type: "string" },
-          merchantAddress: { type: "string" },
-          merchantPhone: { type: "string" },
+          merchant: {
+            type: "object",
+            required: ["name"],
+            properties: {
+              name: { type: "string" },
+              address: { type: "string" },
+              phone: { type: "string" },
+              website: { type: "string" },
+              taxId: { type: "string" },
+              storeId: { type: "string" },
+              chainName: { type: "string" }
+            }
+          },
           receiptNumber: { type: "string" },
           timestamp: { type: "string", format: "date-time" },
           subtotal: { type: "number", minimum: 0 },
@@ -133,7 +143,13 @@ ${ocrText}
 ## Instructions:
 
 Extract the following information:
-- Merchant name, address, and phone number
+- Merchant information (grouped under "merchant" object):
+  - Name of store/merchant
+  - Address
+  - Phone number
+  - Website (if present)
+  - Store ID or branch number (if present)
+  - Chain name (if applicable)
 - Receipt number and date/time
 - Items purchased with quantities, unit prices, and total prices
 - Subtotal, tax amounts, and total amount

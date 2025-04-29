@@ -34,10 +34,13 @@ describe('ReceiptExtractor Functional Tests', () => {
   it('should properly handle successful receipt extraction', async () => {
     // Create mock data that the extractor should return
     const mockExtractedReceipt: Receipt = {
-      merchantName: "ACME SUPERMARKET",
-      merchantAddress: "123 Main Street, Anytown, CA 90210",
-      merchantPhone: "(555) 123-4567",
-      merchantWebsite: "www.acmesupermarket.com",
+      merchant: {
+        name: "ACME SUPERMARKET",
+        address: "123 Main Street, Anytown, CA 90210",
+        phone: "(555) 123-4567",
+        website: "www.acmesupermarket.com",
+        storeId: "1035"
+      },
       receiptNumber: "T-59385",
       timestamp: "2025-04-28T15:30:45Z",
       subtotal: 42.97,
@@ -97,7 +100,8 @@ describe('ReceiptExtractor Functional Tests', () => {
       expect(result[1].confidence).toBeCloseTo(0.92);
 
       const receipt = result[1].json;
-      expect(receipt.merchantName).toBe("ACME SUPERMARKET");
+      expect(receipt.merchant.name).toBe("ACME SUPERMARKET");
+      expect(receipt.merchant.storeId).toBe("1035");
       expect(receipt.totalAmount).toBe(46.41);
       expect(receipt.items?.length).toBe(2);
       expect(receipt.payments?.[0].method).toBe("credit");

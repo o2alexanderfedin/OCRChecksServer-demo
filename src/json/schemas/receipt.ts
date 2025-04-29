@@ -10,28 +10,43 @@ export const receiptSchema = {
   "title": "Receipt",
   "description": "Schema for receipt data extracted from images",
   "type": "object",
-  "required": ["merchantName", "timestamp", "totalAmount", "currency", "confidence"],
+  "required": ["merchant", "timestamp", "totalAmount", "currency", "confidence"],
   "properties": {
-    "merchantName": {
-      "type": "string",
-      "description": "Name of the merchant or store"
-    },
-    "merchantAddress": {
-      "type": "string",
-      "description": "Physical address of the merchant"
-    },
-    "merchantPhone": {
-      "type": "string",
-      "description": "Contact phone number"
-    },
-    "merchantWebsite": {
-      "type": "string",
-      "format": "uri",
-      "description": "Website URL"
-    },
-    "merchantTaxId": {
-      "type": "string",
-      "description": "Tax identification number (VAT/GST ID)"
+    "merchant": {
+      "type": "object",
+      "required": ["name"],
+      "description": "Information about the merchant",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the merchant or store"
+        },
+        "address": {
+          "type": "string",
+          "description": "Physical address of the merchant"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact phone number"
+        },
+        "website": {
+          "type": "string",
+          "format": "uri",
+          "description": "Website URL"
+        },
+        "taxId": {
+          "type": "string",
+          "description": "Tax identification number (VAT/GST ID)"
+        },
+        "storeId": {
+          "type": "string",
+          "description": "Store or branch identifier"
+        },
+        "chainName": {
+          "type": "string",
+          "description": "Name of the store chain if applicable"
+        }
+      }
     },
     "receiptNumber": {
       "type": "string",
@@ -285,12 +300,18 @@ export interface ReceiptMetadata {
   warnings?: string[];
 }
 
+export interface MerchantInfo {
+  name: string;
+  address?: string;
+  phone?: string;
+  website?: string;
+  taxId?: string;
+  storeId?: string;
+  chainName?: string;
+}
+
 export interface Receipt {
-  merchantName: string;
-  merchantAddress?: string;
-  merchantPhone?: string;
-  merchantWebsite?: string;
-  merchantTaxId?: string;
+  merchant: MerchantInfo;
   receiptNumber?: string;
   receiptType?: 'sale' | 'return' | 'refund' | 'estimate' | 'proforma' | 'other';
   timestamp: string;

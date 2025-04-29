@@ -11,11 +11,7 @@ The receipt schema is designed to capture common elements found in retail, resta
 ```mermaid
 classDiagram
     class Receipt {
-        +string merchantName
-        +string merchantAddress
-        +string merchantPhone
-        +string merchantWebsite
-        +string merchantTaxId
+        +MerchantInfo merchant
         +string receiptNumber
         +string receiptType
         +string timestamp
@@ -31,6 +27,16 @@ classDiagram
         +array~String~ notes
         +Metadata metadata
         +float confidence
+    }
+    
+    class MerchantInfo {
+        +string name
+        +string address
+        +string phone
+        +string website
+        +string taxId
+        +string storeId
+        +string chainName
     }
 
     class LineItem {
@@ -70,6 +76,7 @@ classDiagram
         +string[] warnings
     }
 
+    Receipt *-- MerchantInfo : contains
     Receipt *-- LineItem : contains
     Receipt *-- TaxItem : contains
     Receipt *-- PaymentMethod : contains
@@ -82,11 +89,14 @@ classDiagram
 
 | Field | Type | Description | Required |
 |-------|------|-------------|----------|
-| merchantName | string | Name of the merchant or store | Yes |
-| merchantAddress | string | Physical address of the merchant | No |
-| merchantPhone | string | Contact phone number | No |
-| merchantWebsite | string | Website URL | No |
-| merchantTaxId | string | Tax identification number (VAT/GST ID) | No |
+| merchant | object | Information about the merchant | Yes |
+| merchant.name | string | Name of the merchant or store | Yes |
+| merchant.address | string | Physical address of the merchant | No |
+| merchant.phone | string | Contact phone number | No |
+| merchant.website | string | Website URL | No |
+| merchant.taxId | string | Tax identification number (VAT/GST ID) | No |
+| merchant.storeId | string | Store or branch identifier | No |
+| merchant.chainName | string | Name of the store chain if applicable | No |
 | receiptNumber | string | Receipt or invoice number | No |
 | receiptType | string | Type of receipt (e.g., "sale", "return", "refund") | No |
 | timestamp | string | Date and time of transaction (ISO 8601 format) | Yes |
@@ -152,9 +162,12 @@ classDiagram
 
 ```json
 {
-  "merchantName": "ACME Supermarket",
-  "merchantAddress": "123 Main St, Anytown, CA 90210",
-  "merchantPhone": "(555) 123-4567",
+  "merchant": {
+    "name": "ACME Supermarket",
+    "address": "123 Main St, Anytown, CA 90210",
+    "phone": "(555) 123-4567",
+    "storeId": "1035"
+  },
   "receiptNumber": "T-59385",
   "timestamp": "2025-04-28T15:30:45Z",
   "subtotal": 42.97,

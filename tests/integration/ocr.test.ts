@@ -27,14 +27,20 @@ async function processImage(imagePath: string, baseUrl = 'http://localhost:8787'
   // Set a timeout for the fetch operation (10 seconds)
   const TIMEOUT_MS = 10000;
   
+  console.log(`Reading image file: ${imagePath}`);
   const imageBuffer = await fs.readFile(imagePath);
   console.log(`Processing image ${path.basename(imagePath)} (${imageBuffer.length} bytes)`);
 
   try {
     // Create an AbortController to handle timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    console.log(`Setting request timeout to ${TIMEOUT_MS}ms`);
+    const timeoutId = setTimeout(() => {
+      console.log('Request timed out - aborting');
+      controller.abort();
+    }, TIMEOUT_MS);
     
+    console.log(`Sending POST request to ${baseUrl}`);
     const response = await fetch(baseUrl, {
       method: 'POST',
       headers: {
@@ -46,6 +52,7 @@ async function processImage(imagePath: string, baseUrl = 'http://localhost:8787'
     
     // Clear the timeout
     clearTimeout(timeoutId);
+    console.log(`Response received with status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -85,15 +92,21 @@ describe('OCR API Integration Tests', () => {
     // Check if server is running
     try {
       // Check if server is running with a quick HEAD request
+      console.log(`Checking if server is running at ${baseUrl}...`);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => {
+        console.log('Server check timed out after 2 seconds');
+        controller.abort();
+      }, 2000);
       
       try {
+        console.log('Sending HEAD request to check server status...');
         const checkResponse = await fetch(baseUrl, { 
           method: 'HEAD',
           signal: controller.signal
         });
         clearTimeout(timeoutId);
+        console.log(`Server responded with status: ${checkResponse.status}`);
         
         // If server is not running, skip this test
         if (!checkResponse.ok) {
@@ -124,7 +137,9 @@ describe('OCR API Integration Tests', () => {
         const imagePath = path.join(checksDir, file);
         try {
           console.log(`Testing with image: ${file}`);
+          console.log(`Starting to process image: ${imagePath}`);
           const result = await processImage(imagePath, baseUrl);
+          console.log(`Successfully processed image: ${file}`);
           results[file] = result;
         
         // Verify result structure
@@ -150,15 +165,21 @@ describe('OCR API Integration Tests', () => {
     // Only run this test if server is running
     try {
       // Check if server is running with a quick HEAD request
+      console.log(`Checking if server is running at ${baseUrl}...`);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => {
+        console.log('Server check timed out after 2 seconds');
+        controller.abort();
+      }, 2000);
       
       try {
+        console.log('Sending HEAD request to check server status...');
         const checkResponse = await fetch(baseUrl, { 
           method: 'HEAD',
           signal: controller.signal
         });
         clearTimeout(timeoutId);
+        console.log(`Server responded with status: ${checkResponse.status}`);
         
         // If server is not running, skip this test
         if (!checkResponse.ok) {

@@ -107,6 +107,15 @@ describe('ReceiptScanner Integration', function() {
     // Log the result for debugging
     console.log('Process result:', result);
     
+    // Skip test if we hit rate limits or other API errors
+    if (result[0] === 'error') {
+      if (result[1].includes('rate limit') || result[1].includes('API error')) {
+        console.log('Skipping test due to API rate limit or error');
+        pending('API rate limited or unavailable: ' + result[1]);
+        return;
+      }
+    }
+    
     // Verify result
     expect(result[0]).toBe('ok');
     

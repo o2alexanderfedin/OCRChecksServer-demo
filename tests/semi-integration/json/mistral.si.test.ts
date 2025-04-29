@@ -6,8 +6,13 @@ import { MistralJsonExtractorProvider } from '../../../src/json/mistral'
 import { JsonSchema } from '../../../src/json/types'
 import 'jasmine'
 
-// Set longer timeout for all specs (30 seconds)
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000
+// Set longer timeout for all specs (60 seconds)
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
+
+// Helper function to wait between API calls to avoid rate limits
+async function delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // Semi-integration test for JSON extraction
 // This test connects to the real Mistral API but uses test data
@@ -60,7 +65,10 @@ describe('MistralJson Semi-Integration', () => {
         extractor = new MistralJsonExtractorProvider(io, client)
     })
     
+    // Run tests sequentially to avoid rate limits
     it('should extract structured JSON from check markdown with schema', async () => {
+        // Wait a short time before starting to ensure clean test state
+        await delay(500);
         // Sample markdown text from a check image
         const checkMarkdown = `
         Check Number: A123456789
@@ -108,6 +116,13 @@ describe('MistralJson Semi-Integration', () => {
         expect(result[0]).toBe('ok', 'Extraction should succeed')
         
         if (result[0] === 'error') {
+            // If we hit a rate limit, mark as pending instead of failing
+            if (result[1].message && result[1].message.includes('rate limit')) {
+                console.warn('Rate limit hit, marking test as pending')
+                pending('Rate limit hit on Mistral API, skipping test')
+                return
+            }
+            
             console.error('Extraction failed:', result[1])
             fail('Expected successful extraction')
             return
@@ -129,6 +144,8 @@ describe('MistralJson Semi-Integration', () => {
     })
     
     it('should extract structured JSON from utility bill markdown', async () => {
+        // Add a delay to avoid rate limits
+        await delay(3000);
         // Sample markdown text from a utility bill
         const utilityBillMarkdown = `
         # UTILITY BILL
@@ -195,6 +212,13 @@ describe('MistralJson Semi-Integration', () => {
         expect(result[0]).toBe('ok', 'Extraction should succeed')
         
         if (result[0] === 'error') {
+            // If we hit a rate limit, mark as pending instead of failing
+            if (result[1].message && result[1].message.includes('rate limit')) {
+                console.warn('Rate limit hit, marking test as pending')
+                pending('Rate limit hit on Mistral API, skipping test')
+                return
+            }
+            
             console.error('Extraction failed:', result[1])
             fail('Expected successful extraction')
             return
@@ -221,6 +245,8 @@ describe('MistralJson Semi-Integration', () => {
     })
     
     it('should process real OCR output and extract structured data', async () => {
+        // Add a longer delay to avoid rate limits
+        await delay(5000);
         // Get OCR output from a fixture file
         const ocrOutputPath = path.join(process.cwd(), 'tests', 'fixtures', 'ocr-output.md')
         let markdownText: string
@@ -302,6 +328,13 @@ describe('MistralJson Semi-Integration', () => {
         expect(result[0]).toBe('ok', 'Extraction should succeed')
         
         if (result[0] === 'error') {
+            // If we hit a rate limit, mark as pending instead of failing
+            if (result[1].message && result[1].message.includes('rate limit')) {
+                console.warn('Rate limit hit, marking test as pending')
+                pending('Rate limit hit on Mistral API, skipping test')
+                return
+            }
+            
             console.error('Extraction failed:', result[1])
             fail('Expected successful extraction')
             return

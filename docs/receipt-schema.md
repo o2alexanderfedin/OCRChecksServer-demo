@@ -23,10 +23,7 @@ classDiagram
         +string receiptType
         +string timestamp
         +string paymentMethod
-        +float subtotal
-        +float taxAmount
-        +float tipAmount
-        +float totalAmount
+        +ReceiptTotals totals
         +string currency
         +array~LineItem~ items
         +array~TaxItem~ taxes
@@ -44,6 +41,14 @@ classDiagram
         +string taxId
         +string storeId
         +string chainName
+    }
+    
+    class ReceiptTotals {
+        +float subtotal
+        +float tax
+        +float tip
+        +float discount
+        +float total
     }
 
     class LineItem {
@@ -84,6 +89,7 @@ classDiagram
     }
 
     Receipt *-- MerchantInfo : contains
+    Receipt *-- ReceiptTotals : contains
     Receipt *-- LineItem : contains
     Receipt *-- TaxItem : contains
     Receipt *-- PaymentMethod : contains
@@ -91,6 +97,7 @@ classDiagram
     
     %% Add descriptions to relationships
     Receipt --> MerchantInfo : "Identifies the merchant"
+    Receipt --> ReceiptTotals : "Summarizes financial values"
     Receipt --> LineItem : "Lists purchased items"
     Receipt --> TaxItem : "Details tax charges"
     Receipt --> PaymentMethod : "Describes how payment was made"
@@ -115,10 +122,12 @@ classDiagram
 | receiptType | string | Type of receipt (e.g., "sale", "return", "refund") | No |
 | timestamp | string | Date and time of transaction (ISO 8601 format) | Yes |
 | paymentMethod | string | Method of payment (e.g., "cash", "credit", "debit") | No |
-| subtotal | number | Pre-tax total amount | No |
-| taxAmount | number | Total tax amount | No |
-| tipAmount | number | Tip/gratuity amount | No |
-| totalAmount | number | Total amount including tax and tip | Yes |
+| totals | object | Financial totals from the receipt | Yes |
+| totals.subtotal | number | Pre-tax total amount | No |
+| totals.tax | number | Total tax amount | No |
+| totals.tip | number | Tip/gratuity amount | No |
+| totals.discount | number | Total discount amount | No |
+| totals.total | number | Final total amount including tax and tip | Yes |
 | currency | string | 3-letter ISO currency code | Yes |
 | items | array | List of line items on the receipt | No |
 | taxes | array | Breakdown of taxes | No |
@@ -184,9 +193,11 @@ classDiagram
   },
   "receiptNumber": "T-59385",
   "timestamp": "2025-04-28T15:30:45Z",
-  "subtotal": 42.97,
-  "taxAmount": 3.44,
-  "totalAmount": 46.41,
+  "totals": {
+    "subtotal": 42.97,
+    "tax": 3.44,
+    "total": 46.41
+  },
   "currency": "USD",
   "items": [
     {
@@ -434,9 +445,11 @@ The schema implementation includes a comprehensive error handling strategy:
   },
   "receiptNumber": "2759-4532-9378-0251",
   "timestamp": "2025-04-25T14:22:35Z",
-  "subtotal": 127.84,
-  "taxAmount": 10.55,
-  "totalAmount": 138.39,
+  "totals": {
+    "subtotal": 127.84,
+    "tax": 10.55,
+    "total": 138.39
+  },
   "currency": "USD",
   "items": [
     {
@@ -496,10 +509,12 @@ The schema implementation includes a comprehensive error handling strategy:
   },
   "receiptNumber": "ORDER-56982",
   "timestamp": "2025-04-27T20:15:45Z",
-  "subtotal": 78.50,
-  "taxAmount": 7.26,
-  "tipAmount": 15.70,
-  "totalAmount": 101.46,
+  "totals": {
+    "subtotal": 78.50,
+    "tax": 7.26,
+    "tip": 15.70,
+    "total": 101.46
+  },
   "currency": "USD",
   "items": [
     {

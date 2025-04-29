@@ -43,9 +43,11 @@ describe('ReceiptExtractor Functional Tests', () => {
       },
       receiptNumber: "T-59385",
       timestamp: "2025-04-28T15:30:45Z",
-      subtotal: 42.97,
-      taxAmount: 3.44,
-      totalAmount: 46.41,
+      totals: {
+        subtotal: 42.97,
+        tax: 3.44,
+        total: 46.41
+      },
       currency: "USD",
       items: [
         {
@@ -102,7 +104,9 @@ describe('ReceiptExtractor Functional Tests', () => {
       const receipt = result[1].json;
       expect(receipt.merchant.name).toBe("ACME SUPERMARKET");
       expect(receipt.merchant.storeId).toBe("1035");
-      expect(receipt.totalAmount).toBe(46.41);
+      expect(receipt.totals.total).toBe(46.41);
+      expect(receipt.totals.subtotal).toBe(42.97);
+      expect(receipt.totals.tax).toBe(3.44);
       expect(receipt.items?.length).toBe(2);
       expect(receipt.payments?.[0].method).toBe("credit");
     }

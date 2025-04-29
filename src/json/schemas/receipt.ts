@@ -10,7 +10,7 @@ export const receiptSchema = {
   "title": "Receipt",
   "description": "Schema for receipt data extracted from images",
   "type": "object",
-  "required": ["merchant", "timestamp", "totalAmount", "currency", "confidence"],
+  "required": ["merchant", "timestamp", "totals", "currency", "confidence"],
   "properties": {
     "merchant": {
       "type": "object",
@@ -66,25 +66,37 @@ export const receiptSchema = {
       "type": "string",
       "description": "Method of payment (e.g., 'cash', 'credit', 'debit')"
     },
-    "subtotal": {
-      "type": "number",
-      "description": "Pre-tax total amount",
-      "minimum": 0
-    },
-    "taxAmount": {
-      "type": "number",
-      "description": "Total tax amount",
-      "minimum": 0
-    },
-    "tipAmount": {
-      "type": "number",
-      "description": "Tip/gratuity amount",
-      "minimum": 0
-    },
-    "totalAmount": {
-      "type": "number",
-      "description": "Total amount including tax and tip",
-      "minimum": 0
+    "totals": {
+      "type": "object",
+      "required": ["total"],
+      "description": "Financial totals from the receipt",
+      "properties": {
+        "subtotal": {
+          "type": "number",
+          "description": "Pre-tax total amount",
+          "minimum": 0
+        },
+        "tax": {
+          "type": "number",
+          "description": "Total tax amount",
+          "minimum": 0
+        },
+        "tip": {
+          "type": "number",
+          "description": "Tip/gratuity amount",
+          "minimum": 0
+        },
+        "discount": {
+          "type": "number",
+          "description": "Total discount amount",
+          "minimum": 0
+        },
+        "total": {
+          "type": "number",
+          "description": "Final total amount including tax, tip, and adjusting for discounts",
+          "minimum": 0
+        }
+      }
     },
     "currency": {
       "type": "string",
@@ -310,16 +322,21 @@ export interface MerchantInfo {
   chainName?: string;
 }
 
+export interface ReceiptTotals {
+  subtotal?: number;
+  tax?: number;
+  tip?: number;
+  discount?: number;
+  total: number;
+}
+
 export interface Receipt {
   merchant: MerchantInfo;
   receiptNumber?: string;
   receiptType?: 'sale' | 'return' | 'refund' | 'estimate' | 'proforma' | 'other';
   timestamp: string;
   paymentMethod?: string;
-  subtotal?: number;
-  taxAmount?: number;
-  tipAmount?: number;
-  totalAmount: number;
+  totals: ReceiptTotals;
   currency: string;
   items?: ReceiptLineItem[];
   taxes?: ReceiptTaxItem[];

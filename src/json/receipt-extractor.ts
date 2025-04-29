@@ -52,10 +52,17 @@ export class ReceiptExtractor {
           },
           receiptNumber: { type: "string" },
           timestamp: { type: "string", format: "date-time" },
-          subtotal: { type: "number", minimum: 0 },
-          taxAmount: { type: "number", minimum: 0 },
-          tipAmount: { type: "number", minimum: 0 },
-          totalAmount: { type: "number", minimum: 0 },
+          totals: {
+            type: "object",
+            required: ["total"],
+            properties: {
+              subtotal: { type: "number", minimum: 0 },
+              tax: { type: "number", minimum: 0 },
+              tip: { type: "number", minimum: 0 },
+              discount: { type: "number", minimum: 0 },
+              total: { type: "number", minimum: 0 }
+            }
+          },
           currency: { type: "string" },
           items: {
             type: "array",
@@ -152,7 +159,12 @@ Extract the following information:
   - Chain name (if applicable)
 - Receipt number and date/time
 - Items purchased with quantities, unit prices, and total prices
-- Subtotal, tax amounts, and total amount
+- Financial totals (grouped under "totals" object):
+  - Subtotal (pre-tax amount)
+  - Tax amount
+  - Tip amount (if applicable)
+  - Discount amount (if applicable)
+  - Total amount (final amount paid)
 - Payment method details
 - Any other relevant information from the receipt
 

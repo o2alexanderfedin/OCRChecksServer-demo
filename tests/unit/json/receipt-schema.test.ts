@@ -22,9 +22,11 @@ describe('Receipt Schema Validation', () => {
       },
       receiptNumber: "T-59385",
       timestamp: "2025-04-28T15:30:45Z",
-      subtotal: 42.97,
-      taxAmount: 3.44,
-      totalAmount: 46.41,
+      totals: {
+        subtotal: 42.97,
+        tax: 3.44,
+        total: 46.41
+      },
       currency: "USD",
       items: [
         {
@@ -77,7 +79,9 @@ describe('Receipt Schema Validation', () => {
         name: "Corner Store"
       },
       timestamp: "2025-04-28T10:15:30Z",
-      totalAmount: 25.99,
+      totals: {
+        total: 25.99
+      },
       currency: "USD",
       confidence: 0.85
     };
@@ -93,7 +97,7 @@ describe('Receipt Schema Validation', () => {
         name: "ACME Store"
       },
       timestamp: "2025-04-28T15:30:45Z",
-      // Missing totalAmount
+      // Missing totals
       currency: "USD",
       confidence: 0.92
     };
@@ -113,7 +117,9 @@ describe('Receipt Schema Validation', () => {
         name: "ACME Store"
       },
       timestamp: "2025-04-28T15:30:45Z",
-      totalAmount: 45.99,
+      totals: {
+        total: 45.99
+      },
       currency: "us", // Should be uppercase 3-letter code
       confidence: 0.9
     };
@@ -137,7 +143,9 @@ describe('Receipt Schema Validation', () => {
           name: "Test Store"
         },
         timestamp: "2025-04-28T15:30:45Z",
-        totalAmount: 100,
+        totals: {
+          total: 100
+        },
         currency: "USD",
         confidence: 0.9,
         payments: [
@@ -160,7 +168,9 @@ describe('Receipt Schema Validation', () => {
         name: "ACME Store"
       },
       timestamp: "2025-04-28T15:30:45Z",
-      totalAmount: -45.99, // Negative amount
+      totals: {
+        total: -45.99 // Negative amount
+      },
       currency: "USD",
       confidence: 0.9
     };
@@ -170,7 +180,7 @@ describe('Receipt Schema Validation', () => {
     expect(validate.errors).not.toBeNull();
     
     const amountError = validate.errors?.find((e: any) => 
-      e.instancePath === "/totalAmount" && e.keyword === "minimum"
+      e.instancePath === "/totals/total" && e.keyword === "minimum"
     );
     expect(amountError).toBeDefined();
   });
@@ -182,7 +192,9 @@ describe('Receipt Schema Validation', () => {
         name: "ACME Store"
       },
       timestamp: "2025-04-28T15:30:45Z",
-      totalAmount: 45.99,
+      totals: {
+        total: 45.99
+      },
       currency: "USD",
       confidence: 0.75
     };
@@ -195,7 +207,9 @@ describe('Receipt Schema Validation', () => {
         name: "ACME Store"
       },
       timestamp: "2025-04-28T15:30:45Z",
-      totalAmount: 45.99,
+      totals: {
+        total: 45.99
+      },
       currency: "USD",
       confidence: 1.5
     };
@@ -208,7 +222,9 @@ describe('Receipt Schema Validation', () => {
         name: "ACME Store"
       },
       timestamp: "2025-04-28T15:30:45Z",
-      totalAmount: 45.99,
+      totals: {
+        total: 45.99
+      },
       currency: "USD",
       confidence: -0.2
     };

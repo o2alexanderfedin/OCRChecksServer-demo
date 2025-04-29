@@ -1,13 +1,55 @@
-import { DocumentType, type IoE } from './types'
-import { MistralOCRProvider } from './mistral'
+import { DocumentType, type IoE } from '../../../src/ocr/types'
+import { MistralOCRProvider } from '../../../src/ocr/mistral'
 import { Mistral } from '@mistralai/mistralai'
 import type { OCRResponse } from '@mistralai/mistralai/models/components'
 import 'jasmine'
 
+// Create our own simplified mock function since jasmine.createSpy might not be available
+interface MockFunction {
+    (): any;
+    calls: {
+        count: number;
+        reset: () => void;
+    };
+    mockReturnValue: (val: any) => MockFunction;
+    mockImplementation: (fn: Function) => MockFunction;
+    mockReturnedValue: any;
+    mockImplementationValue: Function | null;
+}
+
+function createSpy(name: string): MockFunction {
+    const mockFn = function() {
+        mockFn.calls.count++;
+        return mockFn.mockReturnedValue;
+    } as MockFunction;
+    
+    mockFn.calls = {
+        count: 0,
+        reset: function() {
+            this.count = 0;
+        }
+    };
+    
+    mockFn.mockReturnValue = function(val: any) {
+        mockFn.mockReturnedValue = val;
+        return mockFn;
+    };
+    
+    mockFn.mockImplementation = function(fn: Function) {
+        mockFn.mockImplementationValue = fn;
+        return mockFn;
+    };
+    
+    mockFn.mockReturnedValue = undefined;
+    mockFn.mockImplementationValue = null;
+    
+    return mockFn;
+}
+
 describe('MistralOCR', () => {
     const mockIo: IoE = {
-        fetch: jasmine.createSpy('fetch'),
-        atob: jasmine.createSpy('atob'),
+        fetch: createSpy('fetch'),
+        atob: createSpy('atob'),
         console: {
             log: console.log,
             error: console.error
@@ -73,7 +115,8 @@ describe('MistralOCR', () => {
         };
 
         const mockClient = new Mistral({ apiKey: 'test-key' });
-        spyOn(mockClient.ocr, 'process').and.returnValue(Promise.resolve(mockResponse));
+        // Create a mock process function
+        mockClient.ocr.process = function() { return Promise.resolve(mockResponse); };
 
         const provider = new MistralOCRProvider(mockIo, mockClient)
         const result = await provider.processDocuments([{
@@ -94,7 +137,8 @@ describe('MistralOCR', () => {
 
     it('should handle API errors', async () => {
         const mockClient = new Mistral({ apiKey: 'test-key' });
-        spyOn(mockClient.ocr, 'process').and.returnValue(Promise.reject(new Error('Bad Request')));
+        // Create a mock process function that rejects
+        mockClient.ocr.process = function() { return Promise.reject(new Error('Bad Request')); };
 
         const provider = new MistralOCRProvider(mockIo, mockClient)
         const result = await provider.processDocuments([{
@@ -144,7 +188,8 @@ describe('MistralOCR', () => {
 
         let callCount = 0;
         const mockClient = new Mistral({ apiKey: 'test-key' });
-        spyOn(mockClient.ocr, 'process').and.callFake(() => Promise.resolve(mockResponses[callCount++]));
+        // Create a mock process function that returns different responses
+        mockClient.ocr.process = function() { return Promise.resolve(mockResponses[callCount++]); };
 
         const provider = new MistralOCRProvider(mockIo, mockClient)
         const result = await provider.processDocuments([

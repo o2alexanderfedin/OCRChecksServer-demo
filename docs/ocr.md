@@ -40,26 +40,37 @@ type MistralConfig = {
 
 ```typescript
 class MistralOCRProvider implements OCRProvider {
-    private readonly client: Mistral
-    private readonly model: string
     private readonly io: IoE
+    private readonly client: Mistral
 
     /**
      * Creates a new Mistral OCR provider instance
      * @param io I/O interface for network operations
-     * @param config Provider configuration
-     * @param client Optional Mistral client instance (for testing)
+     * @param client Mistral client instance
      */
-    constructor(io: IoE, config: MistralConfig, client?: Mistral) {
+    constructor(io: IoE, client: Mistral) {
         this.io = io
-        this.client = client ?? new Mistral({ apiKey: config.apiKey })
-        this.model = config.model ?? 'mistral-ocr-latest'
+        this.client = client
     }
 
     async processDocuments(documents: Document[]): Promise<Result<OCRResult[][], Error>> {
-        // Implementation using Mistral API
-        // Returns array of results for each document
-        // Each document's results array contains results for each page
+        return this.io.asyncTryCatch(async () => {
+            // Process each document using Mistral API
+            const results = await Promise.all(
+                documents.map(doc => this.processDocument(doc))
+            );
+            
+            // Returns array of results for each document
+            // Each document's results array contains results for each page
+            return results;
+        });
+    }
+    
+    private async processDocument(document: Document): Promise<OCRResult[]> {
+        // Convert document to base64 encoding
+        // Send to Mistral OCR API with model 'mistral-ocr-latest'
+        // Process and format the response
+        // Return OCR results with confidence scores
     }
 }
 ```
@@ -88,8 +99,8 @@ classDiagram
     class MistralOCRProvider {
         -IoE io
         -Mistral client
-        -string model
         +processDocuments(Document[]) Promise~Result~
+        -processDocument(Document) Promise~OCRResult[]~
     }
 
     class IoE {
@@ -138,16 +149,36 @@ sequenceDiagram
 
 ## Testing Strategy
 
-### Unit Tests
-- API communication
-- Document processing
-- Error handling
-- Result conversion
+The OCR functionality is tested at multiple levels to ensure reliability:
 
-### Integration Tests
+### Unit Tests (`tests/unit/ocr/`)
+- Located in `tests/unit/ocr/mistral.test.ts`
+- Tests individual components in isolation
+- Mocks the Mistral API client
+- Verifies:
+  - Document processing logic
+  - Error handling
+  - Result conversion
+  - Input validation
+
+### Functional Tests (`tests/functional/ocr/`)
+- Located in `tests/functional/ocr/mistral.f.test.ts`
+- Tests functional programming patterns
+- Focuses on data transformations
+- Verifies the functional composition aspects
+
+### Semi-Integration Tests (`tests/semi/ocr/`)
+- Located in `tests/semi/ocr/mistral.test.js` 
+- Uses real Mistral API client
+- Processes actual check images
+- Tests with real dependencies but without a web server
+- Saves results to `tests/fixtures/expected/mistral-ocr-results.json`
+
+### Integration Tests (`tests/integration/`)
 - End-to-end OCR flow
-- Image processing
-- Performance benchmarks
+- Tests the complete API endpoints
+- Image processing with real server
+- Performance verification
 
 ## Future Enhancements
 

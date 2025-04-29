@@ -3,19 +3,21 @@
 import fs from 'fs';
 import path from 'path';
 import { Mistral } from '@mistralai/mistralai';
-import { MistralOCRProvider } from '../../src/ocr/mistral.js';
-import { DocumentType } from '../../src/ocr/types.js';
-import { workerIoE } from '../../src/io.js';
+import { MistralOCRProvider } from '../../../src/ocr/mistral.js';
+import { DocumentType } from '../../../src/ocr/types.js';
+import { workerIoE } from '../../../src/io.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const projectRoot = path.resolve(__dirname, '../../');
+const projectRoot = path.resolve(__dirname, '../../../');
 
-// Read API key from wrangler.toml
-const wranglerContent = fs.readFileSync(path.join(projectRoot, 'wrangler.toml'), 'utf-8');
+// Read API key from wrangler.toml (now at project root)
+const wranglerPath = path.join(projectRoot, 'wrangler.toml');
+console.log(`Looking for wrangler.toml at: ${wranglerPath}`);
+const wranglerContent = fs.readFileSync(wranglerPath, 'utf-8');
 const MISTRAL_API_KEY = wranglerContent.match(/MISTRAL_API_KEY\s*=\s*"([^"]+)"/)[1];
 
 describe('MistralOCR Semi-Integration', () => {
@@ -44,7 +46,7 @@ describe('MistralOCR Semi-Integration', () => {
 
   it('should process a check image with real Mistral client', async () => {
     // Load a real check image
-    const checksDir = path.join(projectRoot, 'Checks');
+    const checksDir = path.join(projectRoot, 'tests', 'fixtures', 'images');
     console.log(`Looking for check images in: ${checksDir}`);
     
     const imageFiles = fs.readdirSync(checksDir)
@@ -79,8 +81,15 @@ describe('MistralOCR Semi-Integration', () => {
 
     // Save results to a file for inspection
     console.log('OCR Results:', JSON.stringify(result[1], null, 2));
+    const resultsDir = path.join(projectRoot, 'tests', 'fixtures', 'expected');
+    
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(resultsDir)) {
+      fs.mkdirSync(resultsDir, { recursive: true });
+    }
+    
     fs.writeFileSync(
-      path.join(projectRoot, 'integration-test-results.json'), 
+      path.join(resultsDir, 'mistral-ocr-results.json'), 
       JSON.stringify(result[1], null, 2)
     );
 

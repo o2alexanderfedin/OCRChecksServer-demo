@@ -33,33 +33,64 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 
 ### 3. Testing Infrastructure
 
-#### Unit Tests
-- Tests are written using Jasmine testing framework
-- Located in files with `.test.ts` or `.test.f.ts` extensions within the `src` directory
-- Tests core functionality with isolated components
-- Follows a BDD (Behavior-Driven Development) pattern with `describe`, `it`, and expectation syntax
+The project follows a structured testing approach with different test categories organized in dedicated directories.
+
+#### Test Types and Directory Structure
+
+- **Unit Tests**: Located in `tests/unit/` directory
+  - Tests individual components in isolation
+  - Follows `.test.ts` naming convention
+  - Mocks all external dependencies
+  - Tests core functionality with precise assertions
+
+- **Functional Tests**: Located in `tests/functional/` directory
+  - Tests components in a functional programming style
+  - Follows `.f.test.ts` naming convention
+  - Uses functional composition patterns
+  - Verifies pure function behavior
+
+- **Semi-Integration Tests**: Located in `tests/semi/` directory
+  - Tests with real dependencies but without a web server
+  - Uses `.test.js` naming convention
+  - Connects to actual external services (like Mistral API)
+  - Processes real image files from `tests/fixtures/images`
+  - Saves results to `tests/fixtures/expected` for validation
+
+- **Integration Tests**: Located in `tests/integration/` directory
+  - Tests complete worker functionality in a live environment
+  - Uses Jasmine framework with extended timeouts for API calls
+  - Tests web server endpoints and responses
+  - Validates full end-to-end workflow
+
+#### Test Fixtures and Data
+
+- **Test Images**: Located in `tests/fixtures/images/`
+  - Contains sample check images for testing
+  - Used by semi-integration and integration tests
+
+- **Expected Results**: Located in `tests/fixtures/expected/`
+  - Contains reference data for test validation
+  - Stores OCR results for comparison and verification
 
 #### Mocking Strategy
-- Uses Jasmine spies for mocking external dependencies
-- Implements a comprehensive mock of the `IoE` interface for all functional tests
+- Uses custom mock functions for unit and functional tests
+- Implements a comprehensive mock of the `IoE` interface
 - Mocks include network calls, file operations, and environment variables
-- External clients (like Mistral AI) are mocked with spies to simulate responses
+- External clients (like Mistral AI) are mocked in unit/functional tests
+
+#### Test Runners (in `scripts/` directory)
+- `scripts/run-unit-tests.js`: Runs unit tests
+- `scripts/run-functional-tests.js`: Runs functional tests 
+- `scripts/run-semi-tests.js`: Runs semi-integration tests
+- `scripts/run-tests.js`: Universal runner for all test types
+- `scripts/start-server.js`: Utility for starting the server for integration tests
 
 #### Running Tests
-- `npm run test:unit`: Runs all unit tests via custom Jasmine configuration
-- Tests are executed using a custom runner (`run-tests.js`) that handles TypeScript files
-- Test configuration is defined in both `jasmine.json` and `run-tests.js`
-- Tests both functional-style components (`.test.f.ts`) and object-oriented components (`.test.ts`)
-
-#### Integration Tests
-- Tests the complete worker functionality in a live environment
-- Located in the `tests/integration` directory with `.test.ts` extension
-- Uses Jasmine framework with extended timeouts for API calls
-- Processes actual check images from the `Checks` directory
-- Validates end-to-end workflow with real API responses
-- Verifies error handling and edge cases
-- Can be run with `npm run test:integration` command
-- Outputs detailed test results to `integration-test-results.json`
+- `npm test`: Run all tests (unit, functional, semi, integration)
+- `npm run test:unit`: Run only unit tests
+- `npm run test:functional`: Run only functional tests
+- `npm run test:semi`: Run only semi-integration tests
+- `npm run test:integration`: Run only integration tests
 
 ## UML Diagrams
 
@@ -112,14 +143,29 @@ sequenceDiagram
 1. **Local Development**
    - `npm run dev`: Start local worker
    - `npm run dev:watch`: Start local worker with live reload
-   - `npm run test:unit`: Run unit tests with Jasmine
-   - `npm run test:integration`: Run integration tests against local server
-   - `npm run test:all`: Run all tests (unit + integration) with automatic server management
+   - `npm start-server`: Start the server for development
 
-2. **Deployment**
-   - Uses Wrangler for deployment
+2. **Testing Workflow**
+   - `npm test`: Run all tests (unit, functional, semi, integration)
+   - `npm run test:unit`: Run only unit tests
+   - `npm run test:functional`: Run only functional tests
+   - `npm run test:semi`: Run only semi-integration tests
+   - `npm run test:integration`: Run only integration tests
+
+3. **Code Quality**
+   - `npm run lint`: Run ESLint on TypeScript files
+   - `npm run lint:fix`: Run ESLint and automatically fix issues
+
+4. **Deployment**
+   - Uses Wrangler for deployment (`npm run deploy`)
    - Environment variables managed via `wrangler.toml`
    - CI/CD integration possible via GitHub Actions
+   
+5. **Project Organization**
+   - Source code in `src/` directory
+   - Test files organized by type in `tests/` directory
+   - Test fixtures in `tests/fixtures/` directory
+   - Utility scripts in `scripts/` directory
 
 ## Security Considerations
 

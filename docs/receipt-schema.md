@@ -6,6 +6,13 @@ This document outlines the JSON schema design for receipt data extraction, which
 
 The receipt schema is designed to capture common elements found in retail, restaurant, and service receipts. The schema is structured to accommodate variations in receipt formats while maintaining a consistent data model.
 
+### Key Design Principles
+
+1. **Hierarchical Organization**: Related fields are grouped into logical objects (e.g., merchant information, line items)
+2. **Flexibility**: Optional fields accommodate different receipt formats while maintaining core required fields
+3. **Validation**: Type constraints and pattern validation ensure data integrity
+4. **Confidence Scoring**: All extracted data includes confidence metrics for reliability assessment
+
 ## Schema Design
 
 ```mermaid
@@ -81,6 +88,13 @@ classDiagram
     Receipt *-- TaxItem : contains
     Receipt *-- PaymentMethod : contains
     Receipt *-- Metadata : contains
+    
+    %% Add descriptions to relationships
+    Receipt --> MerchantInfo : "Identifies the merchant"
+    Receipt --> LineItem : "Lists purchased items"
+    Receipt --> TaxItem : "Details tax charges"
+    Receipt --> PaymentMethod : "Describes how payment was made"
+    Receipt --> Metadata : "Provides extraction context"
 ```
 
 ## Schema Details
@@ -236,16 +250,41 @@ The schema validation will be implemented using JSON Schema Draft-07, which prov
 
 When implementing the receipt schema extraction:
 
-1. **Confidence Scores**: Each extracted field should have an associated confidence score, with the overall confidence representing a weighted average.
+### Extraction Strategy
 
-2. **Missing Data**: Fields marked as non-required can be omitted if not detected in the receipt or if the confidence score is below a threshold.
+1. **Two-Phase Extraction**:
+   - Phase 1: Raw text extraction from receipt image using OCR
+   - Phase 2: Structured data extraction from OCR text using LLM-based parsing
+
+2. **Pre-Processing Steps**:
+   - Image enhancement (contrast adjustment, deskewing, noise reduction)
+   - OCR-specific optimizations (receipt orientation detection)
+   - Text cleaning (removing artifacts, fixing common OCR errors)
+
+### Data Quality
+
+1. **Confidence Scoring**:
+   - Each extracted field should have an associated confidence score
+   - The overall confidence represents a weighted average of field confidences
+   - Critical fields (merchant name, amount, date) should have higher weights
+   - Confidence below 0.6 should trigger warnings or fallback strategies
+
+2. **Missing Data Handling**:
+   - Fields marked as non-required can be omitted if not detected
+   - Required fields with low confidence should include a `_confidence` suffix
+   - Implement fallback extraction for critical fields when primary extraction fails
 
 3. **Data Normalization**:
-   - Currency values should be normalized to numeric values (not strings with currency symbols)
-   - Dates should be normalized to ISO 8601 format
-   - Text fields should have extraneous whitespace removed
+   - Currency values: Convert to numeric values (not strings with currency symbols)
+   - Dates: Normalize to ISO 8601 format (YYYY-MM-DDThh:mm:ssZ)
+   - Merchant names: Remove common suffixes (Inc., LLC, Ltd.)
+   - Text fields: Remove extraneous whitespace and normalize casing
+   - Phone numbers: Format consistently (e.g., E.164 format)
 
-4. **Validation**: Implement JSON Schema validation to ensure the output conforms to the specified schema.
+4. **Validation**:
+   - Use JSON Schema validation for structural validation
+   - Implement business rule validation (e.g., subtotal + tax ≈ total)
+   - Add cross-field validation (e.g., currency consistent with merchant country)
 
 ## Integration with OCR Pipeline
 
@@ -253,7 +292,8 @@ The receipt schema will be integrated with the existing OCR pipeline:
 
 ```mermaid
 graph TD
-    A[Receipt Image] --> B[Image Processing]
+    %% Main process flow
+    A[Receipt Image] --> B[Image Pre-Processing]
     B --> C[OCR Text Extraction]
     C --> D[Text Analysis]
     D --> E[Entity Recognition]
@@ -262,29 +302,252 @@ graph TD
     G --> H[Confidence Scoring]
     H --> I[JSON Output]
     
-    style F fill:#f9f,stroke:#333,stroke-width:2px
-    style G fill:#f9f,stroke:#333,stroke-width:2px
-    style H fill:#f9f,stroke:#333,stroke-width:2px
-    style I fill:#f9f,stroke:#333,stroke-width:2px
+    %% Sub-processes
+    B --> B1[Resize & Normalize]
+    B --> B2[Deskew]
+    B --> B3[Enhance Contrast]
+    
+    D --> D1[Header Analysis]
+    D --> D2[Line Item Parsing]
+    D --> D3[Total Recognition]
+    
+    F --> F1[Type Conversion]
+    F --> F2[Field Mapping]
+    F --> F3[Data Restructuring]
+    
+    G --> G1[Schema Validation]
+    G --> G2[Business Rules]
+    G --> G3[Cross-Field Checks]
+    
+    %% Error handling and fallbacks
+    C -- OCR Failed --> C1[Secondary OCR Engine]
+    G -- Invalid --> G4[Error Reporting]
+    H -- Low Confidence --> H1[Human Review Flag]
+    
+    %% Styling
+    classDef preprocessing fill:#d9f0ff,stroke:#333,stroke-width:1px
+    classDef textProcessing fill:#ffebcc,stroke:#333,stroke-width:1px
+    classDef schemaProc fill:#f9f,stroke:#333,stroke-width:2px
+    classDef errorHandling fill:#ffcccc,stroke:#333,stroke-width:1px
+    
+    class B,B1,B2,B3 preprocessing
+    class C,D,D1,D2,D3,E textProcessing
+    class F,F1,F2,F3,G,G1,G2,G3,H,I schemaProc
+    class C1,G4,H1 errorHandling
 ```
 
 The receipt schema processor will be implemented as a new module in the project structure, following the existing patterns for OCR extraction.
 
 ## Error Handling
 
-The schema implementation should include robust error handling:
+The schema implementation includes a comprehensive error handling strategy:
 
-1. **Validation Errors**: When the extracted data doesn't conform to the schema, detailed error messages should be returned.
+### Error Types
 
-2. **Confidence Thresholds**: Fields with confidence scores below configurable thresholds should be flagged or omitted.
+1. **OCR Errors**:
+   - **Image Quality Issues**: Blurry, skewed, or low-contrast images
+   - **OCR Engine Failures**: When OCR processing fails completely
+   - **Text Recognition Errors**: Misrecognized characters or words
 
-3. **Required Fields**: If required fields cannot be extracted with sufficient confidence, the system should return an appropriate error message.
+2. **Extraction Errors**:
+   - **Schema Validation Errors**: Output doesn't conform to schema
+   - **Missing Required Fields**: Critical fields not found in receipt
+   - **Format Errors**: Data in unexpected formats (e.g., dates, currencies)
+   - **Conflicting Data**: Inconsistent information (e.g., subtotal doesn't match items)
 
-## Next Steps
+3. **Confidence Issues**:
+   - **Low Overall Confidence**: When extraction confidence is below threshold
+   - **Low Field Confidence**: When specific critical fields have low confidence
+   - **Ambiguous Data**: Multiple possible interpretations of the same data
 
-1. Implement JSON Schema definition file based on this design
-2. Create test cases with sample receipt images
-3. Develop the extraction logic for mapping OCR output to schema
-4. Implement validation and confidence scoring
-5. Integrate with the existing OCR pipeline
-6. Add API documentation for the receipt processing endpoint
+### Error Handling Strategies
+
+1. **Graceful Degradation**:
+   - Return partial data with confidence scores when full extraction fails
+   - Include error details in metadata for debugging
+   - Explicitly mark fields with low confidence
+
+2. **Fallback Mechanisms**:
+   - Secondary OCR engine for OCR failures
+   - Multiple extraction attempts with different prompts
+   - Human review flagging for critical errors
+
+3. **Error Reporting**:
+   - Structured error responses with error codes and descriptions
+   - Detailed logging for debugging and improvement
+   - Error analytics for identifying common failure patterns
+
+## Implementation Roadmap
+
+### Phase 1: Foundation (Complete)
+1. ✓ Design schema structure with TypeScript interfaces
+2. ✓ Implement JSON Schema definition and validation
+3. ✓ Create unit tests for schema validation
+4. ✓ Define extraction interface and basic implementation
+
+### Phase 2: Core Functionality (In Progress)
+1. ⟳ Enhance extraction prompt engineering
+2. ⟳ Implement confidence scoring algorithm
+3. ⟳ Add normalization and data cleaning
+4. ⟳ Develop functional tests with sample receipts
+
+### Phase 3: Integration & Optimization (Upcoming)
+1. □ Integrate with OCR pipeline
+2. □ Implement error handling strategies
+3. □ Add cross-field validation
+4. □ Performance optimization for large-scale processing
+
+### Phase 4: Production Readiness (Planned)
+1. □ Add API documentation for receipt endpoints
+2. □ Implement monitoring and analytics
+3. □ Add performance benchmarks
+4. □ Conduct security review and hardening
+
+## Use Cases & Examples
+
+### Common Use Cases
+
+1. **Financial Management Applications**
+   - Expense tracking and categorization
+   - Tax preparation and deduction identification
+   - Budget analysis and spending patterns
+
+2. **Business Operations**
+   - Automated accounting and bookkeeping
+   - Inventory management and reconciliation
+   - Employee expense reimbursement processing
+
+3. **Data Analysis**
+   - Purchase behavior analysis
+   - Price comparison across retailers
+   - Spending trend analysis
+
+### Example: Retail Receipt
+
+```json
+{
+  "merchant": {
+    "name": "Walmart Supercenter",
+    "address": "5455 W Grand Pkwy S, Richmond, TX 77406",
+    "phone": "(281) 232-8888",
+    "storeId": "3430"
+  },
+  "receiptNumber": "2759-4532-9378-0251",
+  "timestamp": "2025-04-25T14:22:35Z",
+  "subtotal": 127.84,
+  "taxAmount": 10.55,
+  "totalAmount": 138.39,
+  "currency": "USD",
+  "items": [
+    {
+      "description": "Great Value Milk",
+      "quantity": 2,
+      "unitPrice": 3.48,
+      "totalPrice": 6.96
+    },
+    {
+      "description": "Organic Bananas",
+      "quantity": 2.34,
+      "unit": "lb",
+      "unitPrice": 0.58,
+      "totalPrice": 1.36
+    },
+    {
+      "description": "iPhone Charger",
+      "quantity": 1,
+      "unitPrice": 19.99,
+      "totalPrice": 19.99,
+      "category": "Electronics"
+    }
+  ],
+  "taxes": [
+    {
+      "taxName": "TX State Tax",
+      "taxRate": 0.0825,
+      "taxAmount": 10.55
+    }
+  ],
+  "payments": [
+    {
+      "method": "credit",
+      "cardType": "Mastercard",
+      "lastDigits": "4832",
+      "amount": 138.39
+    }
+  ],
+  "metadata": {
+    "confidenceScore": 0.94,
+    "languageCode": "en-US",
+    "sourceImageId": "receipt-20250425-231.jpg"
+  },
+  "confidence": 0.94
+}
+```
+
+### Example: Restaurant Receipt
+
+```json
+{
+  "merchant": {
+    "name": "Trattoria Italia",
+    "address": "742 Olive St, San Francisco, CA 94108",
+    "phone": "(415) 555-7890",
+    "website": "trattoriaitalia.com"
+  },
+  "receiptNumber": "ORDER-56982",
+  "timestamp": "2025-04-27T20:15:45Z",
+  "subtotal": 78.50,
+  "taxAmount": 7.26,
+  "tipAmount": 15.70,
+  "totalAmount": 101.46,
+  "currency": "USD",
+  "items": [
+    {
+      "description": "Margherita Pizza",
+      "quantity": 1,
+      "unitPrice": 18.95,
+      "totalPrice": 18.95
+    },
+    {
+      "description": "Spaghetti Carbonara",
+      "quantity": 1,
+      "unitPrice": 22.50,
+      "totalPrice": 22.50
+    },
+    {
+      "description": "Tiramisu",
+      "quantity": 2,
+      "unitPrice": 9.95,
+      "totalPrice": 19.90
+    },
+    {
+      "description": "House Wine",
+      "quantity": 1,
+      "unitPrice": 17.15,
+      "totalPrice": 17.15
+    }
+  ],
+  "taxes": [
+    {
+      "taxName": "CA Sales Tax",
+      "taxRate": 0.0925,
+      "taxAmount": 7.26
+    }
+  ],
+  "payments": [
+    {
+      "method": "credit",
+      "cardType": "Visa",
+      "lastDigits": "3982",
+      "amount": 101.46,
+      "transactionId": "TX2938445"
+    }
+  ],
+  "metadata": {
+    "confidenceScore": 0.91,
+    "receiptFormat": "restaurant",
+    "sourceImageId": "receipt-20250427-105.jpg"
+  },
+  "confidence": 0.91
+}
+```

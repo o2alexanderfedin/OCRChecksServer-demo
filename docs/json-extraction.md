@@ -34,6 +34,16 @@ type JsonExtractionRequest = {
 interface JsonExtractor {
     extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>>;
 }
+
+// Mistral API options
+type MistralApiOptions = {
+    /** Model to use for JSON extraction */
+    model?: string;
+    /** Temperature for generation (0-1) */
+    temperature?: number;
+    /** Maximum tokens to generate */
+    maxTokens?: number;
+}
 ```
 
 ### 2. Implementation
@@ -71,6 +81,8 @@ class MistralJsonExtractorProvider implements JsonExtractor {
                         content: prompt
                     }
                 ],
+                temperature: 0.0,
+                max_tokens: 4096,
                 response_format: { type: 'json_object' }
             });
             

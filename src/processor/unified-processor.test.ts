@@ -1,8 +1,8 @@
-import { UnifiedProcessor } from './unified-processor';
+import { ReceiptScanner } from './unified-processor';
 import { OCRProvider, Document, DocumentType } from '../ocr/types';
 import { JsonExtractor } from '../json/types';
 import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types';
-import { MistralReceiptExtractor } from '../json/extractors/receipt-extractor';
+import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
 
 // Mock implementations
 class MockOCRProvider implements OCRProvider {
@@ -23,17 +23,17 @@ class MockJsonExtractor implements JsonExtractor {
   }
 }
 
-describe('UnifiedProcessor', () => {
+describe('ReceiptScanner', () => {
   let ocrProvider: OCRProvider;
   let jsonExtractor: JsonExtractor;
   let receiptExtractor: IReceiptExtractor;
-  let processor: UnifiedProcessor;
+  let processor: ReceiptScanner;
 
-  beforeEach(() => {
+  beforeEach(function(): void {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
-    receiptExtractor = new MistralReceiptExtractor(jsonExtractor);
-    processor = new UnifiedProcessor(ocrProvider, receiptExtractor);
+    receiptExtractor = new ReceiptExtractor(jsonExtractor);
+    processor = new ReceiptScanner(ocrProvider, receiptExtractor);
   });
 
   it('should process document and extract structured data', async () => {
@@ -62,7 +62,7 @@ describe('UnifiedProcessor', () => {
       processDocuments: async () => ['error', new Error('OCR failed')]
     };
     
-    processor = new UnifiedProcessor(failingOcrProvider, receiptExtractor);
+    processor = new ReceiptScanner(failingOcrProvider, receiptExtractor);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
@@ -84,7 +84,7 @@ describe('UnifiedProcessor', () => {
       extractFromText: async () => ['error', 'Extraction failed']
     };
     
-    processor = new UnifiedProcessor(ocrProvider, failingReceiptExtractor);
+    processor = new ReceiptScanner(ocrProvider, failingReceiptExtractor);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image

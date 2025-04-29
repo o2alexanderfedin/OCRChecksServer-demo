@@ -1,13 +1,10 @@
 import { IoE } from '../ocr/types';
-import { MistralOCRProvider } from '../ocr/mistral';
-import { MistralJsonExtractorProvider } from '../json/mistral';
-import { MistralReceiptExtractor } from '../json/extractors/receipt-extractor';
-import { UnifiedProcessor } from './unified-processor';
-import { Mistral } from '@mistralai/mistralai';
+import { ReceiptScanner } from './unified-processor';
+import { DIContainer, TYPES } from '../di/container';
 
 /**
- * Factory for creating UnifiedProcessor instances
- * Follows the Factory pattern to encapsulate creation details
+ * Factory for creating ReceiptScanner instances
+ * Uses dependency injection container to manage dependencies
  */
 export class ProcessorFactory {
   /**
@@ -15,26 +12,13 @@ export class ProcessorFactory {
    * 
    * @param io - The IO interface for network operations
    * @param apiKey - Mistral API key
-   * @returns A UnifiedProcessor instance
+   * @returns A ReceiptScanner instance
    */
-  static createMistralProcessor(io: IoE, apiKey: string): UnifiedProcessor {
-    // Create Mistral client
-    const mistralClient = new Mistral({
-      apiKey,
-    });
+  static createMistralProcessor(io: IoE, apiKey: string): ReceiptScanner {
+    // Create DI container with all dependencies registered
+    const container = new DIContainer().registerMistralDependencies(io, apiKey);
     
-    // Create OCR provider
-    const ocrProvider = new MistralOCRProvider(io, {
-      apiKey,
-    });
-    
-    // Create JSON extractor
-    const jsonExtractor = new MistralJsonExtractorProvider(io, mistralClient);
-    
-    // Create receipt extractor
-    const receiptExtractor = new MistralReceiptExtractor(jsonExtractor);
-    
-    // Create and return unified processor
-    return new UnifiedProcessor(ocrProvider, receiptExtractor);
+    // Get and return a fully configured ReceiptScanner
+    return container.get<ReceiptScanner>(TYPES.ReceiptScanner);
   }
 }

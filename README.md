@@ -27,6 +27,12 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and extr
     - Receipts
     - Invoices
     - Utility bills
+    
+- **Architecture**:
+  - Clean separation of concerns with specialized components
+  - Dependency injection using InversifyJS for flexible configuration
+  - Factory pattern for easy instantiation of complex object graphs
+  - Extensive test coverage for all components
 
 ## Setup
 

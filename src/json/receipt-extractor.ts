@@ -1,18 +1,18 @@
 /**
  * Legacy adapter file for backward compatibility
- * Implements the original ReceiptExtractor class by wrapping the new MistralReceiptExtractor
+ * Implements the original ReceiptExtractor class by wrapping the new ReceiptExtractor
  */
 
-import { MistralReceiptExtractor } from './extractors/receipt-extractor';
+import { ReceiptExtractor as ExtractorImplementation } from './extractors/receipt-extractor';
 import { JsonExtractor } from './types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { Receipt } from './schemas/receipt';
 
 /**
- * @deprecated Use MistralReceiptExtractor from './extractors/receipt-extractor' instead
+ * @deprecated Use ReceiptExtractor from './extractors/receipt-extractor' instead
  */
 export class ReceiptExtractor {
-  private implementation: MistralReceiptExtractor;
+  private implementation: ExtractorImplementation;
 
   /**
    * Creates a new receipt extractor
@@ -20,7 +20,7 @@ export class ReceiptExtractor {
    * @param jsonExtractor - The JSON extractor to use
    */
   constructor(jsonExtractor: JsonExtractor) {
-    this.implementation = new MistralReceiptExtractor(jsonExtractor);
+    this.implementation = new ExtractorImplementation(jsonExtractor);
   }
 
   /**

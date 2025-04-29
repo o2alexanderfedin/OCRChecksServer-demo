@@ -4,19 +4,19 @@ import type { Result } from 'functionalscript/types/result/module.f.js';
 import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types';
 
 /**
- * UnifiedProcessor - Encapsulates OCR and JSON extraction in a single process
+ * ReceiptScanner - Encapsulates OCR and JSON extraction in a single process
  * Follows Single Responsibility Principle by delegating OCR and extraction to specialized components
  * Follows Open/Closed Principle by allowing different implementations of OCR and extractors
  * Follows Liskov Substitution Principle by using interfaces
  * Follows Interface Segregation by using minimal interfaces
  * Follows Dependency Inversion by depending on abstractions
  */
-export class UnifiedProcessor implements DocumentProcessor {
+export class ReceiptScanner implements DocumentProcessor {
   private ocrProvider: OCRProvider;
   private receiptExtractor: IReceiptExtractor;
 
   /**
-   * Creates a new UnifiedProcessor
+   * Creates a new ReceiptScanner
    * 
    * @param ocrProvider - The OCR provider to use
    * @param receiptExtractor - The receipt extractor to use

@@ -4,7 +4,7 @@ import { Document, DocumentType } from '../../src/ocr/types';
 import * as fs from 'fs';
 import * as path from 'path';
 
-describe('UnifiedProcessor Integration', function() {
+describe('ReceiptScanner Integration', function() {
   // Set a longer timeout for API calls
   jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
   

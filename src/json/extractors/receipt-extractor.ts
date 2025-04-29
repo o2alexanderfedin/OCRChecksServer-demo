@@ -13,7 +13,7 @@ import { ReceiptExtractor as IReceiptExtractor } from './types';
  * Class for extracting receipt data from OCR text
  * Implements the ReceiptExtractor interface
  */
-export class MistralReceiptExtractor implements IReceiptExtractor {
+export class ReceiptExtractor implements IReceiptExtractor {
   private jsonExtractor: JsonExtractor;
 
   /**

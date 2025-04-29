@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.2] - 2025-05-15
+
+### Changed
+- Renamed `MistralReceiptExtractor` to `ReceiptExtractor` to better reflect its responsibility
+- Renamed `UnifiedProcessor` to `ReceiptScanner` for clarity and consistency
+- Updated all references in code and tests to use new class names
+- Improved clarity by removing misleading technology references in class names
+- Refactored `ProcessorFactory` to use InversifyJS for proper dependency injection
+
 ## [1.6.1] - 2025-05-12
 
 ### Changed
@@ -17,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - Added backward compatibility adapter for legacy code
 
 ### Changed
-- Updated `UnifiedProcessor` to use the new `ReceiptExtractor` interface
+- Updated `ReceiptScanner` (formerly `UnifiedProcessor`) to use the new `ReceiptExtractor` interface
 - Improved dependency injection following SOLID principles
 - Restructured code with dedicated extractors directory
 
@@ -27,7 +36,7 @@ All notable changes to this project will be documented in this file.
 ## [1.5.0] - 2025-05-05
 
 ### Added
-- UnifiedProcessor that encapsulates OCR and JSON extraction in a single component
+- ReceiptScanner that encapsulates OCR and JSON extraction in a single component
 - New `/process` API endpoint for streamlined document processing
 - Factory pattern for easy processor creation
 - Comprehensive confidence scoring (OCR, extraction, and overall)

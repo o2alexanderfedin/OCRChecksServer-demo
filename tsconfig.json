@@ -3,7 +3,7 @@
     "target": "ES2020",
     "module": "ES2020",
     "lib": ["ES2020", "DOM"],
-    "types": ["@cloudflare/workers-types", "node", "jasmine"],
+    "types": ["@cloudflare/workers-types", "node", "jasmine", "reflect-metadata"],
     "moduleResolution": "node",
     "strict": true,
     "noImplicitAny": true,
@@ -13,7 +13,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "ts-node": {
     "esm": true,

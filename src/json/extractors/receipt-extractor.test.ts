@@ -1,6 +1,6 @@
-import { MistralReceiptExtractor } from './receipt-extractor';
+import { ReceiptExtractor } from './receipt-extractor';
 import { JsonExtractor } from '../types';
-import { ReceiptExtractor } from './types';
+import { IReceiptExtractor } from './types';
 
 // Mock implementations
 class MockJsonExtractor implements JsonExtractor {
@@ -29,13 +29,13 @@ class FailingJsonExtractor implements JsonExtractor {
   }
 }
 
-describe('MistralReceiptExtractor', () => {
+describe('ReceiptExtractor', () => {
   let jsonExtractor: JsonExtractor;
-  let receiptExtractor: ReceiptExtractor;
+  let receiptExtractor: IReceiptExtractor;
 
-  beforeEach(() => {
+  beforeEach(function(): void {
     jsonExtractor = new MockJsonExtractor();
-    receiptExtractor = new MistralReceiptExtractor(jsonExtractor);
+    receiptExtractor = new ReceiptExtractor(jsonExtractor);
   });
 
   it('should extract receipt data from OCR text', async () => {
@@ -59,7 +59,7 @@ describe('MistralReceiptExtractor', () => {
   it('should handle extraction failures', async () => {
     // Arrange
     const failingExtractor = new FailingJsonExtractor();
-    const extractor = new MistralReceiptExtractor(failingExtractor);
+    const extractor = new ReceiptExtractor(failingExtractor);
     const ocrText = 'Invalid text';
     
     // Act
@@ -91,7 +91,7 @@ describe('MistralReceiptExtractor', () => {
       }]
     };
     
-    const extractor = new MistralReceiptExtractor(jsonExtractor);
+    const extractor = new ReceiptExtractor(jsonExtractor);
     const ocrText = 'Test Store\nTotal: $42.99\nDate: 2023-01-01';
     
     // Act

@@ -1,0 +1,143 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { ReceiptExtractor } from '../../../src/json/receipt-extractor';
+import { Receipt } from '../../../src/json/schemas/receipt';
+import { JsonExtractorProvider, SchemaDefinition, extractResult } from '../../../src/json/types';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const fixturesDir = path.join(__dirname, '..', '..', 'fixtures');
+const sampleReceiptPath = path.join(fixturesDir, 'sample-receipt-ocr.txt');
+
+// Mock JSON extractor for testing
+class MockJsonExtractor implements JsonExtractorProvider {
+  private mockResponse: extractResult<any>;
+
+  constructor(mockResponse: extractResult<any>) {
+    this.mockResponse = mockResponse;
+  }
+
+  async extract({ markdown, schema }: { markdown: string, schema: SchemaDefinition }): Promise<extractResult<any>> {
+    // For test purposes, we just return the mockResponse regardless of input
+    return this.mockResponse;
+  }
+}
+
+describe('ReceiptExtractor Functional Tests', () => {
+  let sampleReceiptText: string;
+
+  beforeAll(() => {
+    sampleReceiptText = fs.readFileSync(sampleReceiptPath, 'utf-8');
+  });
+
+  it('should properly handle successful receipt extraction', async () => {
+    // Create mock data that the extractor should return
+    const mockExtractedReceipt: Receipt = {
+      merchantName: "ACME SUPERMARKET",
+      merchantAddress: "123 Main Street, Anytown, CA 90210",
+      merchantPhone: "(555) 123-4567",
+      merchantWebsite: "www.acmesupermarket.com",
+      receiptNumber: "T-59385",
+      timestamp: "2025-04-28T15:30:45Z",
+      subtotal: 42.97,
+      taxAmount: 3.44,
+      totalAmount: 46.41,
+      currency: "USD",
+      items: [
+        {
+          description: "Organic Bananas",
+          quantity: 1.20,
+          unit: "kg",
+          unitPrice: 2.99,
+          totalPrice: 3.59
+        },
+        {
+          description: "Whole Milk",
+          quantity: 2,
+          unitPrice: 3.49,
+          totalPrice: 6.98
+        }
+      ],
+      taxes: [
+        {
+          taxName: "CA State Tax",
+          taxRate: 0.08,
+          taxAmount: 3.44
+        }
+      ],
+      payments: [
+        {
+          method: "credit",
+          cardType: "Visa",
+          lastDigits: "1234",
+          amount: 46.41,
+          transactionId: "TX78965412"
+        }
+      ],
+      confidence: 0.92
+    };
+
+    // Create a mock extractor that returns our predefined response
+    const mockJsonExtractor = new MockJsonExtractor(['ok', {
+      json: mockExtractedReceipt,
+      confidence: 0.92
+    }]);
+
+    // Create the receipt extractor with our mock
+    const receiptExtractor = new ReceiptExtractor(mockJsonExtractor);
+
+    // Test extraction
+    const result = await receiptExtractor.extractFromText(sampleReceiptText);
+
+    // Verify results
+    expect(result[0]).toBe('ok');
+    if (result[0] === 'ok') {
+      expect(result[1].json).toBeDefined();
+      expect(result[1].confidence).toBeCloseTo(0.92);
+
+      const receipt = result[1].json;
+      expect(receipt.merchantName).toBe("ACME SUPERMARKET");
+      expect(receipt.totalAmount).toBe(46.41);
+      expect(receipt.items?.length).toBe(2);
+      expect(receipt.payments?.[0].method).toBe("credit");
+    }
+  });
+
+  it('should handle extraction errors correctly', async () => {
+    // Create a mock extractor that returns an error
+    const mockJsonExtractor = new MockJsonExtractor([
+      'error', 
+      'Failed to extract receipt data from text'
+    ]);
+
+    // Create the receipt extractor with our mock
+    const receiptExtractor = new ReceiptExtractor(mockJsonExtractor);
+
+    // Test extraction
+    const result = await receiptExtractor.extractFromText(sampleReceiptText);
+
+    // Verify results
+    expect(result[0]).toBe('error');
+    if (result[0] === 'error') {
+      expect(result[1]).toBe('Failed to extract receipt data from text');
+    }
+  });
+
+  it('should handle empty OCR text', async () => {
+    // Create a mock extractor for testing
+    const mockJsonExtractor = new MockJsonExtractor([
+      'error', 
+      'No text content to extract from'
+    ]);
+
+    // Create the receipt extractor with our mock
+    const receiptExtractor = new ReceiptExtractor(mockJsonExtractor);
+
+    // Test extraction with empty text
+    const result = await receiptExtractor.extractFromText('');
+
+    // Empty text should result in an error
+    expect(result[0]).toBe('error');
+  });
+});

@@ -1,0 +1,37 @@
+ACME SUPERMARKET
+123 Main Street
+Anytown, CA 90210
+Tel: (555) 123-4567
+www.acmesupermarket.com
+
+RECEIPT #: T-59385
+DATE: 04/28/2025 15:30:45
+CASHIER: Emily S.
+
+ITEMS:
+Organic Bananas       1.20 kg    $2.99/kg    $3.59
+Whole Milk            2          $3.49       $6.98
+Sliced Bread          1          $4.29       $4.29
+Orange Juice          1          $3.99       $3.99
+Chicken Breast        0.85 kg    $8.99/kg    $7.64
+Pasta                 2          $1.29       $2.58
+Tomato Sauce          3          $0.99       $2.97
+Apples                1.50 kg    $2.49/kg    $3.74
+Yogurt                6          $0.89       $5.34
+Paper Towels          1          $1.89       $1.89
+
+SUBTOTAL:                                    $42.97
+CA STATE TAX (8.00%):                         $3.44
+
+TOTAL:                                       $46.41
+
+PAYMENT:
+VISA ************1234
+Transaction ID: TX78965412                   $46.41
+AUTH CODE: 839205
+APPROVED
+
+Thank you for shopping at ACME Supermarket!
+SAVE $5 on your next purchase of $50 or more with coupon code: SAVE5SPRING
+Store ID: 1035
+Rewards Points Earned: 46

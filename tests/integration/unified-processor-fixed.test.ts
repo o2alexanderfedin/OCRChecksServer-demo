@@ -9,42 +9,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Simplified mock with just the types needed for the test
-const mockIoE = {
+// Use actual workerIoE instead of a mock to ensure all required properties are present
+const testIoE = {
   ...workerIoE,
-  // Add missing properties required by IoE
-  console: { log: console.log, error: console.error },
-  fs: {
-    writeFileSync: () => {},
-    readFileSync: () => null,
-    existsSync: () => false,
-    promises: {
-      readFile: async () => '',
-      writeFile: async () => {},
-      readdir: async () => [],
-      rm: async () => {},
-      mkdir: async () => undefined,
-      copyFile: async () => {}
-    }
-  },
-  process: {
-    argv: [],
-    env: {},
-    exit: () => { throw new Error('exit called') },
-    cwd: () => ''
-  },
-  asyncImport: async () => ({ default: {} }),
-  performance: {
-    now: () => 0
-  },
-  tryCatch: <T>(f: () => T) => {
-    try {
-      return ['ok', f()];
-    } catch (error) {
-      return ['error', error];
-    }
-  },
-} as unknown as IoE;
+  // Add console for logging
+  console: console
+} as IoE;
 
 describe('ReceiptScanner Integration', function() {
   // Set a longer timeout for API calls
@@ -62,7 +32,7 @@ describe('ReceiptScanner Integration', function() {
   
   it('should process a receipt image and extract structured data', async function() {
     // Create processor
-    const processor = ProcessorFactory.createMistralProcessor(mockIoE, MISTRAL_API_KEY!);
+    const processor = ProcessorFactory.createMistralProcessor(testIoE, MISTRAL_API_KEY!);
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');

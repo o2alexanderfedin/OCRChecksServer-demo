@@ -13,15 +13,8 @@ The JSON Extraction feature is designed to process markdown text output from the
 type JsonExtractionResult = {
     /** Extracted JSON data */
     json: any;
-    /** Additional metadata about the extraction process */
-    metadata?: {
-        /** Model used for extraction */
-        model: string;
-        /** Processing time in milliseconds */
-        processingTimeMs: number;
-        /** Confidence score (0-1) */
-        confidence?: number;
-    };
+    /** Confidence score (0-1) indicating extraction reliability */
+    confidence: number;
 }
 
 // Request for JSON extraction
@@ -32,8 +25,6 @@ type JsonExtractionRequest = {
     schema?: Record<string, unknown>;
     /** Optional extraction options */
     options?: {
-        /** Whether to include metadata in the response */
-        includeMetadata?: boolean;
         /** Whether to throw an error or return partial results on validation failure */
         strictValidation?: boolean;
     };
@@ -78,8 +69,6 @@ class MistralJsonExtractorProvider implements JsonExtractor {
     }
 
     async extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>> {
-        const startTime = Date.now();
-        
         try {
             // Construct the prompt for Mistral
             const prompt = this.constructPrompt(request);
@@ -113,20 +102,16 @@ class MistralJsonExtractorProvider implements JsonExtractor {
                 }
             }
             
-            const result: JsonExtractionResult = {
-                json: jsonContent
+            // Calculate confidence score
+            const confidence = this.calculateConfidence(response, jsonContent);
+            
+            return { 
+                success: true, 
+                data: {
+                    json: jsonContent,
+                    confidence
+                }
             };
-            
-            // Add metadata if requested
-            if (request.options?.includeMetadata) {
-                result.metadata = {
-                    model: this.config.model || 'mistral-large-latest',
-                    processingTimeMs: Date.now() - startTime,
-                    confidence: response.choices[0].finish_reason === 'stop' ? 1 : 0.5
-                };
-            }
-            
-            return { success: true, data: result };
         } catch (error) {
             return { 
                 success: false, 
@@ -146,6 +131,26 @@ class MistralJsonExtractorProvider implements JsonExtractor {
         
         prompt += "Provide your response as a valid JSON object only.";
         return prompt;
+    }
+    
+    private calculateConfidence(response: any, extractedJson: any): number {
+        // Base confidence on multiple factors
+        const factors = [
+            // 1. Model finish reason (1.0 if "stop", 0.5 if other)
+            response.choices[0].finish_reason === 'stop' ? 1.0 : 0.5,
+            
+            // 2. JSON structure completeness (0.0-1.0)
+            Object.keys(extractedJson).length > 0 ? 1.0 : 0.3,
+            
+            // 3. Additional confidence factors can be added here
+            // such as schema validation percentage, field completeness, etc.
+        ];
+        
+        // Average the factors for final confidence score
+        const confidenceScore = factors.reduce((sum, factor) => sum + factor, 0) / factors.length;
+        
+        // Return normalized score between 0 and 1, rounded to 2 decimal places
+        return Math.round(confidenceScore * 100) / 100;
     }
     
     private validateAgainstSchema(json: any, schema: Record<string, unknown>): { success: boolean; error?: string } {
@@ -195,14 +200,18 @@ const result = await jsonExtractor.extract({
     markdown: ocrText,
     schema,
     options: {
-        includeMetadata: true,
         strictValidation: true
     }
 });
 
 if (result.success) {
     console.log('Extracted JSON:', result.data.json);
-    console.log('Metadata:', result.data.metadata);
+    console.log('Confidence:', result.data.confidence);
+    
+    // Example decision based on confidence
+    if (result.data.confidence < 0.7) {
+        console.warn('Low confidence extraction, may require manual review');
+    }
 } else {
     console.error('Extraction failed:', result.error);
 }
@@ -226,12 +235,13 @@ classDiagram
         +constructor(io: IoE, client: Mistral, config: MistralJsonConfig)
         +extract(request: JsonExtractionRequest) Promise~Result<JsonExtractionResult, Error>~
         -constructPrompt(request) string
+        -calculateConfidence(response, json) number
         -validateAgainstSchema(json, schema) ValidationResult
     }
 
     class JsonExtractionResult {
         +json: any
-        +metadata?: Metadata
+        +confidence: number
     }
 
     class JsonExtractionRequest {
@@ -274,8 +284,8 @@ sequenceDiagram
         SchemaValidator-->>MistralJsonExtractorProvider: Validation Result
     end
     
-    MistralJsonExtractorProvider->>MistralJsonExtractorProvider: Prepare Result with Metadata
-    MistralJsonExtractorProvider-->>Worker: JsonExtractionResult
+    MistralJsonExtractorProvider->>MistralJsonExtractorProvider: Calculate Confidence Score
+    MistralJsonExtractorProvider-->>Worker: JsonExtractionResult with Confidence
     Worker-->>Client: Response
 ```
 
@@ -294,12 +304,12 @@ sequenceDiagram
 3. **Response Processing**
    - Parse JSON response from Mistral
    - Validate against schema if provided
-   - Generate metadata about extraction process
+   - Calculate confidence score based on extraction quality factors
 
 4. **Result Generation**
    - Structure extracted data as JSON
    - Apply transformations if needed (e.g., type conversion)
-   - Return structured result with optional metadata
+   - Return structured result with confidence score
 
 ## Error Handling
 
@@ -331,10 +341,11 @@ sequenceDiagram
 - Error handling for all error types
 - Schema validation
 - Prompt construction logic
+- Confidence calculation accuracy
 
 ### Functional Tests
 - End-to-end extraction with known inputs
-- Metadata generation accuracy
+- Confidence score verification
 - Option parameter handling
 - Performance under different configurations
 
@@ -365,6 +376,7 @@ sequenceDiagram
 - Track extraction success rates by input type
 - Measure response times across different models
 - Log token usage for cost optimization
+- Monitor confidence scores across different input types
 
 ## Future Enhancements
 
@@ -372,7 +384,7 @@ sequenceDiagram
    - Advanced prompt engineering with few-shot examples
    - Multi-stage extraction for complex documents
    - Domain-specific extraction models
-   - Confidence scoring for extracted fields
+   - Enhanced confidence scoring with field-level confidence
 
 2. **Performance Optimization**
    - Parallel processing for batch extractions

@@ -274,12 +274,81 @@ export const receiptSchema = {
   }
 };
 
+// Enum definitions for TypeScript
+export enum ReceiptType {
+  Sale = 'sale',
+  Return = 'return',
+  Refund = 'refund',
+  Estimate = 'estimate',
+  Proforma = 'proforma',
+  Other = 'other'
+}
+
+export enum PaymentMethod {
+  Credit = 'credit',
+  Debit = 'debit',
+  Cash = 'cash',
+  Check = 'check',
+  GiftCard = 'gift_card',
+  StoreCredit = 'store_credit',
+  MobilePayment = 'mobile_payment',
+  Other = 'other'
+}
+
+export enum CardType {
+  Visa = 'visa',
+  Mastercard = 'mastercard',
+  Amex = 'amex',
+  Discover = 'discover',
+  DinersClub = 'diners_club',
+  JCB = 'jcb',
+  UnionPay = 'union_pay',
+  Other = 'other'
+}
+
+export enum TaxType {
+  Sales = 'sales',
+  VAT = 'vat',
+  GST = 'gst',
+  PST = 'pst',
+  HST = 'hst',
+  Excise = 'excise',
+  Service = 'service',
+  Other = 'other'
+}
+
+export enum ReceiptFormat {
+  Retail = 'retail',
+  Restaurant = 'restaurant',
+  Service = 'service',
+  Utility = 'utility',
+  Transportation = 'transportation',
+  Accommodation = 'accommodation',
+  Other = 'other'
+}
+
+export enum UnitOfMeasure {
+  Each = 'ea',
+  Kilogram = 'kg',
+  Gram = 'g',
+  Pound = 'lb',
+  Ounce = 'oz',
+  Liter = 'l',
+  Milliliter = 'ml',
+  Gallon = 'gal',
+  Piece = 'pc',
+  Pair = 'pr',
+  Pack = 'pk',
+  Box = 'box',
+  Other = 'other'
+}
+
 // Type definitions for TypeScript
 export interface ReceiptLineItem {
   description: string;
   sku?: string;
   quantity?: number;
-  unit?: string;
+  unit?: UnitOfMeasure | string;
   unitPrice?: number;
   totalPrice: number;
   discounted?: boolean;
@@ -289,14 +358,14 @@ export interface ReceiptLineItem {
 
 export interface ReceiptTaxItem {
   taxName: string;
-  taxType?: string;
+  taxType?: TaxType | string;
   taxRate?: number;
   taxAmount: number;
 }
 
 export interface ReceiptPaymentMethod {
-  method: 'credit' | 'debit' | 'cash' | 'check' | 'gift_card' | 'store_credit' | 'mobile_payment' | 'other';
-  cardType?: string;
+  method: PaymentMethod;
+  cardType?: CardType | string;
   lastDigits?: string;
   amount: number;
   transactionId?: string;
@@ -307,7 +376,7 @@ export interface ReceiptMetadata {
   currency?: string;
   languageCode?: string;
   timeZone?: string;
-  receiptFormat?: 'retail' | 'restaurant' | 'service' | 'utility' | 'transportation' | 'accommodation' | 'other';
+  receiptFormat?: ReceiptFormat;
   sourceImageId?: string;
   warnings?: string[];
 }
@@ -333,9 +402,9 @@ export interface ReceiptTotals {
 export interface Receipt {
   merchant: MerchantInfo;
   receiptNumber?: string;
-  receiptType?: 'sale' | 'return' | 'refund' | 'estimate' | 'proforma' | 'other';
+  receiptType?: ReceiptType;
   timestamp: string;
-  paymentMethod?: string;
+  paymentMethod?: PaymentMethod | string;
   totals: ReceiptTotals;
   currency: string;
   items?: ReceiptLineItem[];

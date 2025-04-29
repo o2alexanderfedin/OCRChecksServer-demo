@@ -2,7 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { ReceiptExtractor } from '../../../src/json/receipt-extractor';
-import { Receipt } from '../../../src/json/schemas/receipt';
+import { 
+  Receipt, 
+  ReceiptType, 
+  PaymentMethod, 
+  CardType
+} from '../../../src/json/schemas/receipt';
 import { JsonExtractorProvider, SchemaDefinition, extractResult } from '../../../src/json/types';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -42,6 +47,7 @@ describe('ReceiptExtractor Functional Tests', () => {
         storeId: "1035"
       },
       receiptNumber: "T-59385",
+      receiptType: ReceiptType.Sale,
       timestamp: "2025-04-28T15:30:45Z",
       totals: {
         subtotal: 42.97,
@@ -73,8 +79,8 @@ describe('ReceiptExtractor Functional Tests', () => {
       ],
       payments: [
         {
-          method: "credit",
-          cardType: "Visa",
+          method: PaymentMethod.Credit,
+          cardType: CardType.Visa,
           lastDigits: "1234",
           amount: 46.41,
           transactionId: "TX78965412"
@@ -108,7 +114,7 @@ describe('ReceiptExtractor Functional Tests', () => {
       expect(receipt.totals.subtotal).toBe(42.97);
       expect(receipt.totals.tax).toBe(3.44);
       expect(receipt.items?.length).toBe(2);
-      expect(receipt.payments?.[0].method).toBe("credit");
+      expect(receipt.payments?.[0].method).toBe(PaymentMethod.Credit);
     }
   });
 

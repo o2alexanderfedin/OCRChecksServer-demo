@@ -1,4 +1,11 @@
-import { receiptSchema, Receipt } from '../../../src/json/schemas/receipt';
+import { 
+  receiptSchema, 
+  Receipt, 
+  ReceiptType, 
+  PaymentMethod, 
+  CardType, 
+  ReceiptFormat 
+} from '../../../src/json/schemas/receipt';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
@@ -21,6 +28,7 @@ describe('Receipt Schema Validation', () => {
         storeId: "1035"
       },
       receiptNumber: "T-59385",
+      receiptType: ReceiptType.Sale,
       timestamp: "2025-04-28T15:30:45Z",
       totals: {
         subtotal: 42.97,
@@ -52,8 +60,8 @@ describe('Receipt Schema Validation', () => {
       ],
       payments: [
         {
-          method: "credit",
-          cardType: "Visa",
+          method: PaymentMethod.Credit,
+          cardType: CardType.Visa,
           lastDigits: "1234",
           amount: 46.41,
           transactionId: "TX78965412"
@@ -62,7 +70,7 @@ describe('Receipt Schema Validation', () => {
       metadata: {
         confidenceScore: 0.92,
         languageCode: "en-US",
-        receiptFormat: "retail",
+        receiptFormat: ReceiptFormat.Retail,
         sourceImageId: "receipt-20250428-001.jpg"
       },
       confidence: 0.92
@@ -135,7 +143,7 @@ describe('Receipt Schema Validation', () => {
   });
 
   it('should validate receipt with all payment methods', () => {
-    const paymentMethods = ["credit", "debit", "cash", "check", "gift_card", "store_credit", "mobile_payment", "other"];
+    const paymentMethods = Object.values(PaymentMethod);
     
     for (const method of paymentMethods) {
       const receipt: Receipt = {
@@ -150,7 +158,7 @@ describe('Receipt Schema Validation', () => {
         confidence: 0.9,
         payments: [
           {
-            method: method as any,
+            method: method,
             amount: 100
           }
         ]

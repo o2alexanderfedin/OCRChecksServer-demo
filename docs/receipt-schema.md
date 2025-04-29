@@ -13,6 +13,96 @@ The receipt schema is designed to capture common elements found in retail, resta
 3. **Validation**: Type constraints and pattern validation ensure data integrity
 4. **Confidence Scoring**: All extracted data includes confidence metrics for reliability assessment
 
+## String-Based Enums
+
+The schema uses TypeScript string-based enums for consistency and type safety:
+
+### Receipt Type
+```typescript
+enum ReceiptType {
+  Sale = 'sale',
+  Return = 'return',
+  Refund = 'refund',
+  Estimate = 'estimate',
+  Proforma = 'proforma',
+  Other = 'other'
+}
+```
+
+### Payment Method
+```typescript
+enum PaymentMethod {
+  Credit = 'credit',
+  Debit = 'debit',
+  Cash = 'cash',
+  Check = 'check',
+  GiftCard = 'gift_card',
+  StoreCredit = 'store_credit',
+  MobilePayment = 'mobile_payment',
+  Other = 'other'
+}
+```
+
+### Card Type
+```typescript
+enum CardType {
+  Visa = 'visa',
+  Mastercard = 'mastercard',
+  Amex = 'amex',
+  Discover = 'discover',
+  DinersClub = 'diners_club',
+  JCB = 'jcb',
+  UnionPay = 'union_pay',
+  Other = 'other'
+}
+```
+
+### Tax Type
+```typescript
+enum TaxType {
+  Sales = 'sales',
+  VAT = 'vat',
+  GST = 'gst',
+  PST = 'pst',
+  HST = 'hst',
+  Excise = 'excise',
+  Service = 'service',
+  Other = 'other'
+}
+```
+
+### Receipt Format
+```typescript
+enum ReceiptFormat {
+  Retail = 'retail',
+  Restaurant = 'restaurant',
+  Service = 'service',
+  Utility = 'utility',
+  Transportation = 'transportation',
+  Accommodation = 'accommodation',
+  Other = 'other'
+}
+```
+
+### Unit of Measure
+```typescript
+enum UnitOfMeasure {
+  Each = 'ea',
+  Kilogram = 'kg',
+  Gram = 'g',
+  Pound = 'lb',
+  Ounce = 'oz',
+  Liter = 'l',
+  Milliliter = 'ml',
+  Gallon = 'gal',
+  Piece = 'pc',
+  Pair = 'pr',
+  Pack = 'pk',
+  Box = 'box',
+  Other = 'other'
+}
+```
+
 ## Schema Design
 
 ```mermaid
@@ -192,6 +282,7 @@ classDiagram
     "storeId": "1035"
   },
   "receiptNumber": "T-59385",
+  "receiptType": "sale",
   "timestamp": "2025-04-28T15:30:45Z",
   "totals": {
     "subtotal": 42.97,
@@ -444,6 +535,7 @@ The schema implementation includes a comprehensive error handling strategy:
     "storeId": "3430"
   },
   "receiptNumber": "2759-4532-9378-0251",
+  "receiptType": "sale",
   "timestamp": "2025-04-25T14:22:35Z",
   "totals": {
     "subtotal": 127.84,
@@ -508,6 +600,7 @@ The schema implementation includes a comprehensive error handling strategy:
     "website": "trattoriaitalia.com"
   },
   "receiptNumber": "ORDER-56982",
+  "receiptType": "sale",
   "timestamp": "2025-04-27T20:15:45Z",
   "totals": {
     "subtotal": 78.50,

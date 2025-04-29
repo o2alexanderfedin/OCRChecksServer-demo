@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.5.0] - 2025-05-05
 
 ### Added
 - UnifiedProcessor that encapsulates OCR and JSON extraction in a single component

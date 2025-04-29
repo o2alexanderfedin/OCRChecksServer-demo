@@ -11,7 +11,7 @@ const jasmine = new Jasmine();
 jasmine.loadConfig({
   spec_dir: 'tests',
   spec_files: [
-    'semi/**/*.test.js'
+    'semi-integration/**/*.si.test.ts'
   ],
   helpers: [],
   stopSpecOnExpectationFailure: false,

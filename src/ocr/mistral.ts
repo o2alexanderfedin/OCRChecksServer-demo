@@ -42,7 +42,7 @@ export class MistralOCRProvider implements OCRProvider {
         try {
             const document = this.createDocumentChunk(doc)
             const ocrResponse = await this.client.ocr.process({
-                model: null,
+                model: "mistral-ocr-latest",
                 document,
                 includeImageBase64: doc.type === DocumentType.PDF
             })

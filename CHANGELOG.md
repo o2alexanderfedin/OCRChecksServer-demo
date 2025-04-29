@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.6.1] - 2025-05-12
 
 ### Changed
 - Simplified architecture by directly using the IReceiptExtractor interface

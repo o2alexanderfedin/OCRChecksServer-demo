@@ -8,7 +8,8 @@ import {
   PaymentMethod, 
   CardType
 } from '../../../src/json/schemas/receipt';
-import { JsonExtractorProvider, SchemaDefinition, extractResult } from '../../../src/json/types';
+import { JsonExtractor, JsonSchema } from '../../../src/json/types';
+import type { Result } from 'functionalscript/types/result/module.f.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,16 +17,16 @@ const fixturesDir = path.join(__dirname, '..', '..', 'fixtures');
 const sampleReceiptPath = path.join(fixturesDir, 'sample-receipt-ocr.txt');
 
 // Mock JSON extractor for testing
-class MockJsonExtractor implements JsonExtractorProvider {
-  private mockResponse: extractResult<any>;
+class MockJsonExtractor implements JsonExtractor {
+  private mockResponse: Result<any, string>;
 
-  constructor(mockResponse: extractResult<any>) {
+  constructor(mockResponse: Result<any, string>) {
     this.mockResponse = mockResponse;
   }
 
-  async extract({ markdown, schema }: { markdown: string, schema: SchemaDefinition }): Promise<extractResult<any>> {
+  async extract({ markdown, schema }: { markdown: string, schema: JsonSchema }): Promise<Result<any, Error>> {
     // For test purposes, we just return the mockResponse regardless of input
-    return this.mockResponse;
+    return this.mockResponse as unknown as Result<any, Error>;
   }
 }
 

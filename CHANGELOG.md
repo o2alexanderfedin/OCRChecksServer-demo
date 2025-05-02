@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.18.0] - 2025-05-24
+
+### Added
+- Swift proxy client library for easy API integration in iOS/macOS applications
+- Comprehensive Swift models matching the API schemas
+- Clean API interface with Swift-idiomatic design
+- Detailed documentation and usage examples for the Swift client
+- Support for all API endpoints in the Swift client
+
+### Changed
+- Improved client library experience with Swift-native error handling
+- Enhanced developer experience with convenience factory methods
+- Better Swift compatibility with modern Swift language features
+- Simplified integration for Apple platform developers
+
 ## [1.17.0] - 2025-05-22
 
 ### Added

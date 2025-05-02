@@ -2,7 +2,7 @@
  * Tests to ensure proper migration from legacy check extractor adapter
  * to modern implementation
  */
-import { CheckExtractor } from '../../../src/json/index.js';
+import { CheckExtractor } from '../../../src/json/extractors/check-extractor.js';
 import { Check, CheckType, BankAccountType } from '../../../src/json/schemas/check';
 import { JsonExtractor, JsonSchema } from '../../../src/json/types';
 import type { Result } from 'functionalscript/types/result/module.f.js';

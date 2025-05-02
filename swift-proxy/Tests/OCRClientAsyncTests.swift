@@ -115,18 +115,18 @@ class OCRClientAsyncTests: XCTestCase {
 }
 
 // Simple mock URLSession for testing
-class URLSessionMock: URLSession {
+class URLSessionMock: URLSessionProtocol {
     var nextResponse: (Data, URLResponse)!
     var nextError: Error?
     
-    override func data(from url: URL, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse) {
+    func data(from url: URL, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse) {
         if let error = nextError {
             throw error
         }
         return nextResponse
     }
     
-    override func data(for request: URLRequest, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse) {
+    func data(for request: URLRequest, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse) {
         if let error = nextError {
             throw error
         }

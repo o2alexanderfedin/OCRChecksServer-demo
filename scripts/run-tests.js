@@ -19,6 +19,7 @@ import { dirname, join } from 'path';
 import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import { globSync } from 'glob';
+import { promisify } from 'util';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
@@ -75,6 +76,7 @@ const config = testConfigs[testType];
 
 // Start server if needed
 let serverProcess = null;
+let serverPid = null;
 if (config.requiresServer) {
   console.log('Starting server for integration tests...');
   
@@ -99,10 +101,22 @@ if (config.requiresServer) {
       process.env.OCR_API_URL = match[1];
       console.log(`Setting OCR_API_URL environment variable to: ${match[1]}`);
     }
+    
+    // Parse PID information
+    const pidMatch = output.match(/Server PID (\d+) saved to/);
+    if (pidMatch && pidMatch[1]) {
+      serverPid = parseInt(pidMatch[1], 10);
+      console.log(`Detected server process PID: ${serverPid}`);
+    }
   });
   
   serverProcess.on('error', (err) => {
     console.error('Failed to start server:', err);
+  });
+  
+  // Set up handler for child process exit
+  serverProcess.on('exit', (code, signal) => {
+    console.log(`Server process exited with code ${code} and signal ${signal}`);
   });
   
   // Give the server more time to start and be fully ready
@@ -191,16 +205,7 @@ jasmine.addReporter({
     console.log(`Details: ${JSON.stringify(result, null, 2)}`);
     
     // Shutdown server if it was started
-    if (serverProcess) {
-      console.log('Shutting down server...');
-      if (serverProcess.pid) {
-        try {
-          process.kill(serverProcess.pid);
-        } catch (e) {
-          console.log('Error shutting down server:', e.message);
-        }
-      }
-    }
+    // We'll handle this in the finally block for better reliability
   }
 });
 
@@ -210,6 +215,54 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('- Reason:', reason);
   console.error('- Promise:', promise);
 });
+
+// Handle termination signals to ensure clean shutdown
+async function cleanupAndExit(signal) {
+  console.log(`\nReceived ${signal} signal, shutting down gracefully...`);
+  
+  // Try to clean up server processes
+  if (serverProcess && serverProcess.pid) {
+    console.log(`Terminating server process with PID: ${serverProcess.pid}`);
+    try {
+      serverProcess.kill('SIGTERM');
+      // Give it a moment to terminate
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (e) {
+      console.log(`Error shutting down server: ${e.message}`);
+    }
+  }
+  
+  // Try to clean up based on PID file
+  try {
+    const pidFilePath = join(projectRoot, '.server-pid');
+    const pidContent = await fs.readFile(pidFilePath, 'utf8').catch(() => null);
+    
+    if (pidContent) {
+      const filePid = parseInt(pidContent.trim(), 10);
+      if (filePid && !isNaN(filePid)) {
+        console.log(`Terminating server from PID file: ${filePid}`);
+        try {
+          process.kill(filePid, 'SIGTERM');
+        } catch (e) {
+          if (e.code !== 'ESRCH') {
+            console.log(`Error terminating server process ${filePid}: ${e.message}`);
+          }
+        }
+      }
+      
+      // Remove the PID file
+      await fs.unlink(pidFilePath).catch(() => {});
+    }
+  } catch (error) {
+    // Ignore errors during cleanup
+  }
+  
+  process.exit(signal === 'SIGINT' ? 130 : 143); // Standard exit codes for these signals
+}
+
+// Register signal handlers
+process.on('SIGINT', () => cleanupAndExit('SIGINT'));  // Ctrl+C
+process.on('SIGTERM', () => cleanupAndExit('SIGTERM')); // Kill command
 
 // Execute tests with timeout protection
 const timeoutMs = config.timeoutInterval * 2;
@@ -267,12 +320,68 @@ try {
   
   process.exit(1);
 } finally {
-  // Make sure to shut down the server
-  if (serverProcess && serverProcess.pid) {
-    try {
-      process.kill(serverProcess.pid);
-    } catch (e) {
-      console.log('Error shutting down server:', e.message);
+  // Create a robust shutdown function to clean up all server processes
+  async function shutdownServer() {
+    console.log('Ensuring server shutdown...');
+    
+    // 1. Try to kill the direct child process
+    if (serverProcess && !serverProcess.killed) {
+      console.log(`Terminating server process with PID: ${serverProcess.pid}`);
+      try {
+        serverProcess.kill('SIGTERM');
+        // Wait a moment for graceful shutdown
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (e) {
+        console.log(`Error shutting down server process: ${e.message}`);
+      }
     }
+    
+    // 2. Try to kill the actual server process which might be different from the child process
+    if (serverPid) {
+      console.log(`Terminating detected server PID: ${serverPid}`);
+      try {
+        process.kill(serverPid, 'SIGTERM');
+      } catch (e) {
+        if (e.code === 'ESRCH') {
+          console.log(`Server process ${serverPid} already terminated.`);
+        } else {
+          console.log(`Error terminating server process ${serverPid}: ${e.message}`);
+        }
+      }
+    }
+    
+    // 3. Check the PID file and kill that process if it exists
+    try {
+      const pidFilePath = join(projectRoot, '.server-pid');
+      const pidContent = await fs.readFile(pidFilePath, 'utf8').catch(() => null);
+      
+      if (pidContent) {
+        const filePid = parseInt(pidContent.trim(), 10);
+        if (filePid && !isNaN(filePid)) {
+          console.log(`Terminating server from PID file: ${filePid}`);
+          try {
+            process.kill(filePid, 'SIGTERM');
+          } catch (e) {
+            if (e.code === 'ESRCH') {
+              console.log(`Server process ${filePid} already terminated.`);
+            } else {
+              console.log(`Error terminating server process ${filePid}: ${e.message}`);
+            }
+          }
+        }
+        
+        // Remove the PID file to prevent future confusion
+        await fs.unlink(pidFilePath).catch(err => {
+          console.log(`Error removing PID file: ${err.message}`);
+        });
+      }
+    } catch (error) {
+      console.log(`Error during server process cleanup: ${error.message}`);
+    }
+    
+    console.log('Server shutdown complete.');
   }
+  
+  // Run the shutdown process
+  await shutdownServer();
 }

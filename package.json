@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "dev:watch": "wrangler dev --live-reload",
+    "start-local": "bash scripts/start-local.sh",
     "deploy": "wrangler deploy",
     "test": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-tests.js all",
     "test:unit": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-unit-tests.js",

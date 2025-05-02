@@ -1,7 +1,9 @@
 # Scripts
 
-> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
-> Contact: [sales@o2.services](mailto:sales@o2.services)
+> Copyright © 2025 [Nolock.social](https://nolock.social). All rights reserved.  
+> Authored by: [O2.services](https://o2.services)  
+> Contact: [sales@o2.services](mailto:sales@o2.services)  
+> Licensed under the [GNU Affero General Public License v3.0 or later](https://www.gnu.org/licenses/agpl-3.0.html) (AGPL-3.0-or-later)
 
 This directory contains utility scripts for running tests and starting the server.
 
@@ -60,9 +62,9 @@ The server script:
 - Checks for and cleans up any existing server processes
 - Uses improved process management for reliable cleanup
 
-#### Server Process Management (v1.12.1)
+#### Server Process Management (v1.12.2)
 
-In version 1.12.1, the server management was significantly improved:
+In version 1.12.2, the server management was significantly improved:
 
 - **Process Tracking**: Server PID is saved to a `.server-pid` file in the project root
 - **Automatic Cleanup**: Checks for existing server processes before starting new ones

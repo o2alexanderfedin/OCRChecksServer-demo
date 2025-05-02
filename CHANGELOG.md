@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.13.0] - 2025-05-16
+
+### Added
+- Changed project license to GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)
+- Added LICENSE file with AGPL license details
+- Updated all documentation with AGPL license references
+- Improved copyright notices with consistent license information
+
+### Changed
+- Updated license field in package.json from ISC to AGPL-3.0-or-later
+- Updated README.md with detailed AGPL license explanation and requirements
+- Enhanced copyright information across all documentation files
+
 ## [1.12.2] - 2025-05-14
 
 ### Added

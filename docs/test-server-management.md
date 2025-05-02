@@ -1,15 +1,17 @@
 # Test Server Management
 
-> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
-> Contact: [sales@o2.services](mailto:sales@o2.services)
+> Copyright © 2025 [Nolock.social](https://nolock.social). All rights reserved.  
+> Authored by: [O2.services](https://o2.services)  
+> Contact: [sales@o2.services](mailto:sales@o2.services)  
+> Licensed under the [GNU Affero General Public License v3.0 or later](https://www.gnu.org/licenses/agpl-3.0.html) (AGPL-3.0-or-later)
 
 ## Overview
 
-This document describes the improved test server management implemented in version 1.12.1, which ensures proper cleanup of server processes after running integration tests.
+This document describes the improved test server management implemented in version 1.12.2, which ensures proper cleanup of server processes after running integration tests.
 
 ## Problem Statement
 
-Prior to version 1.12.1, the integration test infrastructure had several issues:
+Prior to version 1.12.2, the integration test infrastructure had several issues:
 
 1. Server processes started for integration tests could remain running after tests completed
 2. These "zombie" processes would consume resources and potentially cause port conflicts
@@ -19,7 +21,7 @@ Prior to version 1.12.1, the integration test infrastructure had several issues:
 
 ## Solution Approach
 
-Version 1.12.1 implements a comprehensive solution for server process management:
+Version 1.12.2 implements a comprehensive solution for server process management:
 
 ### 1. Server Process Tracking
 

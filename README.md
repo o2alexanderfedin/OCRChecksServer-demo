@@ -178,7 +178,7 @@ Response:
 {
   "status": "ok",
   "timestamp": "2025-05-02T12:34:56.789Z",
-  "version": "1.12.1"
+  "version": "1.12.2"
 }
 ```
 
@@ -314,10 +314,18 @@ For complete development guidelines, refer to:
 
 ## License
 
-ISC 
+This project is licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later).
+
+This means:
+- You can use, modify, and distribute this software
+- If you modify and distribute the software, you must share your changes under the same license
+- If you use this software over a network (e.g., as a web service), you must provide access to the source code to users of the network service
+
+See the [LICENSE](./LICENSE) file for the full license text.
 
 ## Copyright
 
-Copyright © 2025 [O2.services](https://o2.services). All rights reserved.
+Copyright © 2025 [Nolock.social](https://nolock.social). All rights reserved.
 
+Authored by: [O2.services](https://o2.services)  
 For inquiries, contact: [sales@o2.services](mailto:sales@o2.services)

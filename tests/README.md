@@ -1,7 +1,9 @@
 # OCR Checks Server Tests
 
-> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
-> Contact: [sales@o2.services](mailto:sales@o2.services)
+> Copyright © 2025 [Nolock.social](https://nolock.social). All rights reserved.  
+> Authored by: [O2.services](https://o2.services)  
+> Contact: [sales@o2.services](mailto:sales@o2.services)  
+> Licensed under the [GNU Affero General Public License v3.0 or later](https://www.gnu.org/licenses/agpl-3.0.html) (AGPL-3.0-or-later)
 
 This directory contains the test suites for the OCR Checks Server project.
 
@@ -54,7 +56,7 @@ For detailed documentation on the testing architecture, see [/docs/testing-archi
 
 ## Server Process Management
 
-As of version 1.12.1, the test server management system has been improved:
+As of version 1.12.2, the test server management system has been improved:
 
 - The server process is tracked via a PID file (`.server-pid`)
 - Automatic cleanup of server processes after tests complete

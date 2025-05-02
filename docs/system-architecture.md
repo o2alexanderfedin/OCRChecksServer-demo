@@ -1,7 +1,9 @@
 # OCR Checks Server Architecture
 
-> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
-> Contact: [sales@o2.services](mailto:sales@o2.services)
+> Copyright © 2025 [Nolock.social](https://nolock.social). All rights reserved.  
+> Authored by: [O2.services](https://o2.services)  
+> Contact: [sales@o2.services](mailto:sales@o2.services)  
+> Licensed under the [GNU Affero General Public License v3.0 or later](https://www.gnu.org/licenses/agpl-3.0.html) (AGPL-3.0-or-later)
 
 ## Overview
 

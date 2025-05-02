@@ -1,7 +1,9 @@
 # Integration Tests
 
-> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
-> Contact: [sales@o2.services](mailto:sales@o2.services)
+> Copyright © 2025 [Nolock.social](https://nolock.social). All rights reserved.  
+> Authored by: [O2.services](https://o2.services)  
+> Contact: [sales@o2.services](mailto:sales@o2.services)  
+> Licensed under the [GNU Affero General Public License v3.0 or later](https://www.gnu.org/licenses/agpl-3.0.html) (AGPL-3.0-or-later)
 
 This directory contains integration tests for the OCR Checks Server.
 
@@ -34,7 +36,7 @@ This script will:
 3. Run integration tests
 4. Automatically shut down the server when tests complete
 
-> **Note:** As of version 1.12.1, the server process management has been significantly improved. The test runner now tracks server processes via PID files and ensures proper cleanup, even if tests are interrupted. This prevents "zombie" server processes that previously required manual termination.
+> **Note:** As of version 1.12.2, the server process management has been significantly improved. The test runner now tracks server processes via PID files and ensures proper cleanup, even if tests are interrupted. This prevents "zombie" server processes that previously required manual termination.
 
 ## Test Images
 

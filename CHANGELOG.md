@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.2] - 2025-05-03
+
+### Fixed
+- Completely suppressed ts-node deprecation warnings in all test scripts
+
 ## [1.9.1] - 2025-05-03
 
 ### Fixed
@@ -9,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Fixed server startup script to use correct project root path
 - Added proper environment variable passing for integration tests
 - Created dedicated receipt scanner test script for better isolation
+- Suppressed ts-node deprecation warnings with --no-deprecation flag
 
 ## [1.9.0] - 2025-05-02
 

@@ -1,3 +1,12 @@
+# OCR Checks Worker v1.12.1
+
+## Testing Infrastructure Improvements
+
+- **Enhanced Test Reliability**: Fixed server process management to ensure clean shutdown after tests
+- **Improved Resource Management**: Eliminated potential "zombie" server processes
+- **Better Development Experience**: Added robust server process tracking and cleanup
+- **Enhanced Error Handling**: Improved logging and error reporting for server processes
+
 # OCR Checks Worker v1.12.0
 
 ## API Structure Improvements

@@ -1,22 +1,69 @@
 #!/usr/bin/env node
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
-import { dirname, resolve as pathResolve } from 'path';
+import { dirname, resolve as pathResolve, join } from 'path';
 import { setTimeout } from 'timers/promises';
+import fs from 'fs/promises';
 
 /**
  * This script starts the development server and waits until it's ready,
  * or exits with an error if the server fails to start within the timeout.
+ * 
+ * Enhanced with proper server process tracking and improved cleanup mechanism.
  */
 
 // Constants
 const SERVER_START_TIMEOUT = 60000; // 60 seconds
 const SERVER_READY_MESSAGE = 'Ready on http://localhost';
 const PORT = 8787;
+const PID_FILE_PATH = join(process.cwd(), '.server-pid');
 
 // Get the directory of the current module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Check if there's an existing server process
+async function checkExistingServer() {
+  try {
+    const existingPid = await fs.readFile(PID_FILE_PATH, 'utf8');
+    const pid = parseInt(existingPid.trim(), 10);
+    
+    if (pid && !isNaN(pid)) {
+      console.log(`Found existing server process with PID: ${pid}`);
+      try {
+        // Check if process exists by sending signal 0 (doesn't actually send a signal)
+        process.kill(pid, 0);
+        console.log('Existing server is still running, terminating it...');
+        process.kill(pid);
+        console.log('Waiting for existing server to shut down...');
+        await setTimeout(2000); // Wait for the server to shut down
+      } catch (err) {
+        if (err.code === 'ESRCH') {
+          console.log('Existing server process is not running anymore.');
+        } else {
+          console.error('Error checking existing server:', err);
+        }
+      }
+    }
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      console.error('Error reading PID file:', err);
+    }
+  }
+}
+
+// Function to clean up the server
+async function saveServerPid(pid) {
+  try {
+    await fs.writeFile(PID_FILE_PATH, pid.toString());
+    console.log(`Server PID ${pid} saved to ${PID_FILE_PATH}`);
+  } catch (err) {
+    console.error('Error saving server PID to file:', err);
+  }
+}
+
+// Clean up existing server if any
+await checkExistingServer();
 
 // Start the server
 console.log('Starting development server...');
@@ -24,8 +71,11 @@ const serverProcess = spawn('npm', ['run', 'dev'], {
   cwd: pathResolve(__dirname, '..'), // Point to project root instead of scripts directory
   shell: true,
   stdio: ['ignore', 'pipe', 'pipe'],
-  detached: true // This lets the process run independently
+  detached: false // Changed to false to ensure process is properly managed
 });
+
+// Save the server's PID for easier management
+await saveServerPid(serverProcess.pid);
 
 // Set up output and error handling
 let serverReady = false;
@@ -95,11 +145,9 @@ if (serverUrl) {
 
 console.log(`Server started successfully on port ${PORT}. PID: ${serverProcess.pid}`);
 
-// Detach from the process to allow it to run independently
-serverProcess.unref();
-
 // Print the command to kill the server
 console.log(`To stop the server, run: kill ${serverProcess.pid}`);
 
-// Exit this process, leaving the server running
-process.exit(0);
+// THIS IS THE KEY CHANGE: Don't detach and don't exit
+// We'll keep this process running, and it will be killed by the test runner
+// This ensures the server process is properly terminated when tests finish

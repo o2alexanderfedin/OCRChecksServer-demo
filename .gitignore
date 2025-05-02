@@ -13,6 +13,7 @@ yarn-error.log*
 dist/
 build/
 .wrangler/
+swift-proxy/.build/
 
 # IDE
 .idea/

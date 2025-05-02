@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.21.1] - 2025-05-26
+
+### Fixed
+- Swift E2E test compilation errors with XCTSkip usage
+- Swift async test issues with withTimeout helper implementation
+- Nil coalescing warnings in Swift integration tests
+- Server startup reliability in Swift E2E test script
+- Task cancellation handling for proper timeout implementation
+- Fixed server process tracking and shutdown
+
+### Improved
+- Swift E2E test reliability with more robust async implementations
+- Server script error handling and process management
+- Test stability across different Swift compiler versions
+
 ## [1.21.0] - 2025-05-26
 
 ### Added

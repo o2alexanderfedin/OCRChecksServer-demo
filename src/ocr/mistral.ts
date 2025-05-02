@@ -18,16 +18,27 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
     // Convert ArrayBuffer to Uint8Array
     const uint8Array = new Uint8Array(arrayBuffer);
     
+    // For smaller images, use a direct approach without chunking
+    if (uint8Array.length < 512 * 1024) { // 512KB threshold
+        // Convert directly to string using String.fromCharCode
+        const binary = Array.from(uint8Array)
+            .map(byte => String.fromCharCode(byte))
+            .join('');
+        
+        // Convert binary to base64
+        return btoa(binary);
+    }
+    
+    // For larger images, use chunking approach
     // Use btoa and String.fromCharCode for base64 conversion
-    // Note: we need to handle the array in smaller chunks for Cloudflare Workers environment
-    const chunkSize = 1024; // Reduced chunk size for better compatibility
+    const chunkSize = 512; // Even smaller chunks for better compatibility
     let base64 = '';
     
     for (let i = 0; i < uint8Array.length; i += chunkSize) {
         // Create a slice of the array for this chunk
         const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
         
-        // Convert to string character by character to avoid call stack issues
+        // Convert to string character by character
         let chunkString = '';
         for (let j = 0; j < chunk.length; j++) {
             chunkString += String.fromCharCode(chunk[j]);
@@ -145,14 +156,23 @@ export class MistralOCRProvider implements OCRProvider {
             // Otherwise keep default image/jpeg
         }
         
-        const dataUrl = `data:${mimeType};base64,${base64Content}`
+        // Ensure the base64 string doesn't have any invalid characters
+        const cleanBase64 = base64Content.replace(/[^A-Za-z0-9+/=]/g, '')
         
-        // Log first 100 chars of the data URL for debugging
+        // Create the data URL with the proper format for Mistral API
+        const dataUrl = `data:${mimeType};base64,${cleanBase64}`
+        
+        // For debugging, log the length and beginning of the data URL
+        console.log(`Data URL format: ${mimeType}, length: ${dataUrl.length}`)
         console.log(`Data URL (first 100 chars): ${dataUrl.substring(0, 100)}...`)
         
-        return doc.type === DocumentType.Image 
-            ? { type: 'image_url', imageUrl: dataUrl }
-            : { type: 'document_url', documentUrl: dataUrl }
+        // Try using HTTPS URL instead for hosted images
+        if (doc.type === DocumentType.Image) {
+            // For the API, we'll use the data URL approach
+            return { type: 'image_url', imageUrl: dataUrl }
+        } else {
+            return { type: 'document_url', documentUrl: dataUrl }
+        }
     }
 
     /**

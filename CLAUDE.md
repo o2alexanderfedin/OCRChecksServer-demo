@@ -46,6 +46,13 @@
    - If you notice unrelated issues, create separate tasks or tickets for them
    - When in doubt, follow the Single Responsibility Principle for commits
 
+8. **Document Problem-Solution Patterns**
+   - When you solve a challenging problem that required multiple attempts, document the solution
+   - Create a new rule file in the `.claude/rules/` directory with a descriptive name
+   - Include the problem context, solution approach, and prevention strategies
+   - Reference the rule file from CLAUDE.md with a brief description of the problem
+   - This creates an easily searchable knowledge base for future similar issues
+
 ## Testing Guidelines
 
 1. **Don't Test Standard Library Functions**
@@ -61,6 +68,11 @@
    - Focus on testing business logic and domain-specific code first
    - Prioritize testing error handling paths and edge cases in custom code
    - Test integration points between components rather than standard libraries
+
+4. **Match Testing Framework Styles**
+   - See [Testing Framework Compatibility](./.claude/rules/test-framework-compatibility.md) for detailed guidelines
+   - We encountered Jest vs. Jasmine compatibility issues when creating new tests
+   - Study existing tests to understand framework conventions before writing new tests
 
 ## Runtime Environment Commands
 

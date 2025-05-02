@@ -302,7 +302,7 @@ app.post('/receipt', async (c) => {
     const imageBuffer = await c.req.arrayBuffer();
 
     // Create receipt scanner
-    const scanner = ScannerFactory.createMistralScanner(workerIoE, c.env.MISTRAL_API_KEY);
+    const scanner = ScannerFactory.createMistralReceiptScanner(workerIoE, c.env.MISTRAL_API_KEY);
 
     // Create document
     const document: Document = {

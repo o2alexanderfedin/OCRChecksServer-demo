@@ -25,7 +25,7 @@ describe('ReceiptScanner Integration', function() {
   
   it('should process a receipt image and extract structured data', async function() {
     // Create scanner
-    const scanner = ScannerFactory.createMistralScanner(workerIoE, MISTRAL_API_KEY\!);
+    const scanner = ScannerFactory.createMistralReceiptScanner(workerIoE, MISTRAL_API_KEY\!);
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');

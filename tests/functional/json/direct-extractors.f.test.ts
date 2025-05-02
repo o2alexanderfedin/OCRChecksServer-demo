@@ -5,8 +5,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 // Import directly from extractors
-import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor.js';
-import { CheckExtractor } from '../../../src/json/extractors/check-extractor.js';
+import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
+import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
 import { 
   Receipt, 
   ReceiptType, 

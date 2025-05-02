@@ -10,7 +10,7 @@ export const receiptSchema = {
   "title": "Receipt",
   "description": "Schema for receipt data extracted from images",
   "type": "object",
-  "required": ["merchant", "timestamp", "totals", "currency", "confidence"],
+  "required": ["merchant", "timestamp", "totals", "confidence"],
   "properties": {
     "merchant": {
       "type": "object",
@@ -399,6 +399,14 @@ export interface ReceiptTotals {
   total: number;
 }
 
+export interface ReceiptBase {
+  merchant: MerchantInfo;
+  receiptNumber?: string;
+  receiptType?: ReceiptType;
+  timestamp: string;
+  paymentMethod?: PaymentMethod | string;
+}
+
 export interface Receipt {
   merchant: MerchantInfo;
   receiptNumber?: string;
@@ -406,7 +414,7 @@ export interface Receipt {
   timestamp: string;
   paymentMethod?: PaymentMethod | string;
   totals: ReceiptTotals;
-  currency: string;
+  currency?: string;
   items?: ReceiptLineItem[];
   taxes?: ReceiptTaxItem[];
   payments?: ReceiptPaymentMethod[];

@@ -76,7 +76,7 @@ describe('Check Schema Validation', () => {
 
     const valid = validate(invalidCheck);
     expect(valid).toBeFalsy();
-    expect(ajv.errorsText(validate.errors)).toContain('minimum');
+    expect(ajv.errorsText(validate.errors)).toContain('must be >=');
   });
 
   it('should validate routing number format', () => {
@@ -105,7 +105,7 @@ describe('Check Schema Validation', () => {
 
     const valid = validate(invalidCheck);
     expect(valid).toBeFalsy();
-    expect(ajv.errorsText(validate.errors)).toContain('maximum');
+    expect(ajv.errorsText(validate.errors)).toContain('must be <=');
   });
 
   it('should validate check type enum values', () => {

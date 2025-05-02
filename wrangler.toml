@@ -25,5 +25,6 @@ route = "api.nolock.social/*"
 workers_dev = false
 vars = { ENVIRONMENT = "production" }
 
-# Environment variables will be set securely through GitHub Actions
-# MISTRAL_API_KEY is required for all environments
+# Environment variables
+[vars]
+MISTRAL_API_KEY = "vYS1jOH55qvFc5Qqzgn2JHXN3cjMCJQp"

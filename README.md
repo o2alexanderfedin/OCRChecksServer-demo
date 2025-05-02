@@ -28,6 +28,11 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and rece
   - Converts OCR results into structured JSON data
   - Validates against customizable schemas
   - Provides confidence scoring for extraction reliability
+  
+- **API Integration**:
+  - TypeScript definitions for all API responses
+  - Example client implementation for easy integration
+  - Comprehensive documentation of response formats
   - Includes detailed confidence metrics for OCR and extraction steps
   
 - **API Design**:

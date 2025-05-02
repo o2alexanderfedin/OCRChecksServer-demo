@@ -1,3 +1,53 @@
+# OCR Checks Worker v1.11.0
+
+## New Features
+
+- **Enhanced Test Coverage**: Added unit tests for previously untested IO module
+- **Health Endpoint Testing**: Added integration tests for health endpoint
+- **Error Handling Tests**: Added integration tests for comprehensive API error handling
+- **Knowledge Management System**: Created a structured system for documenting problem-solution patterns
+- **Test Framework Documentation**: Added detailed documentation about test framework compatibility
+
+## Improvements
+
+- Improved integration test reliability through better error handling
+- Enhanced test runner script to better handle specific test cases and test filtering
+- Implemented more robust error reporting for test failures
+- Updated health endpoint version to 1.11.0
+- Created a structured approach to documenting common development challenges
+
+## Bug Fixes
+
+- Fixed issues with integration tests timing out or hanging
+- Improved error handling in test runner to catch undefined errors
+- Added proper null checks and optional chaining for improved robustness
+
+# OCR Checks Worker v1.10.0
+
+## BREAKING CHANGES
+
+- Removed legacy adapters: `src/json/receipt-extractor.ts` and `src/json/check-extractor.ts`
+- Direct imports of these legacy adapters will now fail and must be updated
+
+## Improvements
+
+- Simplified codebase by removing all legacy adapter code
+- Streamlined imports and API - use extractors directly from src/json/extractors
+- Removed potentially confusing duplicate implementations
+
+## Migration Guide
+
+- Update imports to use the new paths:
+  ```typescript
+  // Old import (no longer works)
+  import { ReceiptExtractor } from '../src/json/receipt-extractor';
+  
+  // New import
+  import { ReceiptExtractor } from '../src/json/extractors/receipt-extractor';
+  ```
+- Make sure your code works with readonly Result tuples (instead of mutable ones)
+- If you need both extractors, import them directly from their respective files
+
 # OCR Checks Worker v1.8.0
 
 ## New Features

@@ -343,4 +343,16 @@ app.post('/receipt', async (c) => {
   }
 });
 
+// Health check endpoint for testing server availability
+app.get('/health', (c) => {
+  return new Response(JSON.stringify({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    version: '1.11.0'
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
+});
+
 export default app; 

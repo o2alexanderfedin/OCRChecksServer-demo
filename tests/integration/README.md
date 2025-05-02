@@ -33,9 +33,9 @@ This script will:
 
 ## Test Images
 
-Integration tests use check images from the `Checks` directory. The images should meet these requirements:
+Integration tests use check images from the `tests/fixtures/images` directory. The images should meet these requirements:
 
-1. Located in the project's `Checks` directory
+1. Located in the project's `tests/fixtures/images` directory
 2. JPEG format (`.jpg` or `.jpeg` extension)
 3. Filenames starting with `telegram` (for automatic selection)
 
@@ -46,6 +46,23 @@ You can customize the API endpoint by setting the `OCR_API_URL` environment vari
 ```
 OCR_API_URL=https://your-api-url.com npm run test:integration
 ```
+
+## Test Timeout Configuration
+
+Integration tests have a longer timeout (2 minutes) to handle external API calls and network latency. If you're experiencing timeouts, you can increase this value in the individual test files.
+
+## Handling API Rate Limits
+
+The tests are designed to automatically skip if they encounter API rate limits or other temporary API issues. They'll be marked as "pending" rather than failing.
+
+## Troubleshooting
+
+If integration tests are failing:
+
+1. Check that the server is running and accessible
+2. Verify that MISTRAL_API_KEY is set correctly
+3. Try running with `NODE_DEBUG=request,http npm run test:integration` for more verbose logging
+4. Check for API rate limits in the test output
 
 ## Test Results
 

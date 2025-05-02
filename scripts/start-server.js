@@ -10,7 +10,7 @@ import { setTimeout } from 'timers/promises';
  */
 
 // Constants
-const SERVER_START_TIMEOUT = 30000; // 30 seconds
+const SERVER_START_TIMEOUT = 60000; // 60 seconds
 const SERVER_READY_MESSAGE = 'Ready on http://localhost';
 const PORT = 8787;
 
@@ -67,6 +67,30 @@ if (!serverReady) {
   console.error('Error output:', errorOutput);
   serverProcess.kill();
   process.exit(1);
+}
+
+// Verify server is actually responding with a health check
+if (serverUrl) {
+  try {
+    console.log('Performing health check on server...');
+    // Wait a moment for the server to initialize fully
+    await setTimeout(1000);
+    
+    // Attempt to make a simple request to verify the server is responding
+    const response = await fetch(`${serverUrl}/health`, { 
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+    
+    if (response.ok) {
+      console.log('Server health check passed!');
+    } else {
+      console.log(`Server responded with status: ${response.status}`);
+    }
+  } catch (error) {
+    console.warn(`Server health check failed: ${error.message}`);
+    console.log('Continuing anyway, but tests might fail if server is not ready');
+  }
 }
 
 console.log(`Server started successfully on port ${PORT}. PID: ${serverProcess.pid}`);

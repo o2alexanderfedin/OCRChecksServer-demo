@@ -314,7 +314,14 @@ For complete development guidelines, refer to:
 
 ## License
 
-ISC 
+This project is licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later).
+
+This means:
+- You can use, modify, and distribute this software
+- If you modify and distribute the software, you must share your changes under the same license
+- If you use this software over a network (e.g., as a web service), you must provide access to the source code to users of the network service
+
+See the [LICENSE](./LICENSE) file for the full license text.
 
 ## Copyright
 

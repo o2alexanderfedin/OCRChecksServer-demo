@@ -25,8 +25,8 @@
     "mistral",
     "checks"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "O2.services",
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240208.0",
     "@eslint/js": "^9.25.1",

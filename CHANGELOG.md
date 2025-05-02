@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.3] - 2025-05-03
+
+### Changed
+- Renamed `createMistralScanner` to `createMistralReceiptScanner` for better naming consistency
+- Added backward compatibility with deprecated methods
+- Created `check-extractor.ts` adapter file for symmetry with `receipt-extractor.ts`
+- Updated all references to use the new method names
+
 ## [1.9.2] - 2025-05-03
 
 ### Fixed

@@ -154,7 +154,7 @@ describe('Modern Extractors Direct Usage Tests', () => {
       // Verify results
       expect(result[0]).toBe('error');
       if (result[0] === 'error') {
-        expect(result[1].message).toBe('Failed to extract receipt data from text');
+        expect(result[1]).toBe('Failed to extract receipt data from text');
       }
     });
   });
@@ -223,7 +223,7 @@ describe('Modern Extractors Direct Usage Tests', () => {
       // Verify results
       expect(result[0]).toBe('error');
       if (result[0] === 'error') {
-        expect(result[1].message).toBe('Failed to extract check data from text');
+        expect(result[1]).toBe('Failed to extract check data from text');
       }
     });
   });

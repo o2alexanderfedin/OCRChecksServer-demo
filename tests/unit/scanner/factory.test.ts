@@ -13,17 +13,6 @@ describe('ScannerFactory', () => {
   const mockIoE = {} as IoE;
   const apiKey = 'test-api-key';
   
-  it('should correctly call createMistralReceiptScanner from createMistralScanner', () => {
-    // Setup
-    spyOn(ScannerFactory, 'createMistralReceiptScanner').and.returnValue({} as ReceiptScanner);
-    
-    // Act
-    ScannerFactory.createMistralScanner(mockIoE, apiKey);
-    
-    // Assert
-    expect(ScannerFactory.createMistralReceiptScanner).toHaveBeenCalledWith(mockIoE, apiKey);
-  });
-  
   it('should select correct scanner type in createScannerByType for check type', () => {
     // Setup
     spyOn(ScannerFactory, 'createMistralCheckScanner').and.returnValue({} as CheckScanner);

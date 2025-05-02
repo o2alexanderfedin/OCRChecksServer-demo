@@ -98,7 +98,7 @@ describe('Check Extractor Migration Tests', () => {
     // Verify results
     expect(result[0]).toBe('error');
     if (result[0] === 'error') {
-      expect(result[1].message).toBe('Failed to extract check data from text');
+      expect(result[1]).toBe('Failed to extract check data from text');
     }
   });
 });

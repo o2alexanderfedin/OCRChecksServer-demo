@@ -20,12 +20,12 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
     
     // Use btoa and String.fromCharCode for base64 conversion
     // Note: we need to handle the array in smaller chunks for Cloudflare Workers environment
-    const chunkSize = 4096; // Smaller chunk size for better compatibility
+    const chunkSize = 1024; // Reduced chunk size for better compatibility
     let base64 = '';
     
     for (let i = 0; i < uint8Array.length; i += chunkSize) {
         // Create a slice of the array for this chunk
-        const chunk = uint8Array.subarray(i, i + chunkSize);
+        const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
         
         // Convert to string character by character to avoid call stack issues
         let chunkString = '';
@@ -72,23 +72,40 @@ export class MistralOCRProvider implements OCRProvider {
      */
     private async processDocument(doc: Document): Promise<Result<OCRResult[], Error>> {
         try {
+            // Log document information for debugging
+            console.log(`Processing document: ${doc.name || 'unnamed'}, type: ${doc.type}, size: ${doc.content.byteLength} bytes`);
+            
+            // Create document chunk for API
             const document = this.createDocumentChunk(doc)
             
             try {
+                console.log('Sending request to Mistral OCR API...');
+                
+                // Process with Mistral OCR API
                 const ocrResponse = await this.client.ocr.process({
                     model: "mistral-ocr-latest",
                     document,
                     includeImageBase64: doc.type === DocumentType.PDF
                 })
                 
+                console.log('Received successful response from Mistral OCR API');
+                
+                // Convert and return results
                 return ['ok', this.convertResponseToResults(ocrResponse)]
             } catch (apiError) {
-                // Detailed error logging for debugging in Cloudflare Workers
+                // Enhanced error logging for debugging in Cloudflare Workers
                 console.error('Mistral API error details:', {
                     error: String(apiError),
                     errorType: apiError?.constructor?.name,
                     errorObject: JSON.stringify(apiError)
                 });
+                
+                // Log the first part of the document data for diagnosis
+                if (document.type === 'image_url' && typeof document.imageUrl === 'string') {
+                    console.error('Image URL format (first 100 chars):', document.imageUrl.substring(0, 100));
+                } else if (document.type === 'document_url' && typeof document.documentUrl === 'string') {
+                    console.error('Document URL format (first 100 chars):', document.documentUrl.substring(0, 100));
+                }
                 
                 // More specific error message for API failures
                 return ['error', new Error(`Mistral API error: ${String(apiError)}. Please check API key and network connection.`)]
@@ -107,9 +124,32 @@ export class MistralOCRProvider implements OCRProvider {
      */
     private createDocumentChunk(doc: Document): ImageURLChunk | DocumentURLChunk {
         const base64Content = arrayBufferToBase64(doc.content)
-        const mimeType = doc.type === DocumentType.Image ? 'image/jpeg' : 'application/pdf'
+        
+        // Determine MIME type based on document type and name if available
+        let mimeType = 'image/jpeg' // Default for images
+        
+        if (doc.type === DocumentType.PDF) {
+            mimeType = 'application/pdf'
+        } else if (doc.name) {
+            // Try to infer more specific image MIME type from file extension
+            const lower = doc.name.toLowerCase()
+            if (lower.endsWith('.png')) {
+                mimeType = 'image/png'
+            } else if (lower.endsWith('.gif')) {
+                mimeType = 'image/gif'
+            } else if (lower.endsWith('.webp')) {
+                mimeType = 'image/webp'
+            } else if (lower.endsWith('.bmp')) {
+                mimeType = 'image/bmp'
+            }
+            // Otherwise keep default image/jpeg
+        }
+        
         const dataUrl = `data:${mimeType};base64,${base64Content}`
-
+        
+        // Log first 100 chars of the data URL for debugging
+        console.log(`Data URL (first 100 chars): ${dataUrl.substring(0, 100)}...`)
+        
         return doc.type === DocumentType.Image 
             ? { type: 'image_url', imageUrl: dataUrl }
             : { type: 'document_url', documentUrl: dataUrl }

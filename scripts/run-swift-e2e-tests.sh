@@ -44,9 +44,10 @@ function cleanup {
 # Register cleanup function to run on script exit
 trap cleanup EXIT
 
-# Start the server
-echo -e "${YELLOW}Starting the server...${NC}"
-npm run start-server &
+# Start the server manually using wrangler directly
+echo -e "${YELLOW}Starting the server with wrangler...${NC}"
+cd "$PROJECT_ROOT" || { echo -e "${RED}Error: Could not find project root directory${NC}"; exit 1; }
+npx wrangler dev --local --port 8787 &
 SERVER_PID=$!
 echo $SERVER_PID > "$SERVER_PID_FILE"
 
@@ -54,9 +55,12 @@ echo "Server process started with PID: $SERVER_PID"
 echo "Waiting for server to be ready..."
 
 # Wait for server to start (ping health endpoint)
-MAX_RETRIES=30
+MAX_RETRIES=60  # Increased timeout
 RETRY_COUNT=0
 SERVER_URL="http://localhost:8787"
+
+# Give the server a head start before pinging
+sleep 5
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     if curl -s "$SERVER_URL/health" | grep -q "status"; then

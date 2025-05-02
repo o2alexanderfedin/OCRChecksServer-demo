@@ -2,6 +2,11 @@ import XCTest
 @testable import NolockOCR
 
 class OCRClientAsyncTests: XCTestCase {
+    static var allTests = [
+        ("testGetHealthAsync", testGetHealthAsync),
+        ("testProcessCheckAsync", testProcessCheckAsync),
+        ("testCompletionHandlerCompatibility", testCompletionHandlerCompatibility)
+    ]
     // Mock success response to simulate URLSession responses
     private func mockSuccessResponse<T: Encodable>(data: T) -> (Data, URLResponse) {
         let jsonData = try! JSONEncoder().encode(data)

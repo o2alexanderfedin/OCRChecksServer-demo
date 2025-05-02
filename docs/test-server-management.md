@@ -1,5 +1,8 @@
 # Test Server Management
 
+> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
+> Contact: [sales@o2.services](mailto:sales@o2.services)
+
 ## Overview
 
 This document describes the improved test server management implemented in version 1.12.1, which ensures proper cleanup of server processes after running integration tests.

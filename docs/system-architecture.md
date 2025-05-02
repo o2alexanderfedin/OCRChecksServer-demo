@@ -1,5 +1,8 @@
 # OCR Checks Server Architecture
 
+> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
+> Contact: [sales@o2.services](mailto:sales@o2.services)
+
 ## Overview
 
 The OCR Checks Server is a Cloudflare Worker application that processes images of paper checks to extract structured data. The system is designed with a functional programming approach, leveraging the `functionalscript` library for IO operations and error handling.

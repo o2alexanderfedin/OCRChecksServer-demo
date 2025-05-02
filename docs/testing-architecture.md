@@ -1,5 +1,8 @@
 # Testing Architecture
 
+> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
+> Contact: [sales@o2.services](mailto:sales@o2.services)
+
 ## Overview
 
 The OCR Checks Server uses a comprehensive testing approach with different types of tests organized by their purpose and scope. This document describes the testing structure, test types, and how to run different test suites.

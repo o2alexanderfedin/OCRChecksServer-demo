@@ -1,5 +1,8 @@
 # Scripts
 
+> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
+> Contact: [sales@o2.services](mailto:sales@o2.services)
+
 This directory contains utility scripts for running tests and starting the server.
 
 ## Test Runners

@@ -308,10 +308,16 @@ Starting from version 1.12.1, the test server is properly managed with improved 
 ### Development Guidelines
 
 For complete development guidelines, refer to:
-- [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md)
-- [Testing Framework Compatibility](./.claude/rules/test-framework-compatibility.md)
-- [CLAUDE.md](./CLAUDE.md) for detailed development workflow instructions
+- [Gitflow Branch Management](./docs/gitflow-branch-management.md)
+- [Testing Framework Compatibility](./docs/test-framework-compatibility.md)
+- [Development Workflow](./docs/development-workflow.md) for detailed instructions
 
 ## License
 
 ISC 
+
+## Copyright
+
+Copyright © 2025 [O2.services](https://o2.services). All rights reserved.
+
+For inquiries, contact: [sales@o2.services](mailto:sales@o2.services)

@@ -1,5 +1,8 @@
 # OCR Checks Server Tests
 
+> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
+> Contact: [sales@o2.services](mailto:sales@o2.services)
+
 This directory contains the test suites for the OCR Checks Server project.
 
 ## Test Directory Structure

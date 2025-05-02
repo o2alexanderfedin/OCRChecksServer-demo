@@ -1,5 +1,8 @@
 # Integration Tests
 
+> Copyright © 2025 [O2.services](https://o2.services). All rights reserved.  
+> Contact: [sales@o2.services](mailto:sales@o2.services)
+
 This directory contains integration tests for the OCR Checks Server.
 
 ## Running Tests

@@ -69,19 +69,20 @@ describe('Basic Server Health Checks', function() {
     }
   }, 10000); // Increase timeout to 10 seconds
   
-  it('should respond to HEAD requests (server availability check)', async () => {
-    const response = await fetch(API_URL, { method: 'HEAD' });
-    expect(response.status).toBeLessThan(500); // Any non-server error is acceptable
+  it('should return correct health information', async () => {
+    const response = await fetch(`${API_URL}/health`, { method: 'GET' });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/json');
+    
+    // Verify response content
+    const data = await response.json();
+    expect(data.status).toBe('ok');
+    expect(data.version).toBe('1.12.0');
+    expect(typeof data.timestamp).toBe('string');
   });
   
-  it('should respond to GET requests with proper headers', async () => {
-    const response = await fetch(API_URL);
-    expect(response.headers.get('content-type')).toBeDefined();
-    expect(response.status).toBeLessThan(500); // Any non-server error is acceptable
-  });
-  
-  it('should handle OPTIONS requests for CORS preflight', async () => {
-    const response = await fetch(API_URL, { 
+  it('should handle OPTIONS requests for CORS preflight on process endpoint', async () => {
+    const response = await fetch(`${API_URL}/process`, { 
       method: 'OPTIONS',
       headers: {
         'Origin': 'http://localhost:3000',
@@ -91,33 +92,28 @@ describe('Basic Server Health Checks', function() {
     });
     
     // Check if CORS is configured (may vary based on implementation)
-    expect(response.status).toBeLessThan(500);
+    expect(response.status).toBeLessThan(300);
     
-    // If the API supports CORS, verify headers
-    if (response.status === 204 || response.status === 200) {
-      const corsHeader = response.headers.get('access-control-allow-origin');
-      if (corsHeader) {
-        expect(['*', 'http://localhost:3000']).toContain(corsHeader);
-      }
+    // Verify CORS headers
+    const corsHeader = response.headers.get('access-control-allow-origin');
+    if (corsHeader) {
+      expect(['*', 'http://localhost:3000']).toContain(corsHeader);
     }
   });
   
-  it('should reject requests with invalid methods', async () => {
-    try {
-      const response = await fetch(API_URL, { method: 'PUT' });
-      
-      // Either reject with 4xx status or accept but return error
-      if (response.status >= 200 && response.status < 300) {
-        const body = await response.json();
-        expect(body.error).toBeDefined();
-      } else {
-        expect(response.status).toBeGreaterThanOrEqual(400);
-        expect(response.status).toBeLessThan(500);
-      }
-    } catch (error) {
-      // Network errors are also acceptable here
-      // as long as it's not a server-side error
-      expect(error).toBeDefined();
-    }
+  it('should reject POST requests to process endpoint with invalid content type', async () => {
+    const response = await fetch(`${API_URL}/process`, { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ test: 'data' })
+    });
+    
+    // Should return 400 Bad Request for invalid content type
+    expect(response.status).toBe(400);
+    
+    // Verify error response
+    const data = await response.json();
+    expect(data.error).toBeDefined();
+    expect(data.error).toContain('Invalid content type');
   });
 });

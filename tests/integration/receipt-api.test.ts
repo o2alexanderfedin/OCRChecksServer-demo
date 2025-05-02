@@ -10,8 +10,8 @@ const __dirname = path.dirname(__filename);
 const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
 
 describe('Receipt Processing API', function() {
-  // Set a longer timeout for API calls
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
+  // Set a much longer timeout for API calls to prevent timeouts
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000; // 2 minutes
   
   it('should process a receipt image and return structured data', async function() {
     // Skip this test if running in an environment without fetch

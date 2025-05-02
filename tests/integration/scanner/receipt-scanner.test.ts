@@ -4,14 +4,15 @@ import { Document, DocumentType } from '../../../src/ocr/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { retry, isRetryableError } from '../../helpers/retry';
 
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 describe('ReceiptScanner Integration', function() {
-  // Set a longer timeout for API calls
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
+  // Set a much longer timeout for API calls to avoid timeouts with external services
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000; // 2 minutes
   
   // Environment variable for API key
   const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
@@ -52,8 +53,33 @@ describe('ReceiptScanner Integration', function() {
       name: 'test-receipt.jpg'
     };
     
-    // Process document
-    const result = await scanner.processDocument(document);
+    // Process document with retry logic
+    let result;
+    try {
+      result = await retry(
+        async () => await scanner.processDocument(document),
+        {
+          retries: 2, // Try up to 3 times total (initial + 2 retries)
+          initialDelay: 2000,
+          retryIf: (error) => {
+            // Retry on rate limits or temporary API issues
+            if (error[0] === 'error' && 
+                (error[1].includes('rate limit') || 
+                 error[1].includes('API error') || 
+                 isRetryableError(error[1]))) {
+              return true;
+            }
+            return false;
+          },
+          onRetry: (error, attempt) => {
+            console.log(`Retrying after error (attempt ${attempt}/2): ${error[1]}`);
+          }
+        }
+      );
+    } catch (error) {
+      // If retries failed, use the last error
+      result = error;
+    }
     
     // Log the result for debugging
     console.log('Process result:', result);
@@ -61,7 +87,7 @@ describe('ReceiptScanner Integration', function() {
     // Skip test if we hit rate limits or other API errors
     if (result[0] === 'error') {
       if (result[1].includes('rate limit') || result[1].includes('API error')) {
-        console.log('Skipping test due to API rate limit or error');
+        console.log('Skipping test due to API rate limit or error even after retries');
         pending('API rate limited or unavailable: ' + result[1]);
         return;
       }
@@ -120,12 +146,38 @@ describe('ReceiptScanner Integration', function() {
       name: 'test-receipt.jpg'
     };
     
-    // Process document
-    const result = await scanner.processDocument(document);
+    // Process document with retry logic
+    let result;
+    try {
+      result = await retry(
+        async () => await scanner.processDocument(document),
+        {
+          retries: 2, // Try up to 3 times total (initial + 2 retries)
+          initialDelay: 2000,
+          retryIf: (error) => {
+            // Retry on rate limits or temporary API issues
+            if (error[0] === 'error' && 
+                (error[1].includes('rate limit') || 
+                 error[1].includes('API error') || 
+                 isRetryableError(error[1]))) {
+              return true;
+            }
+            return false;
+          },
+          onRetry: (error, attempt) => {
+            console.log(`Retrying after error (attempt ${attempt}/2): ${error[1]}`);
+          }
+        }
+      );
+    } catch (error) {
+      // If retries failed, use the last error
+      result = error;
+    }
     
     // Skip test if we hit rate limits or other API errors
     if (result[0] === 'error') {
       if (result[1].includes('rate limit') || result[1].includes('API error')) {
+        console.log('Skipping test due to API rate limit or error even after retries');
         pending('API rate limited or unavailable: ' + result[1]);
         return;
       }

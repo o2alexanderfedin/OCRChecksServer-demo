@@ -50,16 +50,49 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and extr
 
 ## Usage
 
-Send a POST request to the worker endpoint with a check image:
+### Check Processing
+
+Send a POST request to the dedicated check endpoint with a check image:
 
 ```bash
 curl -X POST \
   -H "Content-Type: image/jpeg" \
   --data-binary @check.jpg \
-  https://your-worker.workers.dev
+  https://your-worker.workers.dev/check
 ```
 
 The response will be a JSON object containing the extracted check information.
+
+### Receipt Processing
+
+Send a POST request to the legacy endpoint with a receipt image:
+
+```bash
+curl -X POST \
+  -H "Content-Type: image/jpeg" \
+  --data-binary @receipt.jpg \
+  https://your-worker.workers.dev
+```
+
+### Universal Document Processing
+
+Use the unified processing endpoint with the document type parameter:
+
+```bash
+# For checks
+curl -X POST \
+  -H "Content-Type: image/jpeg" \
+  --data-binary @check.jpg \
+  https://your-worker.workers.dev/process?type=check
+
+# For receipts
+curl -X POST \
+  -H "Content-Type: image/jpeg" \
+  --data-binary @receipt.jpg \
+  https://your-worker.workers.dev/process?type=receipt
+```
+
+The universal endpoint returns both the extracted data and document type information.
 
 ### JSON Extraction Example
 

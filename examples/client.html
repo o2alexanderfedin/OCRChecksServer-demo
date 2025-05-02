@@ -111,13 +111,13 @@
   </div>
 
   <script type="module">
-    // Import the compiled JavaScript client
+    // Import the client functions directly
     import { 
       processCheck, 
       processReceipt, 
       processDocument, 
       checkHealth 
-    } from './dist/client.js';
+    } from './client.js';
 
     // Check processing
     document.getElementById('processCheckButton').addEventListener('click', async () => {

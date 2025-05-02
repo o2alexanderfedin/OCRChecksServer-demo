@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.22.2] - 2025-05-27
+
+### Fixed
+- Resolved Buffer compatibility issues for Cloudflare Workers deployment
+- Fixed ArrayBuffer to base64 conversion for Web environments
+- Added proper error handling for Mistral API connection
+- Enhanced API key validation and debugging
+- Updated wrangler.toml configuration for better Workers support
+
+### Improved
+- More robust error messaging for deployment troubleshooting
+- More detailed logging to diagnose API connection issues
+- Better compatibility with edge runtime environments
+- Chunked processing for large images to prevent stack overflow
+
 ## [1.22.1] - 2025-05-27
 
 ### Added

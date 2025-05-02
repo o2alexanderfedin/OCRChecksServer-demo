@@ -46,6 +46,21 @@ app.post('/process', async (c) => {
     // Get image data
     const imageBuffer = await c.req.arrayBuffer();
 
+    // Verify API key is available
+    if (!c.env.MISTRAL_API_KEY) {
+      console.error('MISTRAL_API_KEY environment variable is not set');
+      return new Response(JSON.stringify({ 
+        error: 'Server configuration error: Missing API key',
+        hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Log API key presence (not the actual key)
+    console.log('API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
+    
     // Create appropriate scanner based on document content type
     const scanner = ScannerFactory.createScannerByType(
       workerIoE, 
@@ -112,6 +127,21 @@ app.post('/check', async (c) => {
     // Get image data
     const imageBuffer = await c.req.arrayBuffer();
 
+    // Verify API key is available
+    if (!c.env.MISTRAL_API_KEY) {
+      console.error('MISTRAL_API_KEY environment variable is not set in /check endpoint');
+      return new Response(JSON.stringify({ 
+        error: 'Server configuration error: Missing API key',
+        hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Log API key presence (not the actual key)
+    console.log('/check: API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
+
     // Create check scanner
     const scanner = ScannerFactory.createMistralCheckScanner(workerIoE, c.env.MISTRAL_API_KEY);
 
@@ -173,6 +203,21 @@ app.post('/receipt', async (c) => {
     // Get image data
     const imageBuffer = await c.req.arrayBuffer();
 
+    // Verify API key is available
+    if (!c.env.MISTRAL_API_KEY) {
+      console.error('MISTRAL_API_KEY environment variable is not set in /receipt endpoint');
+      return new Response(JSON.stringify({ 
+        error: 'Server configuration error: Missing API key',
+        hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Log API key presence (not the actual key)
+    console.log('/receipt: API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
+
     // Create receipt scanner
     const scanner = ScannerFactory.createMistralReceiptScanner(workerIoE, c.env.MISTRAL_API_KEY);
 
@@ -220,7 +265,7 @@ app.get('/health', (c) => {
   return new Response(JSON.stringify({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.22.1'
+    version: '1.22.2'
   }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }

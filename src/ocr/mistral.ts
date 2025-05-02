@@ -9,6 +9,29 @@ import type {
 } from '@mistralai/mistralai/models/components'
 
 /**
+ * Utility function to convert ArrayBuffer to base64 string without using Buffer
+ * This is compatible with Cloudflare Workers environment
+ * @param arrayBuffer The ArrayBuffer to convert
+ * @returns Base64 string representation of the ArrayBuffer
+ */
+function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
+    // Convert ArrayBuffer to Uint8Array
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Use btoa and String.fromCharCode for base64 conversion
+    // Note: we need to handle the array in chunks due to the maximum call stack size
+    const chunkSize = 8192;
+    let base64 = '';
+    
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.subarray(i, i + chunkSize);
+        base64 += btoa(String.fromCharCode.apply(null, Array.from(chunk)));
+    }
+    
+    return base64;
+}
+
+/**
  * Mistral-specific configuration
  */
 export type MistralConfig = OCRProviderConfig & {
@@ -59,7 +82,7 @@ export class MistralOCRProvider implements OCRProvider {
      * @returns Document chunk for the API
      */
     private createDocumentChunk(doc: Document): ImageURLChunk | DocumentURLChunk {
-        const base64Content = Buffer.from(doc.content).toString('base64')
+        const base64Content = arrayBufferToBase64(doc.content)
         const mimeType = doc.type === DocumentType.Image ? 'image/jpeg' : 'application/pdf'
         const dataUrl = `data:${mimeType};base64,${base64Content}`
 

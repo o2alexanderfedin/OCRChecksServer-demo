@@ -1,3 +1,13 @@
+# OCR Checks Worker v1.12.2
+
+## Documentation Improvements
+
+- **Comprehensive Documentation**: Added detailed documentation for all system components
+- **Test Server Management Guide**: Created dedicated documentation for server process management
+- **Copyright Information**: Added O2.services copyright notices across all documentation
+- **Enhanced API Documentation**: Updated with detailed examples and response formats
+- **Fixed Documentation References**: Corrected broken links and standardized documentation format
+
 # OCR Checks Worker v1.12.1
 
 ## Testing Infrastructure Improvements

@@ -8,7 +8,7 @@ Before starting local development, ensure you have:
 
 1. Node.js (version 18 or later)
 2. npm or yarn
-3. A Mistral AI API key 
+3. A Mistral AI API key (optional - a test key is provided for development)
 
 Don't worry if you don't have all prerequisites installed! Our startup script can help with the installation process.
 
@@ -20,11 +20,13 @@ Don't worry if you don't have all prerequisites installed! Our startup script ca
    cd OCRChecksServer
    ```
 
-2. Set the Mistral API key as an environment variable
+2. (Optional) Set the Mistral API key as an environment variable
    ```bash
    export MISTRAL_API_KEY=your_api_key
    ```
    You can get an API key from [https://console.mistral.ai/](https://console.mistral.ai/)
+   
+   **Note:** If you don't set this variable, the script will use a fallback test API key.
 
 3. Run the start script with automatic dependency installation
    ```bash
@@ -123,6 +125,6 @@ Once the server is running, you can test it using:
 
 ## Troubleshooting
 
-- **MISTRAL_API_KEY not set**: Ensure you've exported your API key before running the script
+- **MISTRAL_API_KEY issues**: While a fallback key is provided, you may want to set your own key for production usage
 - **Port already in use**: Specify a different port using the `--port` option
 - **Dependencies issues**: Try removing `node_modules` and running `npm install` again

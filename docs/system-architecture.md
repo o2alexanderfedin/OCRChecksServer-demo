@@ -175,7 +175,8 @@ sequenceDiagram
 4. **Deployment**
    - Uses Wrangler for deployment (`npm run deploy`)
    - Environment variables managed via `wrangler.toml`
-   - CI/CD integration possible via GitHub Actions
+   - CI/CD automation via GitHub Actions
+   - Detailed deployment instructions in [Cloudflare Deployment Guide](./cloudflare-deployment-guide.md)
    
 5. **Project Organization**
    - Source code in `src/` directory

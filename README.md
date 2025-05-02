@@ -178,7 +178,7 @@ Response:
 {
   "status": "ok",
   "timestamp": "2025-05-02T12:34:56.789Z",
-  "version": "1.12.1"
+  "version": "1.12.2"
 }
 ```
 

@@ -159,7 +159,7 @@ Test runners are located in the `scripts/` directory:
 
 ### Server Process Management
 
-As of version 1.12.1, the test server management system has been improved:
+As of version 1.12.2, the test server management system has been improved:
 
 - The server process is tracked via a PID file (`scripts/start-server.js`)
 - The server is automatically shut down after integration tests complete (`scripts/run-tests.js`)

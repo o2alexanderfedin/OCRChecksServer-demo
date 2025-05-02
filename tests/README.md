@@ -54,7 +54,7 @@ For detailed documentation on the testing architecture, see [/docs/testing-archi
 
 ## Server Process Management
 
-As of version 1.12.1, the test server management system has been improved:
+As of version 1.12.2, the test server management system has been improved:
 
 - The server process is tracked via a PID file (`.server-pid`)
 - Automatic cleanup of server processes after tests complete

@@ -34,7 +34,7 @@ This script will:
 3. Run integration tests
 4. Automatically shut down the server when tests complete
 
-> **Note:** As of version 1.12.1, the server process management has been significantly improved. The test runner now tracks server processes via PID files and ensures proper cleanup, even if tests are interrupted. This prevents "zombie" server processes that previously required manual termination.
+> **Note:** As of version 1.12.2, the server process management has been significantly improved. The test runner now tracks server processes via PID files and ensures proper cleanup, even if tests are interrupted. This prevents "zombie" server processes that previously required manual termination.
 
 ## Test Images
 

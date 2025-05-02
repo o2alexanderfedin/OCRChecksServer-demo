@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.20.1] - 2025-05-26
+
+### Changed
+- Added Swift proxy build directory (.build/) to gitignore
+- Improved repository cleanliness by excluding Swift build artifacts
+
 ## [1.20.0] - 2025-05-26
 
 ### Fixed

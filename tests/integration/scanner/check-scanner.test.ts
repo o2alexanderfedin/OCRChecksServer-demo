@@ -10,8 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 describe('CheckScanner Integration', function() {
-  // Set a longer timeout for API calls
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
+  // Set a much longer timeout for API calls to prevent timeouts
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000; // 2 minutes
   
   // Environment variable for API key
   const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;

@@ -41,7 +41,7 @@ const testConfigs = {
   },
   integration: {
     spec_files: ['integration/**/*.test.ts'],
-    timeoutInterval: 30000,
+    timeoutInterval: 120000, // Increase timeout to 2 minutes for integration tests
     requiresServer: true
   },
   semi: {
@@ -101,8 +101,9 @@ if (config.requiresServer) {
     console.error('Failed to start server:', err);
   });
   
-  // Give the server a moment to start (longer timeout to be safe)
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  // Give the server more time to start and be fully ready
+  console.log('Waiting for server to be fully ready...');
+  await new Promise(resolve => setTimeout(resolve, 10000));
 }
 
 // Create and configure Jasmine

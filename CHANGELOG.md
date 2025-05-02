@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.10.0] - 2025-05-05
+
+### BREAKING CHANGES
+- Removed legacy adapters: `src/json/receipt-extractor.ts` and `src/json/check-extractor.ts`
+- Direct imports of these legacy adapters will now fail and must be updated
+
+### Changed
+- Simplified codebase by removing all legacy adapter code
+- Streamlined imports and API - use extractors directly from src/json/extractors
+- Removed potentially confusing duplicate implementations
+
+### Migration Guide
+- Update imports to use the new paths:
+  ```typescript
+  // Old import (no longer works)
+  import { ReceiptExtractor } from '../src/json/receipt-extractor';
+  
+  // New import
+  import { ReceiptExtractor } from '../src/json/extractors/receipt-extractor';
+  ```
+- Make sure your code works with readonly Result tuples (instead of mutable ones)
+- If you need both extractors, import them directly from their respective files
+
 ## [1.9.5] - 2025-05-04
 
 ### Changed

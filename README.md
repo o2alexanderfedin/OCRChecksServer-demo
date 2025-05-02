@@ -65,14 +65,21 @@ The response will be a JSON object containing the extracted check information.
 
 ### Receipt Processing
 
-Send a POST request to the legacy endpoint with a receipt image:
+Send a POST request to the dedicated receipt endpoint with a receipt image:
 
 ```bash
 curl -X POST \
   -H "Content-Type: image/jpeg" \
   --data-binary @receipt.jpg \
-  https://your-worker.workers.dev
+  https://your-worker.workers.dev/receipt
 ```
+
+The response will be a JSON object containing the extracted receipt information, including:
+- Merchant information (name, address, etc.)
+- Transaction timestamp
+- Total amounts (subtotal, tax, tip, total)
+- Item details (descriptions, quantities, prices)
+- Payment methods
 
 ### Universal Document Processing
 

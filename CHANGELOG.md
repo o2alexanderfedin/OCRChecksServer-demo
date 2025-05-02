@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.2] - 2025-05-03
+
+### Fixed
+- Completely suppressed ts-node deprecation warnings in all test scripts
+
 ## [1.9.1] - 2025-05-03
 
 ### Fixed

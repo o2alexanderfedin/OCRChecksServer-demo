@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-describe('ReceiptScanner Integration', function() {
+describe('CheckScanner Integration', function() {
   // Set a longer timeout for API calls
   jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
   
@@ -18,22 +18,22 @@ describe('ReceiptScanner Integration', function() {
   
   // Skip all tests if API key is not available
   beforeAll(function() {
-    if (\!MISTRAL_API_KEY) {
+    if (!MISTRAL_API_KEY) {
       pending('MISTRAL_API_KEY environment variable not set');
     }
   });
   
-  it('should process a receipt image and extract structured data', async function() {
+  it('should process a check image and extract structured data', async function() {
     // Create scanner
-    const scanner = ScannerFactory.createMistralScanner(workerIoE, MISTRAL_API_KEY\!);
+    const scanner = ScannerFactory.createMistralCheckScanner(workerIoE, MISTRAL_API_KEY!);
     
     // Load test image from fixtures directory
-    const imagePath = path.resolve(__dirname, '../../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
+    const imagePath = path.resolve(__dirname, '../../fixtures/images/IMG_2388.jpg');
     console.log('Image path:', imagePath);
     
     // Check if the file exists
     try {
-      if (\!fs.existsSync(imagePath)) {
+      if (!fs.existsSync(imagePath)) {
         pending(`Test image not found at path: ${imagePath}`);
         return;
       }
@@ -49,7 +49,7 @@ describe('ReceiptScanner Integration', function() {
     const document: Document = {
       content: imageBuffer.buffer,
       type: DocumentType.Image,
-      name: 'test-receipt.jpg'
+      name: 'test-check.jpg'
     };
     
     // Process document
@@ -87,26 +87,23 @@ describe('ReceiptScanner Integration', function() {
       expect(data.overallConfidence).toBeGreaterThan(0);
       expect(data.overallConfidence).toBeLessThanOrEqual(1);
       
-      // Check that the JSON data has expected receipt properties
-      expect(data.json.merchant).toBeDefined();
-      expect(data.json.merchant.name).toBeDefined();
-      expect(data.json.timestamp).toBeDefined();
-      expect(data.json.totals).toBeDefined();
-      expect(data.json.totals.total).toBeDefined();
-      expect(data.json.currency).toBeDefined();
-      expect(data.json.confidence).toBeDefined();
+      // Check that the JSON data has expected check properties
+      expect(data.json.checkNumber).toBeDefined();
+      expect(data.json.date).toBeDefined();
+      expect(data.json.payee).toBeDefined();
+      expect(data.json.amount).toBeDefined();
     }
   });
   
   it('should use the factory method to create correct scanner type', async function() {
-    // Create scanner using factory method with receipt type
-    const scanner = ScannerFactory.createScannerByType(workerIoE, MISTRAL_API_KEY\!, 'receipt');
+    // Create scanner using factory method with check type
+    const scanner = ScannerFactory.createScannerByType(workerIoE, MISTRAL_API_KEY!, 'check');
     
     // Load test image from fixtures directory
-    const imagePath = path.resolve(__dirname, '../../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
+    const imagePath = path.resolve(__dirname, '../../fixtures/images/IMG_2388.jpg');
     
     // Skip test if the image doesn't exist
-    if (\!fs.existsSync(imagePath)) {
+    if (!fs.existsSync(imagePath)) {
       pending(`Test image not found at path: ${imagePath}`);
       return;
     }
@@ -117,7 +114,7 @@ describe('ReceiptScanner Integration', function() {
     const document: Document = {
       content: imageBuffer.buffer,
       type: DocumentType.Image,
-      name: 'test-receipt.jpg'
+      name: 'test-check.jpg'
     };
     
     // Process document
@@ -137,14 +134,11 @@ describe('ReceiptScanner Integration', function() {
     if (result[0] === 'ok') {
       const data = result[1];
       
-      // Check that the JSON data has expected receipt properties
-      expect(data.json.merchant).toBeDefined();
-      expect(data.json.merchant.name).toBeDefined();
-      expect(data.json.timestamp).toBeDefined();
-      expect(data.json.totals).toBeDefined();
-      expect(data.json.totals.total).toBeDefined();
-      expect(data.json.currency).toBeDefined();
+      // Check that the JSON data has expected check properties
+      expect(data.json.checkNumber).toBeDefined();
+      expect(data.json.date).toBeDefined();
+      expect(data.json.payee).toBeDefined();
+      expect(data.json.amount).toBeDefined();
     }
   });
 });
-EOL < /dev/null

@@ -4,7 +4,9 @@ import { IoE } from '../ocr/types';
 import { MistralOCRProvider } from '../ocr/mistral';
 import { MistralJsonExtractorProvider } from '../json/mistral';
 import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
+import { CheckExtractor } from '../json/extractors/check-extractor';
 import { ReceiptScanner } from '../scanner/receipt-scanner';
+import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
 
 // Create symbols for dependency identifiers
@@ -15,7 +17,9 @@ export const TYPES = {
   OCRProvider: Symbol.for('OCRProvider'),
   JsonExtractorProvider: Symbol.for('JsonExtractorProvider'),
   ReceiptExtractor: Symbol.for('ReceiptExtractor'),
-  ReceiptScanner: Symbol.for('ReceiptScanner')
+  CheckExtractor: Symbol.for('CheckExtractor'),
+  ReceiptScanner: Symbol.for('ReceiptScanner'),
+  CheckScanner: Symbol.for('CheckScanner')
 };
 
 export class DIContainer {
@@ -62,11 +66,24 @@ export class DIContainer {
       return new ReceiptExtractor(jsonExtractor);
     }).inSingletonScope();
     
+    // Register check extractor
+    this.container.bind(TYPES.CheckExtractor).toDynamicValue((_context) => {
+      const jsonExtractor = this.container.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
+      return new CheckExtractor(jsonExtractor);
+    }).inSingletonScope();
+    
     // Register receipt scanner
     this.container.bind(TYPES.ReceiptScanner).toDynamicValue((_context) => {
       const ocrProvider = this.container.get<MistralOCRProvider>(TYPES.OCRProvider);
       const receiptExtractor = this.container.get<ReceiptExtractor>(TYPES.ReceiptExtractor);
       return new ReceiptScanner(ocrProvider, receiptExtractor);
+    }).inSingletonScope();
+    
+    // Register check scanner
+    this.container.bind(TYPES.CheckScanner).toDynamicValue((_context) => {
+      const ocrProvider = this.container.get<MistralOCRProvider>(TYPES.OCRProvider);
+      const checkExtractor = this.container.get<CheckExtractor>(TYPES.CheckExtractor);
+      return new CheckScanner(ocrProvider, checkExtractor);
     }).inSingletonScope();
     
     return this;
@@ -89,6 +106,15 @@ export class DIContainer {
    */
   getReceiptScanner(): ReceiptScanner {
     return this.container.get<ReceiptScanner>(TYPES.ReceiptScanner);
+  }
+  
+  /**
+   * Get a CheckScanner instance
+   * 
+   * @returns A configured CheckScanner instance
+   */
+  getCheckScanner(): CheckScanner {
+    return this.container.get<CheckScanner>(TYPES.CheckScanner);
   }
 }
 

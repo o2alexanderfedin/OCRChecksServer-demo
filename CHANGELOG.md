@@ -4,9 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [1.8.0] - 2025-04-29
 
+### Changed
+- Renamed DocumentProcessor interface to DocumentScanner for better clarity
+- Renamed processor directory to scanner to better reflect its purpose
+- Renamed ProcessorFactory to ScannerFactory for consistent naming
+- Renamed createMistralProcessor to createMistralScanner for API consistency
+- Moved tests to match new directory structure (scanner instead of processor)
+
 ### Fixed
 - Fixed DI container TypeScript issues with component instantiation
-- Fixed nested OCR result array access in unified processor
+- Fixed nested OCR result array access in unified processor (now receipt-scanner)
 - Improved error handling for API rate limits
 - Moved tests from src directory to proper tests/unit directory
 - Fixed test interfaces to match implementation

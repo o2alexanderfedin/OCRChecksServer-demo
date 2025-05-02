@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.0] - 2025-05-22
+
+### Added
+- Local server startup script for easier development
+- Automatic prerequisite checking and installation 
+- Comprehensive local development documentation
+- Fallback API key for development environment
+
+### Changed
+- Simplified development workflow with automatic dependency handling
+- Improved error handling and colorized output in scripts
+- Enhanced developer experience with helpful command suggestions
+
 ## [1.15.0] - 2025-05-19
 
 ### Added

@@ -17,40 +17,35 @@ class OCRClientIntegrationTests: XCTestCase {
     // Test timeout interval (allows for network latency)
     private let testTimeoutInterval: TimeInterval = 60.0 // 60 seconds
     
-    // Check if integration tests should be skipped
-    private var shouldSkipIntegrationTests: Bool {
-        // Check if OCR_SKIP_INTEGRATION_TESTS environment variable is set
+    // Tests to skip if server is not available
+    private func skipIfServerUnavailable() async throws {
+        // Skip tests if environment variable is set
         if let skipTests = ProcessInfo.processInfo.environment["OCR_SKIP_INTEGRATION_TESTS"],
            ["1", "true", "yes"].contains(skipTests.lowercased()) {
-            return true
+            throw XCTSkip("Integration tests are skipped by environment variable")
         }
         
-        // These tests require a local server running
+        // Skip tests if server is not available
+        if !(await isServerAvailable()) {
+            throw XCTSkip("Integration tests are skipped because the server is not running")
+        }
+    }
+    
+    // Check if the server is available
+    private func isServerAvailable() async -> Bool {
         guard let url = URL(string: "http://localhost:8787/health") else {
-            return true
+            return false
         }
         
-        // Try to reach the server
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.timeoutInterval = 5.0 // 5 seconds timeout for health check
-        
-        let semaphore = DispatchSemaphore(value: 0)
-        var serverIsRunning = false
-        
-        let task = URLSession.shared.dataTask(with: request) { _, response, _ in
-            if let httpResponse = response as? HTTPURLResponse,
-               (200...299).contains(httpResponse.statusCode) {
-                serverIsRunning = true
+        do {
+            let (_, response) = try await URLSession.shared.data(from: url, delegate: nil)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return false
             }
-            semaphore.signal()
+            return (200...299).contains(httpResponse.statusCode)
+        } catch {
+            return false
         }
-        task.resume()
-        
-        // Wait for the request to complete with a timeout
-        _ = semaphore.wait(timeout: .now() + 5.0)
-        
-        return !serverIsRunning
     }
     
     // Helper function to load test image
@@ -77,40 +72,30 @@ class OCRClientIntegrationTests: XCTestCase {
     
     // Integration test for health endpoint
     func testGetHealthEndpoint() async throws {
-        // Skip if we can't run integration tests
-        if shouldSkipIntegrationTests {
-            XCTSkip("Integration tests are skipped because the server is not running")
-        }
+        // Skip if server is unavailable
+        try await skipIfServerUnavailable()
         
         // Create client using the local environment
         let client = OCRClient(environment: testEnvironment)
         
-        do {
-            // Call health endpoint
-            let result = try await XCTUnwrap(
-                try await withTimeout(seconds: testTimeoutInterval) {
-                    try await client.getHealth()
-                }
-            )
-            
-            // Verify we got a valid response
-            XCTAssertEqual(result.status, "ok")
-            XCTAssert(!result.version.isEmpty, "Version should not be empty")
-            XCTAssert(!result.timestamp.isEmpty, "Timestamp should not be empty")
-            
-            // Log the response for debugging
-            print("Health response: status=\(result.status), version=\(result.version), timestamp=\(result.timestamp)")
-        } catch {
-            XCTFail("Health check failed: \(error)")
+        // Run with timeout
+        let result = try await runWithTimeout(seconds: testTimeoutInterval) {
+            return try await client.getHealth()
         }
+        
+        // Verify we got a valid response
+        XCTAssertEqual(result.status, "ok")
+        XCTAssert(!result.version.isEmpty, "Version should not be empty")
+        XCTAssert(!result.timestamp.isEmpty, "Timestamp should not be empty")
+        
+        // Log the response for debugging
+        print("Health response: status=\(result.status), version=\(result.version), timestamp=\(result.timestamp)")
     }
     
     // Integration test for check processing endpoint
     func testProcessCheckEndpoint() async throws {
-        // Skip if we can't run integration tests
-        if shouldSkipIntegrationTests {
-            XCTSkip("Integration tests are skipped because the server is not running")
-        }
+        // Skip if server is unavailable
+        try await skipIfServerUnavailable()
         
         // Load test image
         guard let imageData = loadTestImage() else {
@@ -121,42 +106,34 @@ class OCRClientIntegrationTests: XCTestCase {
         // Create client using the local environment
         let client = OCRClient(environment: testEnvironment)
         
-        do {
-            // Process the check image
-            let result = try await XCTUnwrap(
-                try await withTimeout(seconds: testTimeoutInterval) {
-                    try await client.processCheck(
-                        imageData: imageData,
-                        format: .image,
-                        filename: "test-check.jpg"
-                    )
-                }
+        // Process the check image with timeout
+        let result = try await runWithTimeout(seconds: testTimeoutInterval) {
+            return try await client.processCheck(
+                imageData: imageData,
+                format: .image,
+                filename: "test-check.jpg"
             )
-            
-            // Verify the response structure
-            XCTAssertNotNil(result.data.checkNumber, "Check number should be present")
-            XCTAssertNotNil(result.data.date, "Date should be present")
-            XCTAssertNotNil(result.data.payee, "Payee should be present")
-            XCTAssertGreaterThan(result.data.amount, 0, "Amount should be positive")
-            
-            // Verify confidence scores
-            XCTAssertGreaterThan(result.confidence.ocr, 0, "OCR confidence should be positive")
-            XCTAssertGreaterThan(result.confidence.extraction, 0, "Extraction confidence should be positive")
-            XCTAssertGreaterThan(result.confidence.overall, 0, "Overall confidence should be positive")
-            
-            // Log the response for debugging
-            print("Check processing result: number=\(result.data.checkNumber ?? "N/A"), amount=\(result.data.amount)")
-        } catch {
-            XCTFail("Check processing failed: \(error)")
         }
+        
+        // Verify the response structure
+        XCTAssertNotNil(result.data.checkNumber, "Check number should be present")
+        XCTAssertNotNil(result.data.date, "Date should be present")
+        XCTAssertNotNil(result.data.payee, "Payee should be present")
+        XCTAssertGreaterThan(result.data.amount, 0, "Amount should be positive")
+        
+        // Verify confidence scores
+        XCTAssertGreaterThan(result.confidence.ocr, 0, "OCR confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.extraction, 0, "Extraction confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.overall, 0, "Overall confidence should be positive")
+        
+        // Log the response for debugging
+        print("Check processing result: number=\(result.data.checkNumber), amount=\(result.data.amount)")
     }
     
     // Integration test for receipt processing endpoint
     func testProcessReceiptEndpoint() async throws {
-        // Skip if we can't run integration tests
-        if shouldSkipIntegrationTests {
-            XCTSkip("Integration tests are skipped because the server is not running")
-        }
+        // Skip if server is unavailable
+        try await skipIfServerUnavailable()
         
         // Load test image
         guard let imageData = loadTestImage() else {
@@ -167,41 +144,33 @@ class OCRClientIntegrationTests: XCTestCase {
         // Create client using the local environment
         let client = OCRClient(environment: testEnvironment)
         
-        do {
-            // Process the receipt image
-            let result = try await XCTUnwrap(
-                try await withTimeout(seconds: testTimeoutInterval) {
-                    try await client.processReceipt(
-                        imageData: imageData,
-                        format: .image,
-                        filename: "test-receipt.jpg"
-                    )
-                }
+        // Process the receipt image with timeout
+        let result = try await runWithTimeout(seconds: testTimeoutInterval) {
+            return try await client.processReceipt(
+                imageData: imageData,
+                format: .image,
+                filename: "test-receipt.jpg"
             )
-            
-            // Verify the response structure
-            XCTAssertNotNil(result.data.merchant.name, "Merchant name should be present")
-            XCTAssertNotNil(result.data.timestamp, "Timestamp should be present")
-            XCTAssertGreaterThan(result.data.totals.total, 0, "Total amount should be positive")
-            
-            // Verify confidence scores
-            XCTAssertGreaterThan(result.confidence.ocr, 0, "OCR confidence should be positive")
-            XCTAssertGreaterThan(result.confidence.extraction, 0, "Extraction confidence should be positive")
-            XCTAssertGreaterThan(result.confidence.overall, 0, "Overall confidence should be positive")
-            
-            // Log the response for debugging
-            print("Receipt processing result: merchant=\(result.data.merchant.name), total=\(result.data.totals.total)")
-        } catch {
-            XCTFail("Receipt processing failed: \(error)")
         }
+        
+        // Verify the response structure
+        XCTAssertNotNil(result.data.merchant.name, "Merchant name should be present")
+        XCTAssertNotNil(result.data.timestamp, "Timestamp should be present")
+        XCTAssertGreaterThan(result.data.totals.total, 0, "Total amount should be positive")
+        
+        // Verify confidence scores
+        XCTAssertGreaterThan(result.confidence.ocr, 0, "OCR confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.extraction, 0, "Extraction confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.overall, 0, "Overall confidence should be positive")
+        
+        // Log the response for debugging
+        print("Receipt processing result: merchant=\(result.data.merchant.name), total=\(result.data.totals.total)")
     }
     
     // Integration test for universal document processing endpoint
     func testProcessDocumentEndpoint() async throws {
-        // Skip if we can't run integration tests
-        if shouldSkipIntegrationTests {
-            XCTSkip("Integration tests are skipped because the server is not running")
-        }
+        // Skip if server is unavailable
+        try await skipIfServerUnavailable()
         
         // Load test image
         guard let imageData = loadTestImage() else {
@@ -212,53 +181,64 @@ class OCRClientIntegrationTests: XCTestCase {
         // Create client using the local environment
         let client = OCRClient(environment: testEnvironment)
         
-        do {
-            // Process the document as a check
-            let result = try await XCTUnwrap(
-                try await withTimeout(seconds: testTimeoutInterval) {
-                    try await client.processDocument(
-                        imageData: imageData,
-                        type: .check,
-                        format: .image,
-                        filename: "test-document.jpg"
-                    )
-                }
+        // Process the document as a check with timeout
+        let result = try await runWithTimeout(seconds: testTimeoutInterval) {
+            return try await client.processDocument(
+                imageData: imageData,
+                type: .check,
+                format: .image,
+                filename: "test-document.jpg"
             )
-            
-            // Verify the response structure
-            XCTAssertEqual(result.documentType, .check, "Document type should be check")
-            
-            // Verify confidence scores
-            XCTAssertGreaterThan(result.confidence.ocr, 0, "OCR confidence should be positive")
-            XCTAssertGreaterThan(result.confidence.extraction, 0, "Extraction confidence should be positive")
-            XCTAssertGreaterThan(result.confidence.overall, 0, "Overall confidence should be positive")
-            
-            // Log the response for debugging
-            print("Document processing result: type=\(result.documentType.rawValue)")
+        }
+        
+        // Verify the response structure
+        XCTAssertEqual(result.documentType, .check, "Document type should be check")
+        
+        // Verify confidence scores
+        XCTAssertGreaterThan(result.confidence.ocr, 0, "OCR confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.extraction, 0, "Extraction confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.overall, 0, "Overall confidence should be positive")
+        
+        // Log the response for debugging
+        print("Document processing result: type=\(result.documentType.rawValue)")
+    }
+    
+    // Replacement for the previous withTimeout helper
+    private func runWithTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+        // Create a new task for the operation
+        let operationTask = Task {
+            return try await operation()
+        }
+        
+        // Create a timeout task
+        let timeoutTask = Task {
+            try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            operationTask.cancel()
+            throw TimeoutError(seconds: seconds)
+        }
+        
+        do {
+            // Wait for the operation to complete
+            let result = try await operationTask.value
+            // Cancel the timeout task
+            timeoutTask.cancel()
+            return result
+        } catch is CancellationError {
+            // If the operation was cancelled, it was likely due to timeout
+            throw TimeoutError(seconds: seconds)
         } catch {
-            XCTFail("Document processing failed: \(error)")
+            // Operation failed with some other error
+            timeoutTask.cancel()
+            throw error
         }
     }
-}
-
-// Helper extension for adding timeouts to async operations
-extension OCRClientIntegrationTests {
-    func withTimeout<T>(seconds: TimeInterval, operation: () async throws -> T) async throws -> T {
-        return try await withThrowingTaskGroup(of: T.self) { group in
-            group.addTask {
-                return try await operation()
-            }
-
-            group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-                throw NSError(domain: "OCRClientIntegrationTests", code: -1, userInfo: [
-                    NSLocalizedDescriptionKey: "Operation timed out after \(seconds) seconds"
-                ])
-            }
-            
-            let result = try await group.next()!
-            group.cancelAll()
-            return result
+    
+    // Custom error type for timeout errors
+    struct TimeoutError: LocalizedError {
+        let seconds: TimeInterval
+        
+        var errorDescription: String? {
+            return "Operation timed out after \(seconds) seconds"
         }
     }
 }

@@ -29,8 +29,26 @@ describe('Basic Server Health Checks', function() {
       clearTimeout(timeoutId);
       
       if (response.ok) {
-        const data = await response.json();
-        console.log(`Server health check passed: ${JSON.stringify(data)}`);
+        try {
+          const data = await response.json();
+          console.log(`Server health check passed: ${JSON.stringify(data)}`);
+          
+          // Verify the response format is correct
+          if (!data || typeof data !== 'object') {
+            console.error('Health check response is not an object');
+            return null;
+          }
+          
+          if (!data.status || data.status !== 'ok') {
+            console.error(`Health check status is not 'ok': ${data.status}`);
+            return null;
+          }
+          
+          console.log('Health check validation passed');
+        } catch (jsonError) {
+          console.error(`Failed to parse health check response: ${jsonError.message}`);
+          return null;
+        }
       } else {
         console.log(`Server responded with status: ${response.status}`);
       }

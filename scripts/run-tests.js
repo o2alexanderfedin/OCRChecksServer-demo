@@ -174,6 +174,7 @@ jasmine.addReporter({
     console.log(`Test finished: ${result.description} - ${result.status}`);
     if (result.status === 'failed') {
       console.log(`Failures: ${JSON.stringify(result.failedExpectations, null, 2)}`);
+      console.log(`Stack: ${result.failedExpectations[0]?.stack || 'No stack available'}`);
     }
     if (result.status === 'pending') {
       console.log(`Pending reason: ${result.pendingReason}`);
@@ -181,9 +182,13 @@ jasmine.addReporter({
   },
   suiteDone: function(result) {
     console.log(`Suite finished: ${result.description}`);
+    if (result.failedExpectations && result.failedExpectations.length > 0) {
+      console.log(`Suite failures: ${JSON.stringify(result.failedExpectations, null, 2)}`);
+    }
   },
   jasmineDone: function(result) {
     console.log(`Tests finished with status: ${result.overallStatus}`);
+    console.log(`Details: ${JSON.stringify(result, null, 2)}`);
     
     // Shutdown server if it was started
     if (serverProcess) {
@@ -241,11 +246,23 @@ const timeoutPromise = new Promise((_, reject) => {
 
 // Use Promise.race to handle either completion or timeout
 try {
-  await Promise.race([testsPromise, timeoutPromise]);
+  console.log('Starting test execution...');
+  const result = await Promise.race([testsPromise, timeoutPromise]);
+  console.log('Tests completed with result:', result);
   console.log('Tests completed successfully');
 } catch (error) {
   console.error(`\n⚠️ Error during test execution: ${error.message}`);
   console.error(error.stack);
+  console.error(`Error type: ${error.constructor.name}`);
+  
+  // Print out the server process info
+  if (serverProcess) {
+    console.error(`Server process PID: ${serverProcess.pid}`);
+    console.error(`Server process connected: ${serverProcess.connected}`);
+    console.error(`Server process killed: ${serverProcess.killed}`);
+    console.error(`Server process exit code: ${serverProcess.exitCode}`);
+  }
+  
   process.exit(1);
 } finally {
   // Make sure to shut down the server

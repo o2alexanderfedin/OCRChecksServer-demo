@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.5] - 2025-05-04
+
+### Changed
+- Improved deprecated code handling with migration notices and console warnings
+- Added migration tests to ensure smooth transition from legacy adapters
+- Stopped exporting legacy adapters from main index to encourage use of modern implementations
+- Removed deprecated `createMistralScanner` method from ScannerFactory
+
+### Migration Guide
+- Replace imports from `src/json/receipt-extractor` with `src/json/extractors/receipt-extractor`
+- Replace imports from `src/json/check-extractor` with `src/json/extractors/check-extractor`
+- Update `ScannerFactory.createMistralScanner()` calls to `ScannerFactory.createMistralReceiptScanner()`
+- Adapt your code to use readonly Result tuples instead of mutable tuples
+
 ## [1.9.4] - 2025-05-03
 
 ### Added

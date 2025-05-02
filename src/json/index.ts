@@ -9,6 +9,3 @@ export * from './schemas/receipt'
 
 // Export extractors
 export * from './extractors'
-
-// Export legacy extractors (for backward compatibility)
-export * from './receipt-extractor'

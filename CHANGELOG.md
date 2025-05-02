@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.17.0] - 2025-05-22
+
+### Added
+- OpenAPI 3.0 specification for the entire API
+- Comprehensive documentation for the OpenAPI specification
+- Nolock.social company information and API URLs
+- Local server startup script for easier development
+- Automatic prerequisite checking and installation
+- Fallback API key for development environment
+
+### Changed
+- Updated company information to Nolock.social
+- Changed API URLs to use Nolock.social domain
+- Simplified local development workflow
+- Improved documentation for API endpoints
+- Updated test API key handling for local development
+
 ## [1.16.0] - 2025-05-22
 
 ### Added

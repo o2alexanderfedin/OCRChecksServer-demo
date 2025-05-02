@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs/promises';
 import { spawn } from 'child_process';
+import { globSync } from 'glob';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
@@ -120,16 +121,33 @@ console.log(`Running ${testType} tests...`);
 // If a filter is provided, filter the spec files
 let filteredSpecFiles = config.spec_files;
 if (testFilter) {
-  filteredSpecFiles = config.spec_files.map(pattern => {
-    // If it's a pattern ending with a wildcard, limit it to files containing the filter
-    if (pattern.includes('**')) {
-      return pattern.replace('**/', `**/*${testFilter}*`);
-    }
-    // Otherwise, just return files matching the filter
-    return pattern.includes(testFilter) ? pattern : null;
-  }).filter(Boolean); // Remove null entries
+  // Set specific file pattern if a test file is specified
+  if (testFilter === 'simple') {
+    filteredSpecFiles = ['integration/simple.test.ts'];
+    console.log(`Direct match: using specific test file pattern: ${JSON.stringify(filteredSpecFiles)}`);
+  } else {
+    filteredSpecFiles = config.spec_files.map(pattern => {
+      // If it's a pattern ending with a wildcard, limit it to files containing the filter
+      if (pattern.includes('**')) {
+        return pattern.replace('**/', `**/*${testFilter}*`);
+      }
+      // Otherwise, just return files matching the filter
+      return pattern.includes(testFilter) ? pattern : null;
+    }).filter(Boolean); // Remove null entries
+    
+    console.log(`Filtered spec files: ${JSON.stringify(filteredSpecFiles)}`);
+  }
   
-  console.log(`Filtered spec files: ${JSON.stringify(filteredSpecFiles)}`);
+  // Check that files actually exist
+  console.log('Checking for matching test files:');
+  filteredSpecFiles.forEach(pattern => {
+    const fullPattern = join(projectRoot, 'tests', pattern);
+    const matches = globSync(fullPattern);
+    console.log(`Pattern ${fullPattern} matched: ${matches.length} files`);
+    if (matches.length) {
+      console.log(`Found: ${matches.join(', ')}`);
+    }
+  });
 }
 
 jasmine.loadConfig({
@@ -200,10 +218,23 @@ if (dryRun) {
 
 const testsPromise = jasmine.execute();
 
+
 // Add timeout protection
 const timeoutPromise = new Promise((_, reject) => {
   setTimeout(() => {
     console.error(`Tests timed out after ${timeoutMs / 1000} seconds`);
+    // List files found by glob pattern to help debug
+    console.error('Trying to find matching test files:');
+    
+    try {
+      filteredSpecFiles.forEach(pattern => {
+        const matches = globSync(pattern, { cwd: join(projectRoot, 'tests') });
+        console.error(`Pattern ${pattern} matched: ${JSON.stringify(matches)}`);
+      });
+    } catch (e) {
+      console.error('Error listing files:', e);
+    }
+    
     reject(new Error(`Tests timed out after ${timeoutMs / 1000} seconds`));
   }, timeoutMs);
 });

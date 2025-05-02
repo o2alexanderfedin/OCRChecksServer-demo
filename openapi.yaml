@@ -7,7 +7,7 @@ info:
     This API accepts image uploads (JPEG, PNG) and returns structured JSON data with extracted information.
     
     The API offers both dedicated endpoints for specific document types and a universal processing endpoint.
-  version: 1.12.2
+  version: 1.17.0
   license:
     name: AGPL-3.0-or-later
     url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -350,7 +350,7 @@ paths:
               example:
                 status: "ok"
                 timestamp: "2025-05-15T10:30:15.123Z"
-                version: "1.12.2"
+                version: "1.17.0"
 
 components:
   schemas:

@@ -10,18 +10,25 @@ import { DocumentScanner } from './types';
  */
 export class ScannerFactory {
   /**
-   * Create a default receipt scanner using Mistral for both OCR and JSON extraction
+   * Create a receipt scanner using Mistral for both OCR and JSON extraction
    * 
    * @param io - The IO interface for network operations
    * @param apiKey - Mistral API key
    * @returns A ReceiptScanner instance
    */
-  static createMistralScanner(io: IoE, apiKey: string): ReceiptScanner {
+  static createMistralReceiptScanner(io: IoE, apiKey: string): ReceiptScanner {
     // Create DI container with all dependencies registered
     const container = new DIContainer().registerMistralDependencies(io, apiKey);
     
     // Get and return a fully configured ReceiptScanner
     return container.get<ReceiptScanner>(TYPES.ReceiptScanner);
+  }
+  
+  /**
+   * @deprecated Use createMistralReceiptScanner instead
+   */
+  static createMistralScanner(io: IoE, apiKey: string): ReceiptScanner {
+    return this.createMistralReceiptScanner(io, apiKey);
   }
   
   /**
@@ -51,7 +58,7 @@ export class ScannerFactory {
     if (documentType === 'check') {
       return this.createMistralCheckScanner(io, apiKey);
     } else {
-      return this.createMistralScanner(io, apiKey);
+      return this.createMistralReceiptScanner(io, apiKey);
     }
   }
 }

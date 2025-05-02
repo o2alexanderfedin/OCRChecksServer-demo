@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.4] - 2025-05-03
+
+### Changed
+- Added comprehensive tests for factory methods
+- Added comprehensive tests for legacy check-extractor adapter
+
 ## [1.9.3] - 2025-05-03
 
 ### Changed

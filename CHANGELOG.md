@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.25.1] - 2025-06-03
+
+### Improved
+- Updated receipt schema documentation to reflect v1.25.0 changes
+- Added information about the ReceiptBase interface in documentation
+- Clarified optional vs required fields in schema documentation
+- Updated class diagrams to show inheritance relationship
+- Fixed example code in documentation to show currency is optional
+
 ## [1.25.0] - 2025-06-02
 
 ### Added

@@ -12,88 +12,11 @@ interface Env {
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
 
-// No longer needed after refactoring the root endpoint to forward to /process
-
-// Handle all HTTP methods for the root endpoint
-// POST requests are forwarded to /process, other methods get appropriate responses
-app.all('/', async (c) => {
-  try {
-    // For POST requests, forward to /process with 'check' type for backwards compatibility
-    if (c.req.method === 'POST') {
-      // Clone the request to forward it
-      const newUrl = new URL(c.req.url);
-      newUrl.pathname = '/process';
-      
-      // Set query parameters for backwards compatibility - default to check type
-      newUrl.searchParams.set('type', 'check');
-      
-      // Forward the request to /process endpoint
-      const newRequest = new Request(newUrl.toString(), {
-        method: c.req.method,
-        headers: c.req.headers,
-        body: c.req.body
-      });
-      
-      // Handle the request through the process endpoint
-      return await app.fetch(newRequest, c.env);
-    }
-    
-    // Handle HEAD requests (just like GET but without body)
-    if (c.req.method === 'HEAD') {
-      return new Response(null, {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // Handle GET requests to root
-    if (c.req.method === 'GET') {
-      return new Response(JSON.stringify({
-        message: 'OCR Checks Server API',
-        version: '1.11.0',
-        endpoints: [
-          { path: '/process', method: 'POST', description: 'Process document images (query params: type=[check|receipt])' },
-          { path: '/check', method: 'POST', description: 'Process check images' },
-          { path: '/receipt', method: 'POST', description: 'Process receipt images' },
-          { path: '/health', method: 'GET', description: 'Server health check' }
-        ]
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // Handle OPTIONS for CORS
-    if (c.req.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      });
-    }
-    
-    // For any other methods, return 405 Method Not Allowed
-    return new Response(JSON.stringify({ 
-      error: 'Method not allowed',
-      allowedMethods: ['GET', 'POST', 'HEAD', 'OPTIONS']
-    }), {
-      status: 405,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Allow': 'GET, POST, HEAD, OPTIONS'
-      }
-    });
-  } catch (error) {
-    console.error('Error handling request:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-});
+// All functionality is now provided through dedicated endpoints:
+// - /process - Universal document processing endpoint
+// - /check - Check-specific processing endpoint
+// - /receipt - Receipt-specific processing endpoint
+// - /health - Server status endpoint
 
 // New unified endpoint for processing documents
 app.post('/process', async (c) => {

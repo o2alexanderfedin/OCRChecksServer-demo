@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.24.0] - 2025-05-30
+
+### Added
+- TypeScript type definitions for all API responses
+- Enhanced type safety for client applications interacting with the API
+- Example TypeScript client implementation with proper typing
+- Example HTML client for API integration demonstration
+- Comprehensive documentation for API response types
+
+### Improved
+- Better client integration experience with strongly-typed responses
+- Enhanced developer workflow with proper TypeScript support
+- Full end-to-end type safety from API to client code
+
 ## [1.23.0] - 2025-05-30
 
 ### Added

@@ -265,7 +265,7 @@ app.get('/health', (c) => {
   return new Response(JSON.stringify({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.23.0'
+    version: '1.24.0'
   }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }

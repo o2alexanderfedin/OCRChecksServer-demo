@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCR API Client Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    .section {
+      margin-bottom: 2rem;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    button {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0052a3;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow: auto;
+      max-height: 300px;
+    }
+    .result {
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>OCR API Client Example</h1>
+  
+  <div class="section">
+    <h2>Check Scanner</h2>
+    <div class="form-group">
+      <label for="checkFile">Select Check Image:</label>
+      <input type="file" id="checkFile" accept="image/*">
+    </div>
+    <button id="processCheckButton">Process Check</button>
+    <div class="result">
+      <h3>Result:</h3>
+      <pre id="checkResult">No results yet.</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Receipt Scanner</h2>
+    <div class="form-group">
+      <label for="receiptFile">Select Receipt Image:</label>
+      <input type="file" id="receiptFile" accept="image/*">
+    </div>
+    <button id="processReceiptButton">Process Receipt</button>
+    <div class="result">
+      <h3>Result:</h3>
+      <pre id="receiptResult">No results yet.</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Universal Document Scanner</h2>
+    <div class="form-group">
+      <label for="documentFile">Select Document Image:</label>
+      <input type="file" id="documentFile" accept="image/*">
+    </div>
+    <div class="form-group">
+      <label for="documentType">Document Type:</label>
+      <select id="documentType">
+        <option value="check">Check</option>
+        <option value="receipt">Receipt</option>
+      </select>
+    </div>
+    <button id="processDocumentButton">Process Document</button>
+    <div class="result">
+      <h3>Result:</h3>
+      <pre id="documentResult">No results yet.</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>API Health Check</h2>
+    <button id="healthCheckButton">Check API Health</button>
+    <div class="result">
+      <h3>Result:</h3>
+      <pre id="healthResult">No results yet.</pre>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import the compiled JavaScript client
+    import { 
+      processCheck, 
+      processReceipt, 
+      processDocument, 
+      checkHealth 
+    } from './dist/client.js';
+
+    // Check processing
+    document.getElementById('processCheckButton').addEventListener('click', async () => {
+      const fileInput = document.getElementById('checkFile');
+      const resultDisplay = document.getElementById('checkResult');
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        resultDisplay.textContent = 'Please select a file first.';
+        return;
+      }
+      
+      resultDisplay.textContent = 'Processing...';
+      
+      try {
+        const result = await processCheck(fileInput.files[0]);
+        resultDisplay.textContent = JSON.stringify(result, null, 2);
+      } catch (error) {
+        resultDisplay.textContent = `Error: ${error.message}`;
+      }
+    });
+
+    // Receipt processing
+    document.getElementById('processReceiptButton').addEventListener('click', async () => {
+      const fileInput = document.getElementById('receiptFile');
+      const resultDisplay = document.getElementById('receiptResult');
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        resultDisplay.textContent = 'Please select a file first.';
+        return;
+      }
+      
+      resultDisplay.textContent = 'Processing...';
+      
+      try {
+        const result = await processReceipt(fileInput.files[0]);
+        resultDisplay.textContent = JSON.stringify(result, null, 2);
+      } catch (error) {
+        resultDisplay.textContent = `Error: ${error.message}`;
+      }
+    });
+
+    // Universal document processing
+    document.getElementById('processDocumentButton').addEventListener('click', async () => {
+      const fileInput = document.getElementById('documentFile');
+      const documentType = document.getElementById('documentType').value;
+      const resultDisplay = document.getElementById('documentResult');
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        resultDisplay.textContent = 'Please select a file first.';
+        return;
+      }
+      
+      resultDisplay.textContent = 'Processing...';
+      
+      try {
+        const result = await processDocument(fileInput.files[0], documentType);
+        resultDisplay.textContent = JSON.stringify(result, null, 2);
+      } catch (error) {
+        resultDisplay.textContent = `Error: ${error.message}`;
+      }
+    });
+
+    // Health check
+    document.getElementById('healthCheckButton').addEventListener('click', async () => {
+      const resultDisplay = document.getElementById('healthResult');
+      
+      resultDisplay.textContent = 'Checking...';
+      
+      try {
+        const result = await checkHealth();
+        resultDisplay.textContent = JSON.stringify(result, null, 2);
+      } catch (error) {
+        resultDisplay.textContent = `Error: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

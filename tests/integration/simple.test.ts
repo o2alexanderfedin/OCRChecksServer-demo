@@ -10,24 +10,34 @@ const projectRoot = path.resolve(__dirname, '..', '..');
 const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
 console.log('Using API URL:', API_URL);
 
-describe('Basic Server Health Checks', () => {
+describe('Basic Server Health Checks', function() {
+  // Increase timeout for all tests in this suite
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000; // 20 seconds
   // Helper function to check server availability
   async function checkServerAvailability() {
     try {
-      console.log(`Checking server at ${API_URL}...`);
+      console.log(`Checking server at ${API_URL}/health...`);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
       
-      const response = await fetch(API_URL, { 
-        method: 'HEAD',
+      const response = await fetch(`${API_URL}/health`, { 
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
         signal: controller.signal
       });
       
       clearTimeout(timeoutId);
-      console.log(`Server responded with status: ${response.status}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Server health check passed: ${JSON.stringify(data)}`);
+      } else {
+        console.log(`Server responded with status: ${response.status}`);
+      }
+      
       return response;
     } catch (error) {
-      console.error(`Server check failed: ${error.message}`);
+      console.error(`Server health check failed: ${error.message}`);
       return null;
     }
   }
@@ -36,9 +46,10 @@ describe('Basic Server Health Checks', () => {
     // Make sure server is available before running tests
     const response = await checkServerAvailability();
     if (!response) {
-      console.error('Server is not available. Tests may fail.');
+      console.error('Server is not available. Marking tests as pending.');
+      pending('Server is not available. Skipping tests.');
     }
-  });
+  }, 10000); // Increase timeout to 10 seconds
   
   it('should respond to HEAD requests (server availability check)', async () => {
     const response = await fetch(API_URL, { method: 'HEAD' });

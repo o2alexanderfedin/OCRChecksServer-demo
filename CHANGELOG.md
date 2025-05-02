@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.19.0] - 2025-05-25
+
+### Added
+- Swift proxy client now supports modern Swift concurrency with async/await
+- Comprehensive example code for async/await usage patterns
+- SwiftUI integration example for the Swift proxy client
+- Unit tests for async API methods
+
+### Changed
+- Refactored Swift proxy client for cleaner, more idiomatic Swift code
+- Maintained backward compatibility with completion handlers
+- Enhanced error handling for Swift proxy client
+- Updated documentation with both async/await and completion handler examples
+
 ## [1.18.0] - 2025-05-24
 
 ### Added

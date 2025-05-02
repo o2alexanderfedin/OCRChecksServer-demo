@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.23.0] - 2025-05-30
+
+### Added
+- Comprehensive example JSON files for receipt and check OCR responses
+- Detailed example JSON files demonstrating the API response format
+- README file in examples directory explaining the purpose and structure of example files
+- Cross-references between example files and schema documentation
+
+### Improved
+- Enhanced documentation with links to example JSON files
+- Better developer experience with concrete response examples
+- More intuitive understanding of API response structure
+
 ## [1.22.2] - 2025-05-27
 
 ### Fixed

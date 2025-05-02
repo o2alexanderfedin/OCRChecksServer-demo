@@ -277,4 +277,7 @@ The Receipt Schema is integrated into the overall document processing flow:
 5. The final validated receipt data is returned to the client
 
 This schema-driven approach ensures consistent, reliable extraction of receipt data across different receipt formats and layouts.
-EOL < /dev/null
+
+## Complete Example JSON
+
+For a comprehensive example of receipt OCR output, refer to the [receipt-ocr-response-example.json](../examples/receipt-ocr-response-example.json) file in the examples directory.

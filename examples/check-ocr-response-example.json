@@ -1,0 +1,34 @@
+{
+  "data": {
+    "checkNumber": "2468013579",
+    "date": "2025-05-02",
+    "payee": "Acme Corporation",
+    "payer": "John Q. Smith",
+    "amount": 1250.00,
+    "amountText": "One thousand two hundred fifty and 00/100",
+    "memo": "Consulting services April 2025",
+    "bankName": "First National Bank",
+    "routingNumber": "123456789",
+    "accountNumber": "9876543210",
+    "checkType": "personal",
+    "accountType": "checking",
+    "signature": true,
+    "signatureText": "John Smith",
+    "fractionalCode": "58-697/1234",
+    "micrLine": "⑆123456789⑆ ⑈9876543210⑈ ⑉2468013579⑉",
+    "metadata": {
+      "confidenceScore": 0.95,
+      "sourceImageId": "check-image-2025-05-02-1432",
+      "ocrProvider": "Mistral OCR",
+      "warnings": [
+        "Signature field partially obscured"
+      ]
+    },
+    "confidence": 0.92
+  },
+  "confidence": {
+    "ocr": 0.96,
+    "extraction": 0.89,
+    "overall": 0.92
+  }
+}

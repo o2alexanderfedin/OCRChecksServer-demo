@@ -42,8 +42,18 @@ export class DIContainer {
     
     // Register Mistral client
     this.container.bind(TYPES.MistralClient).toDynamicValue((_context) => {
-      // Use any to bypass Mistral type checking since apiKey is valid but not in type definition
-      return new Mistral({ apiKey } as any);
+      // Ensure API key is correctly set and provide more debugging information
+      if (!apiKey) {
+        console.error('Missing API key in container initialization');
+        throw new Error('Mistral API key is required but was not provided');
+      }
+      
+      console.log('Initializing Mistral client with API key (first 4 chars):', apiKey.substring(0, 4) + '...');
+      
+      // Create Mistral client with explicit apiKey property
+      return new Mistral({
+        apiKey: apiKey
+      });
     }).inSingletonScope();
     
     // Register OCR provider

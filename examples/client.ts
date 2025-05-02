@@ -12,20 +12,36 @@ import {
   HealthResponse 
 } from '../src/types/api-responses';
 
+// Get the base URL from the environment (default to local development)
+const getBaseUrl = (): string => {
+  // If running in a browser, use the current origin
+  if (typeof window !== 'undefined') {
+    // If accessing the examples via our server at /examples/, we need to adjust the path
+    if (window.location.pathname.startsWith('/examples/')) {
+      return window.location.origin;
+    }
+    // If accessing directly from file, use localhost
+    return 'http://localhost:8787';
+  }
+  // Default for node environment
+  return process.env.OCR_API_URL || 'http://localhost:8787';
+};
+
 /**
  * Process a check image and extract data
  * @param imageFile Image file to process
  * @returns Extracted check data
  */
 async function processCheck(imageFile: File): Promise<CheckOCRResponse> {
-  const url = 'https://your-ocr-service.com/check';
+  const url = `${getBaseUrl()}/check`;
   
-  const formData = new FormData();
-  formData.append('file', imageFile);
-  
+  // For image files, we need to send the raw binary data
   const response = await fetch(url, {
     method: 'POST',
-    body: formData,
+    headers: {
+      'Content-Type': imageFile.type,
+    },
+    body: imageFile,
   });
   
   if (!response.ok) {
@@ -43,14 +59,15 @@ async function processCheck(imageFile: File): Promise<CheckOCRResponse> {
  * @returns Extracted receipt data
  */
 async function processReceipt(imageFile: File): Promise<ReceiptOCRResponse> {
-  const url = 'https://your-ocr-service.com/receipt';
+  const url = `${getBaseUrl()}/receipt`;
   
-  const formData = new FormData();
-  formData.append('file', imageFile);
-  
+  // For image files, we need to send the raw binary data
   const response = await fetch(url, {
     method: 'POST',
-    body: formData,
+    headers: {
+      'Content-Type': imageFile.type,
+    },
+    body: imageFile,
   });
   
   if (!response.ok) {
@@ -72,14 +89,15 @@ async function processDocument(
   imageFile: File, 
   documentType: 'check' | 'receipt'
 ): Promise<ProcessDocumentResponse> {
-  const url = `https://your-ocr-service.com/process?type=${documentType}`;
+  const url = `${getBaseUrl()}/process?type=${documentType}`;
   
-  const formData = new FormData();
-  formData.append('file', imageFile);
-  
+  // For image files, we need to send the raw binary data
   const response = await fetch(url, {
     method: 'POST',
-    body: formData,
+    headers: {
+      'Content-Type': imageFile.type,
+    },
+    body: imageFile,
   });
   
   if (!response.ok) {
@@ -96,7 +114,7 @@ async function processDocument(
  * @returns Health status
  */
 async function checkHealth(): Promise<HealthResponse> {
-  const url = 'https://your-ocr-service.com/health';
+  const url = `${getBaseUrl()}/health`;
   
   const response = await fetch(url);
   

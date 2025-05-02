@@ -135,7 +135,122 @@ public class OCRClient {
         self.session = session
     }
     
-    // MARK: - API Methods
+    // MARK: - Async/Await API Methods
+    
+    /// Process a check image using async/await
+    /// - Parameters:
+    ///   - imageData: The image data to process
+    ///   - format: Format of the document (default: .image)
+    ///   - filename: Optional filename for the document
+    /// - Returns: A CheckResponse containing the processed check data
+    /// - Throws: An error if the processing fails
+    public func processCheck(
+        imageData: Data,
+        format: DocumentFormat = .image,
+        filename: String? = nil
+    ) async throws -> CheckResponse {
+        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("check").absoluteString)!
+        var queryItems = [URLQueryItem(name: "format", value: format.rawValue)]
+        
+        if let filename = filename {
+            queryItems.append(URLQueryItem(name: "filename", value: filename))
+        }
+        
+        urlComponents.queryItems = queryItems
+        
+        guard let url = urlComponents.url else {
+            throw OCRError(error: "Invalid URL")
+        }
+        
+        return try await performRequest(url: url, imageData: imageData)
+    }
+    
+    /// Process a receipt image using async/await
+    /// - Parameters:
+    ///   - imageData: The image data to process
+    ///   - format: Format of the document (default: .image)
+    ///   - filename: Optional filename for the document
+    /// - Returns: A ReceiptResponse containing the processed receipt data
+    /// - Throws: An error if the processing fails
+    public func processReceipt(
+        imageData: Data,
+        format: DocumentFormat = .image,
+        filename: String? = nil
+    ) async throws -> ReceiptResponse {
+        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("receipt").absoluteString)!
+        var queryItems = [URLQueryItem(name: "format", value: format.rawValue)]
+        
+        if let filename = filename {
+            queryItems.append(URLQueryItem(name: "filename", value: filename))
+        }
+        
+        urlComponents.queryItems = queryItems
+        
+        guard let url = urlComponents.url else {
+            throw OCRError(error: "Invalid URL")
+        }
+        
+        return try await performRequest(url: url, imageData: imageData)
+    }
+    
+    /// Process a document as either a check or receipt using async/await
+    /// - Parameters:
+    ///   - imageData: The image data to process
+    ///   - type: Type of document to process
+    ///   - format: Format of the document (default: .image)
+    ///   - filename: Optional filename for the document
+    /// - Returns: A DocumentResponse containing the processed document data
+    /// - Throws: An error if the processing fails
+    public func processDocument(
+        imageData: Data,
+        type: DocumentType,
+        format: DocumentFormat = .image,
+        filename: String? = nil
+    ) async throws -> DocumentResponse {
+        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("process").absoluteString)!
+        var queryItems = [
+            URLQueryItem(name: "type", value: type.rawValue),
+            URLQueryItem(name: "format", value: format.rawValue)
+        ]
+        
+        if let filename = filename {
+            queryItems.append(URLQueryItem(name: "filename", value: filename))
+        }
+        
+        urlComponents.queryItems = queryItems
+        
+        guard let url = urlComponents.url else {
+            throw OCRError(error: "Invalid URL")
+        }
+        
+        return try await performRequest(url: url, imageData: imageData)
+    }
+    
+    /// Get server health status using async/await
+    /// - Returns: A HealthResponse containing the server health information
+    /// - Throws: An error if the request fails
+    public func getHealth() async throws -> HealthResponse {
+        let url = baseURL.appendingPathComponent("health")
+        
+        let (data, response) = try await session.data(from: url)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw OCRError(error: "Invalid response")
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorResponse = try? JSONDecoder().decode(OCRError.self, from: data) {
+                throw errorResponse
+            } else {
+                throw OCRError(error: "HTTP Error: \(httpResponse.statusCode)")
+            }
+        }
+        
+        let decoder = JSONDecoder()
+        return try decoder.decode(HealthResponse.self, from: data)
+    }
+    
+    // MARK: - Backward Compatibility Methods with Completion Handlers
     
     /// Process a check image
     /// - Parameters:
@@ -149,22 +264,13 @@ public class OCRClient {
         filename: String? = nil,
         completion: @escaping (Result<CheckResponse, Error>) -> Void
     ) {
-        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("check").absoluteString)!
-        var queryItems = [URLQueryItem(name: "format", value: format.rawValue)]
-        
-        if let filename = filename {
-            queryItems.append(URLQueryItem(name: "filename", value: filename))
-        }
-        
-        urlComponents.queryItems = queryItems
-        
-        guard let url = urlComponents.url else {
-            completion(.failure(OCRError(error: "Invalid URL")))
-            return
-        }
-        
-        performRequest(url: url, imageData: imageData) { (result: Result<CheckResponse, Error>) in
-            completion(result)
+        Task {
+            do {
+                let response = try await processCheck(imageData: imageData, format: format, filename: filename)
+                completion(.success(response))
+            } catch {
+                completion(.failure(error))
+            }
         }
     }
     
@@ -180,22 +286,13 @@ public class OCRClient {
         filename: String? = nil,
         completion: @escaping (Result<ReceiptResponse, Error>) -> Void
     ) {
-        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("receipt").absoluteString)!
-        var queryItems = [URLQueryItem(name: "format", value: format.rawValue)]
-        
-        if let filename = filename {
-            queryItems.append(URLQueryItem(name: "filename", value: filename))
-        }
-        
-        urlComponents.queryItems = queryItems
-        
-        guard let url = urlComponents.url else {
-            completion(.failure(OCRError(error: "Invalid URL")))
-            return
-        }
-        
-        performRequest(url: url, imageData: imageData) { (result: Result<ReceiptResponse, Error>) in
-            completion(result)
+        Task {
+            do {
+                let response = try await processReceipt(imageData: imageData, format: format, filename: filename)
+                completion(.success(response))
+            } catch {
+                completion(.failure(error))
+            }
         }
     }
     
@@ -213,77 +310,35 @@ public class OCRClient {
         filename: String? = nil,
         completion: @escaping (Result<DocumentResponse, Error>) -> Void
     ) {
-        var urlComponents = URLComponents(string: baseURL.appendingPathComponent("process").absoluteString)!
-        var queryItems = [
-            URLQueryItem(name: "type", value: type.rawValue),
-            URLQueryItem(name: "format", value: format.rawValue)
-        ]
-        
-        if let filename = filename {
-            queryItems.append(URLQueryItem(name: "filename", value: filename))
-        }
-        
-        urlComponents.queryItems = queryItems
-        
-        guard let url = urlComponents.url else {
-            completion(.failure(OCRError(error: "Invalid URL")))
-            return
-        }
-        
-        performRequest(url: url, imageData: imageData) { (result: Result<DocumentResponse, Error>) in
-            completion(result)
+        Task {
+            do {
+                let response = try await processDocument(imageData: imageData, type: type, format: format, filename: filename)
+                completion(.success(response))
+            } catch {
+                completion(.failure(error))
+            }
         }
     }
     
     /// Get server health status
     /// - Parameter completion: Completion handler with result
     public func getHealth(completion: @escaping (Result<HealthResponse, Error>) -> Void) {
-        let url = baseURL.appendingPathComponent("health")
-        
-        let task = session.dataTask(with: url) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                completion(.failure(OCRError(error: "Invalid response")))
-                return
-            }
-            
-            guard (200...299).contains(httpResponse.statusCode) else {
-                if let data = data, let errorResponse = try? JSONDecoder().decode(OCRError.self, from: data) {
-                    completion(.failure(errorResponse))
-                } else {
-                    completion(.failure(OCRError(error: "HTTP Error: \(httpResponse.statusCode)")))
-                }
-                return
-            }
-            
-            guard let data = data else {
-                completion(.failure(OCRError(error: "No data received")))
-                return
-            }
-            
+        Task {
             do {
-                let decoder = JSONDecoder()
-                let healthResponse = try decoder.decode(HealthResponse.self, from: data)
-                completion(.success(healthResponse))
+                let response = try await getHealth()
+                completion(.success(response))
             } catch {
                 completion(.failure(error))
             }
         }
-        
-        task.resume()
     }
     
     // MARK: - Helper Methods
     
     private func performRequest<T: Decodable>(
         url: URL, 
-        imageData: Data, 
-        completion: @escaping (Result<T, Error>) -> Void
-    ) {
+        imageData: Data
+    ) async throws -> T {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
@@ -306,40 +361,21 @@ public class OCRClient {
         
         request.httpBody = body
         
-        let task = session.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                completion(.failure(OCRError(error: "Invalid response")))
-                return
-            }
-            
-            guard (200...299).contains(httpResponse.statusCode) else {
-                if let data = data, let errorResponse = try? JSONDecoder().decode(OCRError.self, from: data) {
-                    completion(.failure(errorResponse))
-                } else {
-                    completion(.failure(OCRError(error: "HTTP Error: \(httpResponse.statusCode)")))
-                }
-                return
-            }
-            
-            guard let data = data else {
-                completion(.failure(OCRError(error: "No data received")))
-                return
-            }
-            
-            do {
-                let decoder = JSONDecoder()
-                let decodedResponse = try decoder.decode(T.self, from: data)
-                completion(.success(decodedResponse))
-            } catch {
-                completion(.failure(error))
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw OCRError(error: "Invalid response")
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorResponse = try? JSONDecoder().decode(OCRError.self, from: data) {
+                throw errorResponse
+            } else {
+                throw OCRError(error: "HTTP Error: \(httpResponse.statusCode)")
             }
         }
         
-        task.resume()
+        let decoder = JSONDecoder()
+        return try decoder.decode(T.self, from: data)
     }
 }

@@ -44,7 +44,108 @@ let customUrlClient = NolockOCR.createClient(
 )
 ```
 
-### Process a Check
+## Modern Swift Concurrency (async/await)
+
+All API methods support Swift's modern concurrency model with async/await, making your code cleaner and easier to follow.
+
+### Process a Check with async/await
+
+```swift
+// Get your check image data
+let imageData = // ... your image data
+
+do {
+    let response = try await client.processCheck(imageData: imageData)
+    
+    // Access check data
+    let check = response.data
+    print("Check Number: \(check.checkNumber)")
+    print("Date: \(check.date)")
+    print("Payee: \(check.payee)")
+    print("Amount: $\(check.amount)")
+    
+    // Access confidence scores
+    let confidence = response.confidence
+    print("Overall Confidence: \(confidence.overall)")
+} catch {
+    print("Error processing check: \(error)")
+}
+```
+
+### Process a Receipt with async/await
+
+```swift
+// Get your receipt image data
+let imageData = // ... your image data
+
+do {
+    let response = try await client.processReceipt(imageData: imageData)
+    
+    // Access receipt data
+    let receipt = response.data
+    print("Merchant: \(receipt.merchant.name)")
+    print("Total: \(receipt.totals.total) \(receipt.currency)")
+    
+    // Print line items if available
+    if let items = receipt.items {
+        for item in items {
+            print("- \(item.description): $\(item.totalPrice)")
+        }
+    }
+} catch {
+    print("Error processing receipt: \(error)")
+}
+```
+
+### Use the Universal Document Processing Endpoint with async/await
+
+```swift
+// Get your document image data
+let imageData = // ... your image data
+
+do {
+    // Process as a receipt but let the API determine the actual type
+    let response = try await client.processDocument(imageData: imageData, type: .receipt)
+    
+    print("Document processed as: \(response.documentType)")
+    
+    // Handle the data based on document type
+    switch response.documentType {
+    case .check:
+        if let check = response.data as? Check {
+            print("Check Number: \(check.checkNumber)")
+            print("Amount: $\(check.amount)")
+        }
+        
+    case .receipt:
+        if let receipt = response.data as? Receipt {
+            print("Merchant: \(receipt.merchant.name)")
+            print("Total: \(receipt.totals.total) \(receipt.currency)")
+        }
+    }
+} catch {
+    print("Error processing document: \(error)")
+}
+```
+
+### Check API Health with async/await
+
+```swift
+do {
+    let health = try await client.getHealth()
+    print("API Status: \(health.status)")
+    print("Version: \(health.version)")
+    print("Server Time: \(health.timestamp)")
+} catch {
+    print("Error checking health: \(error)")
+}
+```
+
+## Legacy Completion Handlers (Backward Compatibility)
+
+For backward compatibility, the library also supports traditional completion handler-based APIs.
+
+### Process a Check with Completion Handler
 
 ```swift
 // Get your check image data
@@ -70,7 +171,7 @@ client.processCheck(imageData: imageData) { result in
 }
 ```
 
-### Process a Receipt
+### Process a Receipt with Completion Handler
 
 ```swift
 // Get your receipt image data
@@ -97,60 +198,19 @@ client.processReceipt(imageData: imageData) { result in
 }
 ```
 
-### Use the Universal Document Processing Endpoint
-
-```swift
-// Get your document image data
-let imageData = // ... your image data
-
-// Process as a receipt but let the API determine the actual type
-client.processDocument(imageData: imageData, type: .receipt) { result in
-    switch result {
-    case .success(let response):
-        print("Document processed as: \(response.documentType)")
-        
-        // Handle the data based on document type
-        switch response.documentType {
-        case .check:
-            if let check = response.data as? Check {
-                print("Check Number: \(check.checkNumber)")
-                print("Amount: $\(check.amount)")
-            }
-            
-        case .receipt:
-            if let receipt = response.data as? Receipt {
-                print("Merchant: \(receipt.merchant.name)")
-                print("Total: \(receipt.totals.total) \(receipt.currency)")
-            }
-        }
-        
-    case .failure(let error):
-        print("Error processing document: \(error)")
-    }
-}
-```
-
-### Check API Health
-
-```swift
-client.getHealth { result in
-    switch result {
-    case .success(let health):
-        print("API Status: \(health.status)")
-        print("Version: \(health.version)")
-        print("Server Time: \(health.timestamp)")
-        
-    case .failure(let error):
-        print("Error checking health: \(error)")
-    }
-}
-```
-
 ## Advanced Usage
 
 ### Specify Document Format and Filename
 
 ```swift
+// With async/await
+let response = try await client.processCheck(
+    imageData: imageData,
+    format: .image,
+    filename: "business_check.jpg"
+)
+
+// With completion handler
 client.processCheck(
     imageData: imageData,
     format: .image,
@@ -162,7 +222,24 @@ client.processCheck(
 
 ## Error Handling
 
-All API methods return a `Result` type with either the successful response or an error:
+All API methods return proper Swift errors that you can catch and handle:
+
+### With async/await
+
+```swift
+do {
+    let response = try await client.processReceipt(imageData: imageData)
+    // Handle successful response
+} catch let error as OCRError {
+    // Handle API-specific error
+    print("API Error: \(error.error)")
+} catch {
+    // Handle other errors (network, decoding, etc.)
+    print("Error: \(error.localizedDescription)")
+}
+```
+
+### With completion handlers
 
 ```swift
 client.processReceipt(imageData: imageData) { result in
@@ -178,6 +255,61 @@ client.processReceipt(imageData: imageData) { result in
             // Handle other errors (network, decoding, etc.)
             print("Error: \(error.localizedDescription)")
         }
+    }
+}
+```
+
+## Integration with SwiftUI
+
+The async/await API makes integration with SwiftUI seamless:
+
+```swift
+struct CheckScannerView: View {
+    @State private var checkData: Check?
+    @State private var isLoading = false
+    @State private var error: Error?
+    
+    let client = NolockOCR.productionClient()
+    let imageData: Data
+    
+    var body: some View {
+        VStack {
+            if isLoading {
+                ProgressView("Processing check...")
+            } else if let check = checkData {
+                VStack(alignment: .leading) {
+                    Text("Check Number: \(check.checkNumber)")
+                    Text("Payee: \(check.payee)")
+                    Text("Amount: $\(check.amount, specifier: "%.2f")")
+                    // More fields...
+                }
+            } else if let error = error {
+                Text("Error: \(error.localizedDescription)")
+                    .foregroundColor(.red)
+            }
+            
+            Button("Scan Check") {
+                Task {
+                    await scanCheck()
+                }
+            }
+            .disabled(isLoading)
+        }
+        .padding()
+    }
+    
+    func scanCheck() async {
+        isLoading = true
+        error = nil
+        
+        do {
+            let response = try await client.processCheck(imageData: imageData)
+            checkData = response.data
+        } catch {
+            self.error = error
+        }
+        
+        isLoading = false
     }
 }
 ```

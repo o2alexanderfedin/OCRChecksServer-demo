@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.22.1] - 2025-05-27
+
+### Added
+- Detailed Cloudflare account setup guide with step-by-step instructions
+- Account creation and configuration walkthrough
+- API token generation guide with security best practices
+- Custom domain configuration instructions
+- Workers pricing plan information with upgrade guidance
+- Team access management documentation
+- Placeholder images for visual walkthrough of account setup process
+
+### Improved
+- Overall deployment documentation clarity and completeness
+- First-time user onboarding experience
+- More detailed prerequisites section
+
 ## [1.22.0] - 2025-05-27
 
 ### Added

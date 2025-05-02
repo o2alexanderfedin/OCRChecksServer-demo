@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.12.1] - 2025-05-12
+
+### Fixed
+- Improved server process management in test scripts
+- Added robust server shutdown after integration tests
+- Fixed potential "zombie" server processes with improved process tracking
+- Enhanced error handling for server startup and shutdown
+- Added signal handlers to ensure clean server shutdown on script termination
+
 ## [1.12.0] - 2025-05-12
 
 ### Changed

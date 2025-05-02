@@ -251,9 +251,11 @@ try {
   console.log('Tests completed with result:', result);
   console.log('Tests completed successfully');
 } catch (error) {
-  console.error(`\n⚠️ Error during test execution: ${error.message}`);
-  console.error(error.stack);
-  console.error(`Error type: ${error.constructor.name}`);
+  console.error(`\n⚠️ Error during test execution: ${error?.message || 'unknown error'}`);
+  if (error?.stack) {
+    console.error(error.stack);
+  }
+  console.error(`Error type: ${error?.constructor?.name || 'Unknown'}`);
   
   // Print out the server process info
   if (serverProcess) {

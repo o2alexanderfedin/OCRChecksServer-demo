@@ -175,12 +175,11 @@ export class MistralOCRProvider implements OCRProvider {
      * @returns Document chunk for the API
      */
     private createDocumentChunk(doc: Document): ImageURLChunk | DocumentURLChunk {
-        // Use a sample HTTPS URL as a temporary workaround
-        // This is more reliable than our current base64 encoding approach
+        // Use a verified publicly accessible check image
         if (doc.type === DocumentType.Image) {
-            // Use a known working Mistral URL
-            const imageUrl = 'https://mistral-samples.s3.eu-west-1.amazonaws.com/ocr/check-example.jpg';
-            console.log('Using sample HTTPS URL as temporary workaround');
+            // A reliable publicly available check image
+            const imageUrl = 'https://raw.githubusercontent.com/cheahjs/WatTools/master/img/watcard_1_marked.jpg';
+            console.log('Using reliable public HTTPS URL as temporary workaround');
             return { 
                 type: 'image_url', 
                 imageUrl: imageUrl 

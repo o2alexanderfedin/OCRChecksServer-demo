@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.25.0] - 2025-06-02
+
+### Added
+- ReceiptBase interface for common receipt type fields
+- Enhanced type system with better interface composition
+
+### Changed
+- Updated Receipt schema to make currency field optional
+- Improved schema flexibility while maintaining validation rules
+- Enhanced test suite to verify new type behavior
+
 ## [1.24.0] - 2025-05-30
 
 ### Added

@@ -12,14 +12,14 @@ info:
     name: AGPL-3.0-or-later
     url: https://www.gnu.org/licenses/agpl-3.0.html
   contact:
-    name: O2.services
-    url: https://o2.services
+    name: Nolock.social
+    url: https://nolock.social
     email: sales@o2.services
   
 servers:
-  - url: https://api.example.com
+  - url: https://api.nolock.social
     description: Production server
-  - url: https://dev-api.example.com
+  - url: https://dev-api.nolock.social
     description: Development server
   - url: http://localhost:8787
     description: Local development server

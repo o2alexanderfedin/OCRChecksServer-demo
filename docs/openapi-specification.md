@@ -61,6 +61,8 @@ You can use various tools to generate interactive documentation from the OpenAPI
    npx serve-swagger-ui openapi.yaml
    ```
 
+   When deployed, API documentation will be available at https://api.nolock.social/docs
+
 2. **Redoc**:
    ```bash
    npx @redocly/cli preview-docs openapi.yaml
@@ -68,7 +70,7 @@ You can use various tools to generate interactive documentation from the OpenAPI
 
 ### Client Generation
 
-The OpenAPI specification can be used to generate API clients in various languages:
+The OpenAPI specification can be used to generate API clients in various languages for integrating with the Nolock.social API:
 
 ```bash
 npx @openapitools/openapi-generator-cli generate -i openapi.yaml -g typescript-fetch -o ./generated-client
@@ -94,4 +96,6 @@ Potential enhancements to the API specification:
 
 ## Maintenance
 
-The OpenAPI specification should be updated whenever there are changes to the API endpoints, request or response formats. This ensures that the documentation stays in sync with the implementation.
+The OpenAPI specification should be updated whenever there are changes to the Nolock.social API endpoints, request or response formats. This ensures that the documentation stays in sync with the implementation.
+
+API documentation and client SDKs for Nolock.social are automatically generated from this specification.

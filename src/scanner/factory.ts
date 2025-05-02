@@ -25,13 +25,6 @@ export class ScannerFactory {
   }
   
   /**
-   * @deprecated Use createMistralReceiptScanner instead
-   */
-  static createMistralScanner(io: IoE, apiKey: string): ReceiptScanner {
-    return this.createMistralReceiptScanner(io, apiKey);
-  }
-  
-  /**
    * Create a check scanner using Mistral for both OCR and JSON extraction
    * 
    * @param io - The IO interface for network operations

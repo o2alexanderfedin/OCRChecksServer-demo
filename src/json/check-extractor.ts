@@ -1,6 +1,14 @@
 /**
  * Legacy adapter file for backward compatibility
- * Implements the original CheckExtractor class by wrapping the new CheckExtractor
+ * DO NOT USE THIS CLASS DIRECTLY - IT WILL BE REMOVED IN A FUTURE VERSION
+ * 
+ * MIGRATION INSTRUCTIONS:
+ * Replace:
+ *   import { CheckExtractor } from '../json/check-extractor';
+ * With:
+ *   import { CheckExtractor } from '../json/extractors/check-extractor';
+ * 
+ * The new implementation provides identical functionality but with readonly Result tuples.
  */
 
 import { CheckExtractor as ExtractorImplementation } from './extractors/check-extractor';
@@ -24,6 +32,13 @@ export class CheckExtractor {
    */
   constructor(jsonExtractor: JsonExtractor) {
     this.implementation = new ExtractorImplementation(jsonExtractor);
+    
+    // Print a deprecation warning when this class is instantiated
+    console.warn(
+      'WARNING: CheckExtractor from "src/json/check-extractor.ts" is deprecated.\n' +
+      'Use CheckExtractor from "src/json/extractors/check-extractor.ts" instead.\n' +
+      'This adapter will be removed in a future version.'
+    );
   }
 
   /**

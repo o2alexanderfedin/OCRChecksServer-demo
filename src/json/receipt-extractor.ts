@@ -1,6 +1,14 @@
 /**
  * Legacy adapter file for backward compatibility
- * Implements the original ReceiptExtractor class by wrapping the new ReceiptExtractor
+ * DO NOT USE THIS CLASS DIRECTLY - IT WILL BE REMOVED IN A FUTURE VERSION
+ * 
+ * MIGRATION INSTRUCTIONS:
+ * Replace:
+ *   import { ReceiptExtractor } from '../json/receipt-extractor';
+ * With:
+ *   import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
+ * 
+ * The new implementation provides identical functionality but with readonly Result tuples.
  */
 
 import { ReceiptExtractor as ExtractorImplementation } from './extractors/receipt-extractor';
@@ -24,6 +32,13 @@ export class ReceiptExtractor {
    */
   constructor(jsonExtractor: JsonExtractor) {
     this.implementation = new ExtractorImplementation(jsonExtractor);
+    
+    // Print a deprecation warning when this class is instantiated
+    console.warn(
+      'WARNING: ReceiptExtractor from "src/json/receipt-extractor.ts" is deprecated.\n' +
+      'Use ReceiptExtractor from "src/json/extractors/receipt-extractor.ts" instead.\n' +
+      'This adapter will be removed in a future version.'
+    );
   }
 
   /**

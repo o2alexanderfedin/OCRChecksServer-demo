@@ -19,14 +19,14 @@ describe('ReceiptScanner Integration', function() {
   
   // Skip all tests if API key is not available
   beforeAll(function() {
-    if (\!MISTRAL_API_KEY) {
+    if (!MISTRAL_API_KEY) {
       pending('MISTRAL_API_KEY environment variable not set');
     }
   });
   
   it('should process a receipt image and extract structured data', async function() {
     // Create scanner
-    const scanner = ScannerFactory.createMistralReceiptScanner(workerIoE, MISTRAL_API_KEY\!);
+    const scanner = ScannerFactory.createMistralReceiptScanner(workerIoE, MISTRAL_API_KEY!);
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
@@ -34,7 +34,7 @@ describe('ReceiptScanner Integration', function() {
     
     // Check if the file exists
     try {
-      if (\!fs.existsSync(imagePath)) {
+      if (!fs.existsSync(imagePath)) {
         pending(`Test image not found at path: ${imagePath}`);
         return;
       }
@@ -126,13 +126,13 @@ describe('ReceiptScanner Integration', function() {
   
   it('should use the factory method to create correct scanner type', async function() {
     // Create scanner using factory method with receipt type
-    const scanner = ScannerFactory.createScannerByType(workerIoE, MISTRAL_API_KEY\!, 'receipt');
+    const scanner = ScannerFactory.createScannerByType(workerIoE, MISTRAL_API_KEY!, 'receipt');
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
     
     // Skip test if the image doesn't exist
-    if (\!fs.existsSync(imagePath)) {
+    if (!fs.existsSync(imagePath)) {
       pending(`Test image not found at path: ${imagePath}`);
       return;
     }

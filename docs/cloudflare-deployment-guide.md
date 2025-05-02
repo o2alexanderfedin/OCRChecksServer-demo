@@ -9,16 +9,17 @@
 
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
-3. [Setting Up Your Local Environment](#setting-up-your-local-environment)
-4. [Understanding Environments](#understanding-environments)
-5. [Manual Deployment Process](#manual-deployment-process)
-6. [Automated Deployment with GitHub Actions](#automated-deployment-with-github-actions)
-7. [Environment Variables and Secrets](#environment-variables-and-secrets)
-8. [Deployment Verification](#deployment-verification)
-9. [Troubleshooting Common Issues](#troubleshooting-common-issues)
-10. [Rollback Procedures](#rollback-procedures)
-11. [Monitoring Your Deployed Application](#monitoring-your-deployed-application)
-12. [Deployment Checklist](#deployment-checklist)
+3. [Cloudflare Account Setup](#cloudflare-account-setup)
+4. [Setting Up Your Local Environment](#setting-up-your-local-environment)
+5. [Understanding Environments](#understanding-environments)
+6. [Manual Deployment Process](#manual-deployment-process)
+7. [Automated Deployment with GitHub Actions](#automated-deployment-with-github-actions)
+8. [Environment Variables and Secrets](#environment-variables-and-secrets)
+9. [Deployment Verification](#deployment-verification)
+10. [Troubleshooting Common Issues](#troubleshooting-common-issues)
+11. [Rollback Procedures](#rollback-procedures)
+12. [Monitoring Your Deployed Application](#monitoring-your-deployed-application)
+13. [Deployment Checklist](#deployment-checklist)
 
 ## Introduction
 
@@ -49,6 +50,134 @@ Before you begin the deployment process, ensure you have:
    - Access to the OCR Checks Server repository
    - Proper permissions to deploy to Cloudflare
    - For GitHub Actions: Admin access to the repository settings
+
+## Cloudflare Account Setup
+
+Setting up your Cloudflare account correctly is crucial for a successful deployment. This section will guide you through the necessary steps to create and configure your Cloudflare account for Workers deployment.
+
+### Creating a Cloudflare Account
+
+1. **Sign Up for Cloudflare**:
+   - Visit [cloudflare.com](https://www.cloudflare.com/) and click "Sign Up"
+   - Enter your email address and create a password
+   - Verify your email address by clicking the link in the verification email
+
+2. **Complete Account Setup**:
+   - After verifying your email, log in to Cloudflare
+   - Complete your profile by providing the requested information
+   - No payment information is required for using Workers with the free plan
+
+### Enabling Cloudflare Workers
+
+1. **Access Workers Dashboard**:
+   - Log in to your Cloudflare account
+   - From the navigation menu, select "Workers & Pages"
+   - If this is your first time, you'll see a welcome page with an overview of Workers
+
+2. **Set Up Workers Subdomain**:
+   - Cloudflare will prompt you to create a workers.dev subdomain
+   - Choose a unique subdomain name (e.g., `your-organization.workers.dev`)
+   - This subdomain will be used for your worker URLs if you don't use custom domains
+   - Click "Create subdomain" to continue
+
+   ![Workers Subdomain Setup](./images/deployment/workers-subdomain-setup.png)
+
+3. **Verify Workers Access**:
+   - Make sure you can access the Workers dashboard
+   - You should see options to create new Workers and manage existing ones
+   - If you encounter any issues, refer to Cloudflare's [official documentation](https://developers.cloudflare.com/workers/)
+
+### Creating API Tokens
+
+To deploy workers using Wrangler or GitHub Actions, you'll need to create an API token with appropriate permissions:
+
+1. **Generate API Token**:
+   - In the Cloudflare dashboard, click on your profile icon in the top-right corner
+   - Select "My Profile"
+   - Navigate to the "API Tokens" tab
+   - Click "Create Token"
+
+2. **Configure Token Permissions**:
+   - Select "Create Custom Token"
+   - Give your token a descriptive name (e.g., "OCR Checks Worker Deployment")
+   - Set the following permissions:
+     - Zone - Workers Routes: Edit
+     - Account - Workers Scripts: Edit
+     - Account - Workers KV Storage: Edit
+   - Set the Account Resources to "Include - All Accounts"
+   - Set an appropriate expiration date for security (or no expiration for long-term use)
+   - Click "Continue to Summary"
+
+   ![API Token Creation](./images/deployment/api-token-creation.png)
+
+3. **Save Your Token**:
+   - After reviewing the summary, click "Create Token"
+   - Copy and securely store the generated token
+   - **IMPORTANT**: This token will only be displayed once. If you lose it, you'll need to create a new one.
+
+### Configuring Custom Domains (Optional)
+
+If you want to use your own domain name instead of the workers.dev subdomain, follow these steps:
+
+1. **Add a Domain to Cloudflare**:
+   - Go to the Cloudflare dashboard
+   - Click "Add a Site" and enter your domain name
+   - Follow the instructions to set up your DNS records
+   - Change your domain's nameservers to the ones provided by Cloudflare
+   - Wait for the DNS changes to propagate (may take up to 24 hours)
+
+2. **Create a Worker Route**:
+   - From the Workers dashboard, click "Routes" in the sidebar
+   - Click "Add route"
+   - Enter the route pattern for your domain (e.g., `api.yourdomain.com/*`)
+   - Select your worker from the dropdown menu
+   - Click "Save"
+
+3. **Configure DNS Records**:
+   - Go to the DNS dashboard for your domain
+   - Add an A record pointing to Cloudflare's IP address (typically 192.0.2.1)
+   - Add a CNAME record for your subdomain (e.g., `api.yourdomain.com`) pointing to your domain
+   - Ensure the proxy status is enabled (orange cloud icon)
+
+4. **Verify Custom Domain Setup**:
+   - After DNS propagation, your worker should be accessible via your custom domain
+   - Test the deployment using your custom domain URL
+
+### Upgrading Your Plan (Optional)
+
+The free Workers plan has certain limitations. If you need additional resources or features, you might want to upgrade:
+
+1. **Review Plan Options**:
+   - Go to Workers dashboard
+   - Click on "Usage" in the sidebar
+   - Review your current usage and available plans
+   - Click "Change" next to your current plan to see available upgrades
+
+2. **Select an Appropriate Plan**:
+   - Workers Paid: For production workloads with higher request limits and CPU time
+   - Workers Unbound: For more demanding applications with flexible usage-based pricing
+
+3. **Complete Upgrade Process**:
+   - Follow the prompts to add payment information
+   - Review the terms and pricing
+   - Confirm your plan selection
+
+### Setting Up Access Policies (For Team Projects)
+
+If you're working in a team environment, you might want to set up access policies:
+
+1. **Create Access Groups**:
+   - Go to the Cloudflare dashboard
+   - Navigate to "Access" and then "Groups"
+   - Create groups for different roles (e.g., "Developers", "Administrators")
+
+2. **Configure Access Policies**:
+   - Create policies that define who can deploy to different environments
+   - For example, only allow specific developers to deploy to production
+
+3. **Set Up Service Tokens**:
+   - For CI/CD systems, create service tokens with appropriate permissions
+   - Store these tokens securely in your CI/CD environment
 
 ## Setting Up Your Local Environment
 

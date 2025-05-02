@@ -1,0 +1,174 @@
+{
+  "data": {
+    "merchant": {
+      "name": "Whole Foods Market",
+      "address": "123 Main Street, San Francisco, CA 94105",
+      "phone": "(415) 555-1234",
+      "website": "https://www.wholefoods.com",
+      "taxId": "98-7654321",
+      "storeId": "SF-1001",
+      "chainName": "Whole Foods"
+    },
+    "receiptNumber": "WFM-2025-054623",
+    "receiptType": "sale",
+    "timestamp": "2025-05-02T14:32:45Z",
+    "paymentMethod": "credit",
+    "totals": {
+      "subtotal": 86.42,
+      "tax": 7.13,
+      "tip": 0.00,
+      "discount": 8.64,
+      "total": 84.91
+    },
+    "currency": "USD",
+    "items": [
+      {
+        "description": "Organic Bananas",
+        "sku": "PRD-4011",
+        "quantity": 1.68,
+        "unit": "kg",
+        "unitPrice": 1.99,
+        "totalPrice": 3.34,
+        "discounted": false,
+        "category": "Produce"
+      },
+      {
+        "description": "Grass-Fed Ground Beef",
+        "sku": "MT-8523",
+        "quantity": 1,
+        "unit": "lb",
+        "unitPrice": 12.99,
+        "totalPrice": 12.99,
+        "discounted": false,
+        "category": "Meat"
+      },
+      {
+        "description": "Organic Avocados",
+        "sku": "PRD-4225",
+        "quantity": 3,
+        "unit": "ea",
+        "unitPrice": 2.50,
+        "totalPrice": 7.50,
+        "discounted": true,
+        "discountAmount": 1.25,
+        "category": "Produce"
+      },
+      {
+        "description": "Artisan Sourdough Bread",
+        "sku": "BKY-2954",
+        "quantity": 1,
+        "unit": "ea",
+        "unitPrice": 5.99,
+        "totalPrice": 5.99,
+        "discounted": false,
+        "category": "Bakery"
+      },
+      {
+        "description": "Cage-Free Organic Eggs",
+        "sku": "DRY-1839",
+        "quantity": 1,
+        "unit": "doz",
+        "unitPrice": 6.49,
+        "totalPrice": 6.49,
+        "discounted": false,
+        "category": "Dairy"
+      },
+      {
+        "description": "Organic Spinach",
+        "sku": "PRD-3812",
+        "quantity": 1,
+        "unit": "pk",
+        "unitPrice": 4.99,
+        "totalPrice": 4.99,
+        "discounted": false,
+        "category": "Produce"
+      },
+      {
+        "description": "Wild Caught Salmon",
+        "sku": "SFD-7412",
+        "quantity": 0.75,
+        "unit": "lb",
+        "unitPrice": 24.99,
+        "totalPrice": 18.74,
+        "discounted": false,
+        "category": "Seafood"
+      },
+      {
+        "description": "Organic Blueberries",
+        "sku": "PRD-5624",
+        "quantity": 2,
+        "unit": "pk",
+        "unitPrice": 5.99,
+        "totalPrice": 11.98,
+        "discounted": true,
+        "discountAmount": 3.00,
+        "category": "Produce"
+      },
+      {
+        "description": "Almond Milk",
+        "sku": "DRY-4251",
+        "quantity": 1,
+        "unit": "ea",
+        "unitPrice": 4.79,
+        "totalPrice": 4.79,
+        "discounted": false,
+        "category": "Dairy Alternatives"
+      },
+      {
+        "description": "Organic Quinoa",
+        "sku": "GRN-3342",
+        "quantity": 1,
+        "unit": "pk",
+        "unitPrice": 9.99,
+        "totalPrice": 9.99,
+        "discounted": false,
+        "category": "Grains"
+      }
+    ],
+    "taxes": [
+      {
+        "taxName": "CA State Tax",
+        "taxType": "sales",
+        "taxRate": 0.0725,
+        "taxAmount": 6.27
+      },
+      {
+        "taxName": "SF City Tax",
+        "taxType": "sales",
+        "taxRate": 0.01,
+        "taxAmount": 0.86
+      }
+    ],
+    "payments": [
+      {
+        "method": "credit",
+        "cardType": "visa",
+        "lastDigits": "4532",
+        "amount": 84.91,
+        "transactionId": "TXN-58421-77566"
+      }
+    ],
+    "notes": [
+      "Thank you for shopping with us!",
+      "10% Member discount applied",
+      "Bring your own bags next time to earn 10¢ credit per bag"
+    ],
+    "metadata": {
+      "confidenceScore": 0.92,
+      "currency": "USD",
+      "languageCode": "en-US",
+      "timeZone": "America/Los_Angeles",
+      "receiptFormat": "retail",
+      "sourceImageId": "image-2025-05-02-1432",
+      "warnings": [
+        "Item 'Wild Caught Salmon' price calculation may have rounding error"
+      ]
+    },
+    "confidence": 0.89
+  },
+  "confidence": {
+    "ocr": 0.94,
+    "extraction": 0.87,
+    "overall": 0.89
+  }
+}

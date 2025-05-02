@@ -259,3 +259,8 @@ When processing a check through the API, the response will have the following fo
   }
 }
 ```
+
+## Complete Example JSON
+
+For a comprehensive example of check OCR output, refer to the [check-ocr-response-example.json](../examples/check-ocr-response-example.json) file in the examples directory.
+```

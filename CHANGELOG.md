@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.21.0] - 2025-05-26
+
+### Added
+- End-to-end integration tests for Swift proxy client
+- Automated test script for Swift proxy E2E tests (run-swift-e2e-tests.sh)
+- New npm script for running Swift E2E tests (test:swift-e2e)
+- Comprehensive test documentation for Swift proxy
+- Timeout handling for network operations in Swift tests
+- Automatic server lifecycle management for E2E tests
+
+### Improved
+- Test coverage for Swift proxy client with real server communication
+- Robust error handling in Swift integration tests
+- Documentation for Swift E2E test usage and configuration
+- Test image path handling with multi-location search
+
 ## [1.20.1] - 2025-05-26
 
 ### Changed

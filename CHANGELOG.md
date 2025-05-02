@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0] - 2025-05-02
+
+### Added
+- Dedicated `/receipt` endpoint for receipt image processing 
+- Receipt scanner integration tests with comprehensive validation
+- Receipt API endpoint tests for both dedicated and universal endpoints
+- Enhanced receipt schema documentation with validation rules and examples
+
+### Changed
+- Updated documentation with detailed receipt processing instructions
+- Improved error handling in receipt processing endpoints
+- Standardized confidence scoring across all document types
+
 ## [1.8.0] - 2025-04-29
 
 ### Changed

@@ -7,27 +7,9 @@ public enum DocumentFormat: String {
 }
 
 /// Document type for universal processing endpoint
-public enum DocumentType: String {
+public enum DocumentType: String, Codable {
     case check = "check"
     case receipt = "receipt"
-}
-
-/// Check response returned by the API
-public struct CheckResponse: Codable {
-    /// Extracted check data
-    public let data: Check
-    
-    /// Confidence scores for the processing
-    public let confidence: Confidence
-}
-
-/// Receipt response returned by the API
-public struct ReceiptResponse: Codable {
-    /// Extracted receipt data
-    public let data: Receipt
-    
-    /// Confidence scores for the processing
-    public let confidence: Confidence
 }
 
 /// Universal document processing response
@@ -94,10 +76,19 @@ public struct HealthResponse: Codable {
     public let version: String
 }
 
+// Protocol for using with URLSession mocking
+public protocol URLSessionProtocol {
+    func data(from url: URL, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse)
+    func data(for request: URLRequest, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse)
+}
+
+// Extend URLSession to conform to the protocol
+extension URLSession: URLSessionProtocol {}
+
 /// Main client for the OCR Checks Server API
 public class OCRClient {
     private let baseURL: URL
-    private let session: URLSession
+    private let session: URLSessionProtocol
     
     /// Available server environments for the API
     public enum Environment {
@@ -130,7 +121,7 @@ public class OCRClient {
     /// Initialize a new OCR client with the specified environment
     /// - Parameter environment: The server environment to use
     /// - Parameter session: URLSession for network requests (defaults to shared session)
-    public init(environment: Environment = .production, session: URLSession = .shared) {
+    public init(environment: Environment = .production, session: URLSessionProtocol = URLSession.shared) {
         self.baseURL = environment.url
         self.session = session
     }
@@ -232,7 +223,7 @@ public class OCRClient {
     public func getHealth() async throws -> HealthResponse {
         let url = baseURL.appendingPathComponent("health")
         
-        let (data, response) = try await session.data(from: url)
+        let (data, response) = try await session.data(from: url, delegate: nil)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw OCRError(error: "Invalid response")
@@ -361,7 +352,7 @@ public class OCRClient {
         
         request.httpBody = body
         
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.data(for: request, delegate: nil)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw OCRError(error: "Invalid response")

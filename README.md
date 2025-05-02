@@ -263,7 +263,7 @@ For detailed schema documentation, see:
 
 ### Testing Infrastructure
 
-The project uses a comprehensive testing approach with four distinct test types:
+The project uses a comprehensive testing approach with multiple distinct test types:
 
 1. **Unit Tests**: Test individual components in isolation
    ```bash
@@ -290,10 +290,17 @@ The project uses a comprehensive testing approach with four distinct test types:
    npm run test:receipt-scanner
    ```
 
+6. **Swift Proxy E2E Tests**: End-to-end tests for the Swift client library that verify it can communicate with a real server instance
+   ```bash
+   npm run test:swift-e2e
+   ```
+
 Run all tests together:
 ```bash
 npm test
 ```
+
+> Note: The Swift proxy E2E tests require Swift to be installed on your system. These tests will automatically start a local server, run the tests, and shut down the server when complete.
 
 ### Test Server Management
 

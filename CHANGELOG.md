@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.0] - 2025-05-18
+
+### Added
+- Comprehensive Cloudflare Workers deployment configuration
+- GitHub Actions CI/CD workflows for automated testing and deployment
+- Multi-environment deployment support (development, staging, production)
+- Automated deployment to Nolock.social domains
+- Detailed deployment documentation
+- Complete OpenAPI 3.0 specification for all API endpoints
+
+### Changed
+- Updated wrangler.toml with environment-specific configurations
+- Implemented proper environment variable handling for secure API key management
+- Configured routes for api.nolock.social, staging-api.nolock.social, and dev-api.nolock.social
+- Updated server information to use Nolock.social domain and contact info
+
 ## [1.13.0] - 2025-05-16
 
 ### Added

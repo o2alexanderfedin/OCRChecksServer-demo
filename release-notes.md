@@ -1,3 +1,24 @@
+# OCR Checks Worker v1.12.0
+
+## API Structure Improvements
+
+- **Streamlined Endpoints**: Removed legacy root endpoint (`/`) in favor of dedicated, purpose-specific endpoints
+- **Improved Architecture**: Each endpoint now has a clear, single responsibility
+- **Better Developer Experience**: Clear endpoint structure makes API easier to understand and use
+
+## API Change Notice
+
+The root endpoint (`/`) has been removed. Please use these dedicated endpoints instead:
+- `/process` - Universal document processing (with type=check|receipt)
+- `/check` - Check-specific processing
+- `/receipt` - Receipt-specific processing
+- `/health` - Server status information
+
+## Integration Test Improvements
+
+- Updated integration tests to focus on testing specific endpoint functionality
+- Enhanced test reliability through focused test cases
+
 # OCR Checks Worker v1.11.0
 
 ## New Features

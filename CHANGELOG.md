@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.12.0] - 2025-05-12
+
+### Changed
+- Removed root `/` endpoint in favor of dedicated endpoints
+- Simplified API structure with clear, purpose-specific endpoints
+- Updated integration tests to focus on dedicated endpoints
+
+### API Changes
+- Root endpoint (`/`) no longer supported - use the following endpoints instead:
+  - `/process` - Universal document processing endpoint (with type=check|receipt)
+  - `/check` - Check-specific processing endpoint
+  - `/receipt` - Receipt-specific processing endpoint
+  - `/health` - Server status endpoint
+
 ## [1.11.0] - 2025-05-10
 
 ### Added

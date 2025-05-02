@@ -77,7 +77,7 @@ describe('Basic Server Health Checks', function() {
     // Verify response content
     const data = await response.json();
     expect(data.status).toBe('ok');
-    expect(data.version).toBe('1.11.0');
+    expect(data.version).toBe('1.12.0');
     expect(typeof data.timestamp).toBe('string');
   });
   

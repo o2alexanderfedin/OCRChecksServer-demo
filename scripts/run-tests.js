@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs/promises';
 import { spawn } from 'child_process';
+import { globSync } from 'glob';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
@@ -26,8 +27,11 @@ const projectRoot = join(__dirname, '..');
 
 // Parse command line arguments
 const testType = process.argv[2]?.toLowerCase() || 'all';
+const testFilter = process.argv[3]; // Get the third argument if provided (e.g., "simple")
 const watch = process.argv.includes('--watch');
 const dryRun = process.argv.includes('--dry-run');
+
+console.log(`Test type: ${testType}, Filter: ${testFilter || 'none'}`); // Debug info
 
 // Map test types to their configurations
 const testConfigs = {
@@ -114,9 +118,41 @@ global.jasmine = jasmine;
 jasmine.jasmine.DEFAULT_TIMEOUT_INTERVAL = config.timeoutInterval;
 
 console.log(`Running ${testType} tests...`);
+// If a filter is provided, filter the spec files
+let filteredSpecFiles = config.spec_files;
+if (testFilter) {
+  // Set specific file pattern if a test file is specified
+  if (testFilter === 'simple') {
+    filteredSpecFiles = ['integration/simple.test.ts'];
+    console.log(`Direct match: using specific test file pattern: ${JSON.stringify(filteredSpecFiles)}`);
+  } else {
+    filteredSpecFiles = config.spec_files.map(pattern => {
+      // If it's a pattern ending with a wildcard, limit it to files containing the filter
+      if (pattern.includes('**')) {
+        return pattern.replace('**/', `**/*${testFilter}*`);
+      }
+      // Otherwise, just return files matching the filter
+      return pattern.includes(testFilter) ? pattern : null;
+    }).filter(Boolean); // Remove null entries
+    
+    console.log(`Filtered spec files: ${JSON.stringify(filteredSpecFiles)}`);
+  }
+  
+  // Check that files actually exist
+  console.log('Checking for matching test files:');
+  filteredSpecFiles.forEach(pattern => {
+    const fullPattern = join(projectRoot, 'tests', pattern);
+    const matches = globSync(fullPattern);
+    console.log(`Pattern ${fullPattern} matched: ${matches.length} files`);
+    if (matches.length) {
+      console.log(`Found: ${matches.join(', ')}`);
+    }
+  });
+}
+
 jasmine.loadConfig({
   spec_dir: 'tests',
-  spec_files: config.spec_files,
+  spec_files: filteredSpecFiles,
   helpers: ['helpers/**/*.js'],
   stopSpecOnExpectationFailure: false,
   random: false,
@@ -138,6 +174,7 @@ jasmine.addReporter({
     console.log(`Test finished: ${result.description} - ${result.status}`);
     if (result.status === 'failed') {
       console.log(`Failures: ${JSON.stringify(result.failedExpectations, null, 2)}`);
+      console.log(`Stack: ${result.failedExpectations[0]?.stack || 'No stack available'}`);
     }
     if (result.status === 'pending') {
       console.log(`Pending reason: ${result.pendingReason}`);
@@ -145,9 +182,13 @@ jasmine.addReporter({
   },
   suiteDone: function(result) {
     console.log(`Suite finished: ${result.description}`);
+    if (result.failedExpectations && result.failedExpectations.length > 0) {
+      console.log(`Suite failures: ${JSON.stringify(result.failedExpectations, null, 2)}`);
+    }
   },
   jasmineDone: function(result) {
     console.log(`Tests finished with status: ${result.overallStatus}`);
+    console.log(`Details: ${JSON.stringify(result, null, 2)}`);
     
     // Shutdown server if it was started
     if (serverProcess) {
@@ -182,21 +223,46 @@ if (dryRun) {
 
 const testsPromise = jasmine.execute();
 
+
 // Add timeout protection
 const timeoutPromise = new Promise((_, reject) => {
   setTimeout(() => {
     console.error(`Tests timed out after ${timeoutMs / 1000} seconds`);
+    // List files found by glob pattern to help debug
+    console.error('Trying to find matching test files:');
+    
+    try {
+      filteredSpecFiles.forEach(pattern => {
+        const matches = globSync(pattern, { cwd: join(projectRoot, 'tests') });
+        console.error(`Pattern ${pattern} matched: ${JSON.stringify(matches)}`);
+      });
+    } catch (e) {
+      console.error('Error listing files:', e);
+    }
+    
     reject(new Error(`Tests timed out after ${timeoutMs / 1000} seconds`));
   }, timeoutMs);
 });
 
 // Use Promise.race to handle either completion or timeout
 try {
-  await Promise.race([testsPromise, timeoutPromise]);
+  console.log('Starting test execution...');
+  const result = await Promise.race([testsPromise, timeoutPromise]);
+  console.log('Tests completed with result:', result);
   console.log('Tests completed successfully');
 } catch (error) {
   console.error(`\n⚠️ Error during test execution: ${error.message}`);
   console.error(error.stack);
+  console.error(`Error type: ${error.constructor.name}`);
+  
+  // Print out the server process info
+  if (serverProcess) {
+    console.error(`Server process PID: ${serverProcess.pid}`);
+    console.error(`Server process connected: ${serverProcess.connected}`);
+    console.error(`Server process killed: ${serverProcess.killed}`);
+    console.error(`Server process exit code: ${serverProcess.exitCode}`);
+  }
+  
   process.exit(1);
 } finally {
   // Make sure to shut down the server

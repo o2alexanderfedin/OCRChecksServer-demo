@@ -6,6 +6,8 @@
    - All changes should be made within a dedicated feature branch created using `git flow feature start`
    - Complete features should be finished using `git flow feature finish` to merge back to develop
    - Never work directly on main or develop branches
+   - Follow the [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md) rules to maintain proper branch structure
+   - IMPORTANT: Never delete release branches, as they represent historical snapshots
 
 2. **Use Test-Driven Development (TDD)**
    - Write tests before implementing functionality
@@ -52,6 +54,7 @@
    - Include the problem context, solution approach, and prevention strategies
    - Reference the rule file from CLAUDE.md with a brief description of the problem
    - This creates an easily searchable knowledge base for future similar issues
+   - Example: [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md) documents the correct branch management practices, including why release branches must be preserved
 
 ## Testing Guidelines
 

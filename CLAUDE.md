@@ -1,4 +1,4 @@
-# CLAUDE.md - Guidelines for OCR Checks Server
+# CLAUDE.md - General guidelines for the development process
 
 ## Development Workflow Guidelines
 

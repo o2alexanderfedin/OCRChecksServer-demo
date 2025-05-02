@@ -1,10 +1,10 @@
-import { ScannerFactory } from '../../../src/scanner/factory';
-import { workerIoE } from '../../../src/io';
-import { Document, DocumentType } from '../../../src/ocr/types';
-import * as fs from 'fs';
-import * as path from 'path';
+import { ScannerFactory } from '../../../src/scanner/factory.js';
+import { workerIoE } from '../../../src/io.js';
+import { Document, DocumentType } from '../../../src/ocr/types.js';
+import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
-import { retry, isRetryableError } from '../../helpers/retry';
+import { retry, isRetryableError } from '../../helpers/retry.js';
 
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);

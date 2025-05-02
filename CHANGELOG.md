@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.0] - 2025-05-19
+
+### Added
+- Commit message cleanup tools to enforce consistent standards
+- Script to automatically clean commit messages with unwanted references
+- Comprehensive commit message policy documentation
+
+### Changed
+- Enhanced project maintainability with standardized commit message format
+- Improved developer workflow with automated commit message cleanup tools
+
 ## [1.14.0] - 2025-05-18
 
 ### Added

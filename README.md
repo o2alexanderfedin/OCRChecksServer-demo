@@ -318,6 +318,7 @@ ISC
 
 ## Copyright
 
-Copyright © 2025 [O2.services](https://o2.services). All rights reserved.
+Copyright © 2025 [Nolock.social](https://nolock.social). All rights reserved.
 
+Authored by: [O2.services](https://o2.services)  
 For inquiries, contact: [sales@o2.services](mailto:sales@o2.services)

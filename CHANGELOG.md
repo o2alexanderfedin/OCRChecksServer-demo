@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.11.0] - 2025-05-10
+
+### Added
+- Added unit tests for `io.ts` module
+- Added integration tests for health endpoint
+- Added integration tests for error handling
+- Added documentation of problem-solution patterns in `.claude/rules/` directory
+- Created knowledge management system with test framework compatibility rules
+
+### Fixed
+- Improved integration test reliability
+- Enhanced error handling in test runner script
+- Added better error reporting for test failures
+
+### Changed
+- Updated health endpoint version to 1.11.0
+- Improved test runner script to better handle specific test cases
+
 ## [1.10.0] - 2025-05-05
 
 ### BREAKING CHANGES

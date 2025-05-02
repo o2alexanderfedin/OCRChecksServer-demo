@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.1] - 2025-05-03
+
+### Fixed
+- Updated Node.js loader approach to eliminate experimental loader warnings
+- Fixed server startup script to use correct project root path
+- Added proper environment variable passing for integration tests
+- Created dedicated receipt scanner test script for better isolation
+
 ## [1.9.0] - 2025-05-02
 
 ### Added

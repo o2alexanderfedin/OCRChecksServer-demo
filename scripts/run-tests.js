@@ -78,7 +78,10 @@ if (config.requiresServer) {
   serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
     stdio: ['inherit', 'pipe', 'inherit'],
     detached: false,
-    env: { ...process.env }
+    env: { 
+      ...process.env,
+      MISTRAL_API_KEY: process.env.MISTRAL_API_KEY || "vYS1jOH55qvFc5Qqzgn2JHXN3cjMCJQp" // Use environment variable or fallback
+    }
   });
   
   // Capture and parse stdout to get the server URL

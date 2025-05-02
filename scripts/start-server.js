@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, resolve as pathResolve } from 'path';
 import { setTimeout } from 'timers/promises';
 
 /**
@@ -21,7 +21,7 @@ const __dirname = dirname(__filename);
 // Start the server
 console.log('Starting development server...');
 const serverProcess = spawn('npm', ['run', 'dev'], {
-  cwd: __dirname,
+  cwd: pathResolve(__dirname, '..'), // Point to project root instead of scripts directory
   shell: true,
   stdio: ['ignore', 'pipe', 'pipe'],
   detached: true // This lets the process run independently

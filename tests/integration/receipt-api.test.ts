@@ -15,7 +15,7 @@ describe('Receipt Processing API', function() {
   
   it('should process a receipt image and return structured data', async function() {
     // Skip this test if running in an environment without fetch
-    if (typeof fetch \!== 'function') {
+    if (typeof fetch !== 'function') {
       pending('fetch is not available in this environment');
       return;
     }
@@ -24,7 +24,7 @@ describe('Receipt Processing API', function() {
     const imagePath = path.resolve(__dirname, './fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
     
     // Skip test if the image doesn't exist
-    if (\!fs.existsSync(imagePath)) {
+    if (!fs.existsSync(imagePath)) {
       pending(`Test image not found at path: ${imagePath}`);
       return;
     }
@@ -81,7 +81,7 @@ describe('Receipt Processing API', function() {
   
   it('should process a receipt image using the universal endpoint', async function() {
     // Skip this test if running in an environment without fetch
-    if (typeof fetch \!== 'function') {
+    if (typeof fetch !== 'function') {
       pending('fetch is not available in this environment');
       return;
     }
@@ -90,7 +90,7 @@ describe('Receipt Processing API', function() {
     const imagePath = path.resolve(__dirname, './fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
     
     // Skip test if the image doesn't exist
-    if (\!fs.existsSync(imagePath)) {
+    if (!fs.existsSync(imagePath)) {
       pending(`Test image not found at path: ${imagePath}`);
       return;
     }

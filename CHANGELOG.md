@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.20.0] - 2025-05-26
+
+### Fixed
+- Resolved Swift proxy test issues with duplicate response struct definitions
+- Implemented URLSessionProtocol for improved testability and mocking
+- Fixed URLSessionMock implementation for async/await tests
+- Added support for delegate parameter in async URLSession method calls
+- Improved Swift proxy code organization with better protocol-based design
+
 ## [1.19.0] - 2025-05-25
 
 ### Added

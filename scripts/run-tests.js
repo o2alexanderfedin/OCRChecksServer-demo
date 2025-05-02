@@ -26,8 +26,11 @@ const projectRoot = join(__dirname, '..');
 
 // Parse command line arguments
 const testType = process.argv[2]?.toLowerCase() || 'all';
+const testFilter = process.argv[3]; // Get the third argument if provided (e.g., "simple")
 const watch = process.argv.includes('--watch');
 const dryRun = process.argv.includes('--dry-run');
+
+console.log(`Test type: ${testType}, Filter: ${testFilter || 'none'}`); // Debug info
 
 // Map test types to their configurations
 const testConfigs = {
@@ -114,9 +117,24 @@ global.jasmine = jasmine;
 jasmine.jasmine.DEFAULT_TIMEOUT_INTERVAL = config.timeoutInterval;
 
 console.log(`Running ${testType} tests...`);
+// If a filter is provided, filter the spec files
+let filteredSpecFiles = config.spec_files;
+if (testFilter) {
+  filteredSpecFiles = config.spec_files.map(pattern => {
+    // If it's a pattern ending with a wildcard, limit it to files containing the filter
+    if (pattern.includes('**')) {
+      return pattern.replace('**/', `**/*${testFilter}*`);
+    }
+    // Otherwise, just return files matching the filter
+    return pattern.includes(testFilter) ? pattern : null;
+  }).filter(Boolean); // Remove null entries
+  
+  console.log(`Filtered spec files: ${JSON.stringify(filteredSpecFiles)}`);
+}
+
 jasmine.loadConfig({
   spec_dir: 'tests',
-  spec_files: config.spec_files,
+  spec_files: filteredSpecFiles,
   helpers: ['helpers/**/*.js'],
   stopSpecOnExpectationFailure: false,
   random: false,

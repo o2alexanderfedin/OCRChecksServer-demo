@@ -7,6 +7,7 @@ import Jasmine from 'jasmine';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs/promises';
+import { spawn } from 'child_process';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
@@ -17,11 +18,26 @@ const projectRoot = join(__dirname, '..');
 const jasmine = new Jasmine();
 global.jasmine = jasmine;
 
-// Set timeout interval
-const timeoutInterval = 60000; // 60 seconds
+// Set timeout interval (much longer for integration tests with external APIs)
+const timeoutInterval = 180000; // 3 minutes
 jasmine.jasmine.DEFAULT_TIMEOUT_INTERVAL = timeoutInterval;
 
 console.log('Running ReceiptScanner integration test...');
+
+// Start server
+console.log('Starting server for integration tests...');
+const serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
+  stdio: 'inherit',
+  detached: false,
+  env: { 
+    ...process.env,
+    MISTRAL_API_KEY: process.env.MISTRAL_API_KEY || "vYS1jOH55qvFc5Qqzgn2JHXN3cjMCJQp"
+  }
+});
+
+// Give the server more time to start
+console.log('Waiting for server to be fully ready...');
+await new Promise(resolve => setTimeout(resolve, 10000));
 
 // Make sure MISTRAL_API_KEY is available from wrangler.toml if not in environment
 if (!process.env.MISTRAL_API_KEY) {
@@ -83,12 +99,33 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('- Promise:', promise);
 });
 
-// Execute tests
+// Execute tests with timeout protection
 try {
-  await jasmine.execute();
+  const testsPromise = jasmine.execute();
+  
+  // Add timeout protection
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => {
+      console.error(`Tests timed out after ${timeoutInterval / 1000} seconds`);
+      reject(new Error(`Tests timed out after ${timeoutInterval / 1000} seconds`));
+    }, timeoutInterval);
+  });
+  
+  // Use Promise.race to handle either completion or timeout
+  await Promise.race([testsPromise, timeoutPromise]);
   console.log('Tests completed successfully');
 } catch (error) {
   console.error(`\n⚠️ Error during test execution: ${error.message}`);
   console.error(error.stack);
   process.exit(1);
+} finally {
+  // Shutdown server
+  if (serverProcess.pid) {
+    console.log(`Shutting down server process (PID: ${serverProcess.pid})...`);
+    try {
+      process.kill(serverProcess.pid);
+    } catch (e) {
+      console.log('Error shutting down server:', e.message);
+    }
+  }
 }

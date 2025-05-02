@@ -90,7 +90,7 @@ describe('Receipt Schema Validation', () => {
       totals: {
         total: 25.99
       },
-      currency: "USD",
+      // currency is now optional
       confidence: 0.85
     };
 
@@ -119,7 +119,25 @@ describe('Receipt Schema Validation', () => {
     expect(errorPaths).toContain("");
   });
 
-  it('should reject invalid currency format', () => {
+  it('should validate when currency is missing (optional field)', () => {
+    const receiptWithoutCurrency: Receipt = {
+      merchant: {
+        name: "ACME Store"
+      },
+      timestamp: "2025-04-28T15:30:45Z",
+      totals: {
+        total: 45.99
+      },
+      // No currency provided
+      confidence: 0.9
+    };
+
+    const valid = validate(receiptWithoutCurrency);
+    expect(valid).toBe(true);
+    expect(validate.errors).toBeNull();
+  });
+
+  it('should reject invalid currency format when provided', () => {
     const receiptWithInvalidCurrency: Receipt = {
       merchant: {
         name: "ACME Store"

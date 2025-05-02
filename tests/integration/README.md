@@ -22,14 +22,16 @@ Integration tests require a running server instance. You can run the tests in tw
 
 Run all tests (unit and integration) with automatic server management:
 ```
-npm run test:all
+npm test
 ```
 
 This script will:
 1. Run unit tests
-2. Start the server
+2. Start the server with process tracking (using PID file)
 3. Run integration tests
-4. Stop the server
+4. Automatically shut down the server when tests complete
+
+> **Note:** As of version 1.12.1, the server process management has been significantly improved. The test runner now tracks server processes via PID files and ensures proper cleanup, even if tests are interrupted. This prevents "zombie" server processes that previously required manual termination.
 
 ## Test Images
 

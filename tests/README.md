@@ -47,4 +47,15 @@ npm run test:integration # Integration tests only
 
 ## More Information
 
-For detailed documentation on the testing architecture, see [/docs/testing.md](/docs/testing.md).
+For detailed documentation on the testing architecture, see [/docs/testing-architecture.md](/docs/testing-architecture.md).
+
+## Server Process Management
+
+As of version 1.12.1, the test server management system has been improved:
+
+- The server process is tracked via a PID file (`.server-pid`)
+- Automatic cleanup of server processes after tests complete
+- Proper signal handling ensures clean termination
+- No more "zombie" server processes after tests
+
+For more details, see [/docs/test-server-management.md](/docs/test-server-management.md).

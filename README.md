@@ -1,13 +1,13 @@
 # OCR Checks Worker
 
-A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and extract relevant information.
+A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and receipts and extract relevant information into structured data.
 
 ## Features
 
 - **OCR Processing**: 
-  - Accepts image uploads of paper checks
-  - Uses Mistral AI's vision capabilities to analyze the check
-  - Extracts key information including:
+  - Accepts image uploads of paper checks and receipts
+  - Uses Mistral AI's vision capabilities to analyze documents
+  - Extracts key information from checks including:
     - Check number
     - Amount
     - Date
@@ -17,22 +17,31 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and extr
     - Routing number
     - Account number
     - Memo (if present)
+  - Extracts key information from receipts including:
+    - Merchant information (name, address, etc.)
+    - Transaction timestamp
+    - Total amounts (subtotal, tax, tip, total)
+    - Item details (descriptions, quantities, prices)
+    - Payment methods
     
 - **JSON Extraction**: 
   - Converts OCR results into structured JSON data
   - Validates against customizable schemas
   - Provides confidence scoring for extraction reliability
-  - Supports various document types:
-    - Checks
-    - Receipts
-    - Invoices
-    - Utility bills
+  - Includes detailed confidence metrics for OCR and extraction steps
+  
+- **API Design**:
+  - Dedicated endpoints for specific document types
+  - Universal processing endpoint with document type specification
+  - RESTful API with proper HTTP status codes and error handling
+  - CORS support for browser-based applications
     
 - **Architecture**:
   - Clean separation of concerns with specialized components
   - Dependency injection using InversifyJS for flexible configuration
   - Factory pattern for easy instantiation of complex object graphs
-  - Extensive test coverage for all components
+  - Functional programming patterns with Result tuples for error handling
+  - Comprehensive test coverage with four test types
 
 ## Setup
 
@@ -48,9 +57,13 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and extr
      npx wrangler deploy
      ```
 
-## Usage
+## API Usage
 
-### Check Processing
+The OCR Checks Worker provides three main processing endpoints and a health status endpoint:
+
+### Dedicated Endpoints
+
+#### Check Processing
 
 Send a POST request to the dedicated check endpoint with a check image:
 
@@ -61,9 +74,29 @@ curl -X POST \
   https://your-worker.workers.dev/check
 ```
 
-The response will be a JSON object containing the extracted check information.
+Response:
+```json
+{
+  "data": {
+    "checkNumber": "1234",
+    "date": "2023-09-15",
+    "payee": "John Doe",
+    "amount": 250.00,
+    "payer": "ABC Company",
+    "bankName": "First National Bank",
+    "routingNumber": "123456789",
+    "accountNumber": "987654321",
+    "memo": "Invoice #1001"
+  },
+  "confidence": {
+    "ocr": 0.92,
+    "extraction": 0.85,
+    "overall": 0.78
+  }
+}
+```
 
-### Receipt Processing
+#### Receipt Processing
 
 Send a POST request to the dedicated receipt endpoint with a receipt image:
 
@@ -74,32 +107,82 @@ curl -X POST \
   https://your-worker.workers.dev/receipt
 ```
 
-The response will be a JSON object containing the extracted receipt information, including:
-- Merchant information (name, address, etc.)
-- Transaction timestamp
-- Total amounts (subtotal, tax, tip, total)
-- Item details (descriptions, quantities, prices)
-- Payment methods
+Response:
+```json
+{
+  "data": {
+    "merchant": {
+      "name": "Grocery Store Inc.",
+      "address": "123 Main St., Anytown, CA 90210",
+      "phone": "555-123-4567"
+    },
+    "timestamp": "2023-09-15T14:30:00Z",
+    "items": [
+      { "description": "Organic Apples", "quantity": 2, "unitPrice": 1.99, "totalPrice": 3.98 },
+      { "description": "Whole Grain Bread", "quantity": 1, "unitPrice": 3.49, "totalPrice": 3.49 }
+    ],
+    "totals": {
+      "subtotal": 7.47,
+      "tax": 0.65,
+      "tip": 0.00,
+      "total": 8.12
+    },
+    "payment": {
+      "method": "CREDIT_CARD",
+      "cardLastFour": "1234"
+    }
+  },
+  "confidence": {
+    "ocr": 0.89,
+    "extraction": 0.82,
+    "overall": 0.73
+  }
+}
+```
 
 ### Universal Document Processing
 
 Use the unified processing endpoint with the document type parameter:
 
 ```bash
-# For checks
 curl -X POST \
   -H "Content-Type: image/jpeg" \
   --data-binary @check.jpg \
   https://your-worker.workers.dev/process?type=check
-
-# For receipts
-curl -X POST \
-  -H "Content-Type: image/jpeg" \
-  --data-binary @receipt.jpg \
-  https://your-worker.workers.dev/process?type=receipt
 ```
 
-The universal endpoint returns both the extracted data and document type information.
+The universal endpoint provides the same functionality as the dedicated endpoints but includes an additional `documentType` field in the response:
+
+```json
+{
+  "data": { /* document data */ },
+  "documentType": "check",
+  "confidence": {
+    "ocr": 0.92,
+    "extraction": 0.85,
+    "overall": 0.78
+  }
+}
+```
+
+### Health Status
+
+Check the service status and version:
+
+```bash
+curl https://your-worker.workers.dev/health
+```
+
+Response:
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-05-02T12:34:56.789Z",
+  "version": "1.12.1"
+}
+```
+
+> **Important**: The root endpoint (`/`) has been removed in version 1.12.0. Please use the dedicated endpoints described above.
 
 ### JSON Extraction Example
 
@@ -175,24 +258,59 @@ The following JSON schemas are available:
 - **Receipt Schema**: For extracting data from purchase receipts
 
 For detailed schema documentation, see:
-- [Check Schema Documentation](docs/check-schema.md)
-- [Receipt Schema Documentation](docs/receipt-schema.md)
+- [Check Schema Documentation](docs/check-schema-documentation.md)
+- [Receipt Schema Documentation](docs/receipt-schema-documentation.md)
 
-### Running Tests
+### Testing Infrastructure
 
+The project uses a comprehensive testing approach with four distinct test types:
+
+1. **Unit Tests**: Test individual components in isolation
+   ```bash
+   npm run test:unit
+   ```
+
+2. **Functional Tests**: Test functions and interactions with a functional programming approach
+   ```bash
+   npm run test:functional
+   ```
+
+3. **Semi-Integration Tests**: Test components against real external services
+   ```bash
+   npm run test:semi
+   ```
+
+4. **Integration Tests**: Full end-to-end tests of the API
+   ```bash
+   npm run test:integration
+   ```
+
+5. **Receipt Scanner Tests**: Specific tests for the receipt scanning functionality
+   ```bash
+   npm run test:receipt-scanner
+   ```
+
+Run all tests together:
 ```bash
-# Run all tests
 npm test
-
-# Run unit tests only
-npm run test:unit
-
-# Run functional tests only
-npm run test:functional
-
-# Run semi-integration tests
-npm run test:semi
 ```
+
+### Test Server Management
+
+Starting from version 1.12.1, the test server is properly managed with improved process tracking:
+
+- Server processes are tracked using a PID file
+- Server is automatically shut down after tests complete
+- No more "zombie" server processes after tests
+- Proper signal handling for clean termination
+- Enhanced error reporting and logging
+
+### Development Guidelines
+
+For complete development guidelines, refer to:
+- [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md)
+- [Testing Framework Compatibility](./.claude/rules/test-framework-compatibility.md)
+- [CLAUDE.md](./CLAUDE.md) for detailed development workflow instructions
 
 ## License
 

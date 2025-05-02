@@ -154,6 +154,18 @@ Test runners are located in the `scripts/` directory:
 - `scripts/run-tests.js`: Universal runner for all test types
 - `scripts/start-server.js`: Utility script to start the server for integration tests
 
+### Server Process Management
+
+As of version 1.12.1, the test server management system has been improved:
+
+- The server process is tracked via a PID file (`scripts/start-server.js`)
+- The server is automatically shut down after integration tests complete (`scripts/run-tests.js`)
+- Proper signal handlers ensure clean termination even when tests are interrupted
+- Multi-layered approach to server shutdown prevents "zombie" processes
+- Detailed logging provides visibility into server lifecycle
+
+For more details on server management, see [Test Server Management](./test-server-management.md).
+
 ## Running Tests
 
 The following npm scripts are available:

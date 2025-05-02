@@ -51,7 +51,19 @@ The type-specific runners:
 ### Server Script (`start-server.js`)
 
 The server script:
-- Starts the development server in the background
-- Waits for the server to be ready
-- Outputs the process ID for manual termination if needed
-- Exits after successful startup
+- Starts the development server in a managed mode (improved in v1.12.1)
+- Waits for the server to be ready before proceeding
+- Creates a PID file (`/.server-pid`) to track the server process
+- Checks for and cleans up any existing server processes
+- Uses improved process management for reliable cleanup
+
+#### Server Process Management (v1.12.1)
+
+In version 1.12.1, the server management was significantly improved:
+
+- **Process Tracking**: Server PID is saved to a `.server-pid` file in the project root
+- **Automatic Cleanup**: Checks for existing server processes before starting new ones
+- **No Process Detachment**: Uses `detached: false` to ensure proper process hierarchy
+- **Improved Reliability**: Ensures server processes don't remain after tests complete
+
+For detailed documentation on server process management, see [Test Server Management](../docs/test-server-management.md).

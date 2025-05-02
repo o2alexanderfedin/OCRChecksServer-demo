@@ -10,9 +10,14 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 
 #### Worker Entry Point (`src/index.ts`)
 - Main Cloudflare Worker handler
-- Handles HTTP requests
-- Manages processing pipeline
-- Implements CORS and request validation
+- Implements a RESTful API with dedicated endpoints:
+  - `/process` - Universal document processing with type parameter
+  - `/check` - Check-specific processing 
+  - `/receipt` - Receipt-specific processing
+  - `/health` - Server status and version information
+- Manages document processing pipeline
+- Implements CORS and robust request validation
+- Provides detailed error handling and reporting
 
 #### Processing Pipeline
 - Handles document processing
@@ -83,7 +88,13 @@ The project follows a structured testing approach with different test categories
 - `scripts/run-functional-tests.js`: Runs functional tests 
 - `scripts/run-semi-tests.js`: Runs semi-integration tests
 - `scripts/run-tests.js`: Universal runner for all test types
-- `scripts/start-server.js`: Utility for starting the server for integration tests
+- `scripts/run-receipt-scanner-test.js`: Specialized tests for receipt scanning
+- `scripts/start-server.js`: Utility for starting the server for integration tests with improved process management:
+  - Server PID tracking via .server-pid file
+  - Automatic cleanup of previous server instances
+  - Clean shutdown after tests complete
+  - Signal handlers for graceful termination
+  - Enhanced error reporting and logging
 
 #### Running Tests
 - `npm test`: Run all tests (unit, functional, semi, integration)

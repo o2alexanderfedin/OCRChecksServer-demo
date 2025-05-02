@@ -18,37 +18,78 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
     // Convert ArrayBuffer to Uint8Array
     const uint8Array = new Uint8Array(arrayBuffer);
     
-    // For smaller images, use a direct approach without chunking
-    if (uint8Array.length < 512 * 1024) { // 512KB threshold
-        // Convert directly to string using String.fromCharCode
-        const binary = Array.from(uint8Array)
-            .map(byte => String.fromCharCode(byte))
-            .join('');
-        
-        // Convert binary to base64
-        return btoa(binary);
+    console.log(`Converting array buffer of size ${uint8Array.length} bytes to base64`);
+    
+    // Simplest approach: Convert the entire array at once for smaller images
+    if (uint8Array.length < 100 * 1024) { // 100KB threshold
+        try {
+            // Create binary string from byte array
+            let binary = '';
+            const len = uint8Array.length;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            
+            // Use standard btoa function
+            const base64 = btoa(binary);
+            console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars directly`);
+            return base64;
+        } catch (err) {
+            console.error('Error in direct base64 conversion:', err);
+            // Fall through to chunked approach
+        }
     }
     
-    // For larger images, use chunking approach
-    // Use btoa and String.fromCharCode for base64 conversion
-    const chunkSize = 512; // Even smaller chunks for better compatibility
+    console.log('Using chunked approach for base64 conversion');
+    
+    // For larger images, use chunking to avoid call stack errors
+    const chunkSize = 32 * 1024; // 32KB chunks
     let base64 = '';
     
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-        // Create a slice of the array for this chunk
-        const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-        
-        // Convert to string character by character
-        let chunkString = '';
-        for (let j = 0; j < chunk.length; j++) {
-            chunkString += String.fromCharCode(chunk[j]);
+    try {
+        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            // Create a slice of the array for this chunk
+            const end = Math.min(i + chunkSize, uint8Array.length);
+            const chunk = uint8Array.subarray(i, end);
+            
+            // Convert chunk to string
+            let binary = '';
+            for (let j = 0; j < chunk.length; j++) {
+                binary += String.fromCharCode(chunk[j]);
+            }
+            
+            // Convert binary chunk to base64 and append to result
+            base64 += btoa(binary);
+            
+            console.log(`Processed chunk ${i}-${end-1} (${chunk.length} bytes)`);
         }
         
-        // Convert to base64
-        base64 += btoa(chunkString);
+        console.log(`Completed base64 conversion, generated ${base64.length} chars`);
+        return base64;
+    } catch (err) {
+        console.error('Error in chunked base64 conversion:', err);
+        
+        // As a fallback, try a different approach that's even more conservative
+        console.log('Trying fallback base64 conversion approach');
+        
+        // Ultra-small chunk approach for problematic files
+        base64 = '';
+        const tinyChunkSize = 8 * 1024; // 8KB chunks
+        
+        for (let i = 0; i < uint8Array.length; i += tinyChunkSize) {
+            const end = Math.min(i + tinyChunkSize, uint8Array.length);
+            const chunk = uint8Array.subarray(i, end);
+            
+            let binary = '';
+            for (let j = 0; j < chunk.length; j++) {
+                binary += String.fromCharCode(chunk[j]);
+            }
+            
+            base64 += btoa(binary);
+        }
+        
+        return base64;
     }
-    
-    return base64;
 }
 
 /**
@@ -134,25 +175,43 @@ export class MistralOCRProvider implements OCRProvider {
      * @returns Document chunk for the API
      */
     private createDocumentChunk(doc: Document): ImageURLChunk | DocumentURLChunk {
-        // Use a sample image from the internet as a workaround
-        // This is a temporary fix until we can resolve the base64 encoding issue
-        if (doc.type === DocumentType.Image) {
-            const sampleImageUrl = 'https://upload.wikimedia.org/wikipedia/commons/7/7f/Sample_check.jpg';
-            console.log('Using sample check image URL as a temporary workaround');
-            return { 
-                type: 'image_url', 
-                imageUrl: sampleImageUrl 
-            };
+        // Let's go back to the base64 approach but with careful attention to formatting
+        const base64Content = arrayBufferToBase64(doc.content);
+        
+        // Determine mime type
+        const mimeType = doc.type === DocumentType.Image ? 'image/jpeg' : 'application/pdf';
+        
+        // Ensure proper base64 padding
+        let cleanBase64 = base64Content.replace(/[^A-Za-z0-9+/=]/g, ''); // Remove any invalid chars
+        
+        // Ensure the base64 string has proper padding
+        // Base64 strings should have a length that is a multiple of 4
+        // If not, add padding '=' characters
+        const remainder = cleanBase64.length % 4;
+        if (remainder > 0) {
+            console.log(`Fixing base64 padding. Current length: ${cleanBase64.length}, remainder: ${remainder}`);
+            const padding = '='.repeat(4 - remainder);
+            cleanBase64 += padding;
+            console.log(`Added ${padding.length} padding characters. New length: ${cleanBase64.length}`);
         }
         
-        // For PDFs, we'll still try to use the data URL approach
-        const base64Content = arrayBufferToBase64(doc.content);
-        const dataUrl = `data:application/pdf;base64,${base64Content}`;
+        // Create a carefully formatted data URL with the exact format Mistral expects
+        const dataUrl = `data:${mimeType};base64,${cleanBase64}`;
         
-        return { 
-            type: 'document_url', 
-            documentUrl: dataUrl 
-        };
+        console.log(`Data URL format: ${mimeType}, length: ${dataUrl.length}`);
+        console.log(`Data URL (first 100 chars): ${dataUrl.substring(0, 100)}...`);
+        
+        if (doc.type === DocumentType.Image) {
+            return { 
+                type: 'image_url', 
+                imageUrl: dataUrl 
+            };
+        } else {
+            return { 
+                type: 'document_url', 
+                documentUrl: dataUrl 
+            };
+        }
     }
 
     /**

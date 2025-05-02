@@ -142,4 +142,3 @@ describe('Receipt Processing API', function() {
     }
   });
 });
-EOL < /dev/null

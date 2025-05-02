@@ -199,4 +199,3 @@ describe('ReceiptScanner Integration', function() {
     }
   });
 });
-EOL < /dev/null

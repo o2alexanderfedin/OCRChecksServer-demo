@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.0] - 2025-05-18
+
+### Added
+- Comprehensive Cloudflare Workers deployment configuration
+- GitHub Actions CI/CD workflows for automated testing and deployment
+- Multi-environment deployment support (development, staging, production)
+- Automated deployment to Nolock.social domains
+- Detailed deployment documentation
+
+### Changed
+- Updated wrangler.toml with environment-specific configurations
+- Implemented proper environment variable handling for secure API key management
+- Configured routes for api.nolock.social, staging-api.nolock.social, and dev-api.nolock.social
+
+## [1.13.0] - 2025-05-16
+
+### Added
+- Changed project license to GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)
+- Added LICENSE file with AGPL license details
+- Updated all documentation with AGPL license references
+- Improved copyright notices with consistent license information
+
+### Changed
+- Updated license field in package.json from ISC to AGPL-3.0-or-later
+- Updated README.md with detailed AGPL license explanation and requirements
+- Enhanced copyright information across all documentation files
+
+## [1.12.2] - 2025-05-14
+
+### Added
+- Comprehensive documentation for all system components
+- Test server management documentation with detailed implementation
+- Copyright notices for O2.services across all documentation files
+
+### Improved 
+- Updated API documentation with detailed examples and responses
+- Enhanced testing architecture documentation with server management details
+- Fixed broken documentation links and references
+- Standardized documentation format across all files
+
 ## [1.12.1] - 2025-05-12
 
 ### Fixed

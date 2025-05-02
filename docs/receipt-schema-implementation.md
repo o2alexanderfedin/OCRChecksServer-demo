@@ -17,14 +17,17 @@ The receipt schema has been implemented using a combination of:
 The schema is structured around a central `Receipt` interface with related interfaces for component elements:
 
 ```typescript
-export interface Receipt {
+export interface ReceiptBase {
   merchant: MerchantInfo;
   receiptNumber?: string;
   receiptType?: ReceiptType;
   timestamp: string;
   paymentMethod?: PaymentMethod | string;
+}
+
+export interface Receipt extends ReceiptBase {
   totals: ReceiptTotals;
-  currency: string;
+  currency?: string;  // Optional as of v1.25.0
   items?: ReceiptLineItem[];
   taxes?: ReceiptTaxItem[];
   payments?: ReceiptPaymentMethod[];
@@ -179,7 +182,7 @@ export const receiptSchema = {
   "title": "Receipt",
   "description": "Schema for receipt data extracted from images",
   "type": "object",
-  "required": ["merchant", "timestamp", "totals", "currency", "confidence"],
+  "required": ["merchant", "timestamp", "totals", "confidence"],
   "properties": {
     "merchant": {
       "type": "object",
@@ -329,7 +332,8 @@ This pattern allows for explicit error handling without throwing exceptions, mak
 The implemented schema includes several validation features:
 
 1. **Field Requirements**:
-   - Required fields: merchant, timestamp, totals, currency, confidence
+   - Required fields: merchant, timestamp, totals, confidence
+   - Optional but recommended fields: currency
    - Required sub-fields: merchant.name, totals.total
 
 2. **Value Constraints**:
@@ -376,12 +380,15 @@ classDiagram
         -normalizeReceiptData(receipt) Receipt
     }
 
-    class Receipt {
+    class ReceiptBase {
         +merchant MerchantInfo
         +receiptNumber string
         +receiptType ReceiptType
         +timestamp string
         +paymentMethod PaymentMethod
+    }
+
+    class Receipt {
         +totals ReceiptTotals
         +currency string
         +items ReceiptLineItem[]
@@ -389,6 +396,8 @@ classDiagram
         +payments ReceiptPaymentMethod[]
         +confidence number
     }
+    
+    Receipt --|> ReceiptBase : extends
 
     JsonExtractor <|.. MistralJsonExtractorProvider : implements
     ReceiptExtractor --> JsonExtractor : uses

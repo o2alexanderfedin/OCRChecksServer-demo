@@ -17,20 +17,26 @@ The following properties are required for all valid receipt data:
 - `merchant`: Information about the merchant (with required `name` property)
 - `timestamp`: Date and time of the transaction
 - `totals`: Financial totals (with required `total` property)
-- `currency`: Three-letter ISO currency code
 - `confidence`: Overall confidence score of the extraction
+
+Note: The `currency` field is optional as of v1.25.0.
 
 ### Complete Schema Structure
 
 ```typescript
-interface Receipt {
+// Base interface with common receipt properties
+interface ReceiptBase {
   merchant: MerchantInfo;
   receiptNumber?: string;
   receiptType?: ReceiptType;
   timestamp: string;
   paymentMethod?: PaymentMethod | string;
+}
+
+// Full Receipt interface extending the base
+interface Receipt extends ReceiptBase {
   totals: ReceiptTotals;
-  currency: string;
+  currency?: string;  // Optional as of v1.25.0
   items?: ReceiptLineItem[];
   taxes?: ReceiptTaxItem[];
   payments?: ReceiptPaymentMethod[];
@@ -252,7 +258,7 @@ const receiptData: Receipt = {
     tax: 3.44,
     total: 46.41
   },
-  currency: "USD",
+  currency: "USD", // Optional, but recommended
   confidence: 0.92
 };
 

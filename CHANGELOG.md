@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.22.0] - 2025-05-27
+
+### Added
+- Comprehensive Cloudflare Workers deployment guide with detailed instructions
+- Step-by-step manual deployment process documentation
+- Environment-specific deployment configuration details
+- Automated deployment workflow documentation using GitHub Actions
+- Troubleshooting guide for common deployment issues
+- Visual guide placeholders for Cloudflare deployment steps
+- Deployment verification checklist with pre- and post-deployment tasks
+- Rollback procedures for failed deployments
+- Application monitoring guidance for deployed services
+
+### Improved
+- System architecture documentation with links to deployment guide
+- README.md with clearer deployment instructions
+- Development guidelines with deployment-specific information
+- Project documentation cross-references for better navigation
+
 ## [1.21.1] - 2025-05-26
 
 ### Fixed

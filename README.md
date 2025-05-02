@@ -56,6 +56,7 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and rece
      ```bash
      npx wrangler deploy
      ```
+   - For detailed deployment instructions, see the [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md)
 
 ## API Usage
 
@@ -318,6 +319,7 @@ For complete development guidelines, refer to:
 - [Gitflow Branch Management](./docs/gitflow-branch-management.md)
 - [Testing Framework Compatibility](./docs/test-framework-compatibility.md)
 - [Development Workflow](./docs/development-workflow.md) for detailed instructions
+- [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md) for step-by-step deployment instructions
 
 ## License
 

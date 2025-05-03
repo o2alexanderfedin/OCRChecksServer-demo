@@ -107,51 +107,97 @@ const config = testConfigs[testType];
 // Start server if needed
 let serverProcess = null;
 let serverPid = null;
+let serverStartupFailed = false;
+
 if (config.requiresServer) {
   console.log('Starting server for integration tests...');
   
-  // Use a more robust approach to capture output
-  serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
-    stdio: ['inherit', 'pipe', 'inherit'],
-    detached: false,
-    env: { 
-      ...process.env,
-      MISTRAL_API_KEY: process.env.MISTRAL_API_KEY || "vYS1jOH55qvFc5Qqzgn2JHXN3cjMCJQp" // Use environment variable or fallback
-    }
-  });
-  
-  // Capture and parse stdout to get the server URL
-  serverProcess.stdout.on('data', (data) => {
-    const output = data.toString();
-    process.stdout.write(output);
-    
-    // Check for the server URL message from start-server.js
-    const match = output.match(/Found server URL: (http:\/\/localhost:\d+)/);
-    if (match && match[1]) {
-      process.env.OCR_API_URL = match[1];
-      console.log(`Setting OCR_API_URL environment variable to: ${match[1]}`);
+  try {
+    // Check for required API key
+    if (!process.env.MISTRAL_API_KEY) {
+      console.error('ERROR: MISTRAL_API_KEY environment variable is not set');
+      console.error('Please set this environment variable before running tests');
+      throw new Error('Missing required API key');
     }
     
-    // Parse PID information
-    const pidMatch = output.match(/Server PID (\d+) saved to/);
-    if (pidMatch && pidMatch[1]) {
-      serverPid = parseInt(pidMatch[1], 10);
-      console.log(`Detected server process PID: ${serverPid}`);
+    // Use a more robust approach to capture output
+    serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
+      stdio: ['inherit', 'pipe', 'inherit'],
+      detached: false,
+      env: { 
+        ...process.env
+      }
+    });
+  
+    // Capture and parse stdout to get the server URL
+    serverProcess.stdout.on('data', (data) => {
+      const output = data.toString();
+      process.stdout.write(output);
+      
+      // Check for the server URL message from start-server.js
+      const match = output.match(/Found server URL: (http:\/\/localhost:\d+)/);
+      if (match && match[1]) {
+        process.env.OCR_API_URL = match[1];
+        console.log(`Setting OCR_API_URL environment variable to: ${match[1]}`);
+      }
+      
+      // Parse PID information
+      const pidMatch = output.match(/Server PID (\d+) saved to/);
+      if (pidMatch && pidMatch[1]) {
+        serverPid = parseInt(pidMatch[1], 10);
+        console.log(`Detected server process PID: ${serverPid}`);
+      }
+    });
+    
+    serverProcess.on('error', (err) => {
+      console.error('Failed to start server:', err);
+      serverStartupFailed = true;
+    });
+    
+    // Set up handler for child process exit
+    serverProcess.on('exit', (code, signal) => {
+      console.log(`Server process exited with code ${code} and signal ${signal}`);
+      if (code !== 0 && code !== null) {
+        serverStartupFailed = true;
+        console.error(`Server startup failed with exit code ${code}`);
+      }
+    });
+    
+    // Give the server more time to start and be fully ready
+    console.log('Waiting for server to be fully ready...');
+    await new Promise(resolve => setTimeout(resolve, 10000));
+    
+    // Read the PID file to ensure we have the correct server PID
+    try {
+      const pidFilePath = join(projectRoot, '.server-pid');
+      const pidContent = await fs.readFile(pidFilePath, 'utf8').catch(() => null);
+      
+      if (pidContent) {
+        const filePid = parseInt(pidContent.trim(), 10);
+        if (filePid && !isNaN(filePid)) {
+          if (!serverPid) {
+            serverPid = filePid;
+            console.log(`Using server PID from file: ${serverPid}`);
+          } else if (serverPid !== filePid) {
+            console.log(`Warning: PID mismatch - detected ${serverPid} but file contains ${filePid}`);
+            serverPid = filePid; // Trust the file over the detected PID
+          }
+        }
+      } else {
+        console.warn('No PID file found or it is empty. Server may not be running properly.');
+      }
+    } catch (error) {
+      console.error(`Error reading server PID file: ${error.message}`);
     }
-  });
-  
-  serverProcess.on('error', (err) => {
-    console.error('Failed to start server:', err);
-  });
-  
-  // Set up handler for child process exit
-  serverProcess.on('exit', (code, signal) => {
-    console.log(`Server process exited with code ${code} and signal ${signal}`);
-  });
-  
-  // Give the server more time to start and be fully ready
-  console.log('Waiting for server to be fully ready...');
-  await new Promise(resolve => setTimeout(resolve, 10000));
+    
+    if (serverStartupFailed) {
+      throw new Error('Server startup failed. Check error messages above.');
+    }
+  } catch (error) {
+    console.error(`Server startup error: ${error.message}`);
+    console.error('Tests may fail due to server startup issues.');
+    // Don't exit here - we'll allow tests to fail naturally
+  }
 }
 
 // Create and configure Jasmine

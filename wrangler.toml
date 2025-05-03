@@ -4,9 +4,8 @@ compatibility_date = "2024-04-22"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
-# Enable Cloudflare logging with proper format
-[logging]
-level = "debug"
+# Logging is enabled by default in Workers
+# Debug level is used for development
 
 # Note: CPU limits require a paid plan
 # [limits]
@@ -29,10 +28,12 @@ vars = { ENVIRONMENT = "staging" }
 # Production environment
 [env.production]
 name = "ocr-checks-worker"
-route = "api.nolock.social/*"
-workers_dev = false
-vars = { ENVIRONMENT = "production" }
+workers_dev = true
+# IMPORTANT: Replace the API key with your actual Mistral API key
+vars = { ENVIRONMENT = "production", MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE" }
 
 # Environment variables
 [vars]
-MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE"
+# IMPORTANT: This is a placeholder API key. To use this application, replace this with your actual Mistral API key.
+# The API key can be obtained from the Mistral AI dashboard at https://console.mistral.ai/
+MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE" # Replace with your actual Mistral API key

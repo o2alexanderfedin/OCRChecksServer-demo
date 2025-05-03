@@ -57,4 +57,3 @@
     "sharp": "^0.34.1"
   }
 }
-EOF < /dev/null

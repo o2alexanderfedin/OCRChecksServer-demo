@@ -56,12 +56,24 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and rece
    ```
 
 2. Configure your environment:
-   - Add your Mistral API key to `wrangler.toml`
+   - Add your Mistral API key to `wrangler.toml` (required for the application to function)
+     ```toml
+     # In wrangler.toml
+     [vars]
+     MISTRAL_API_KEY = "your-mistral-api-key-here"
+     ```
+   - You can obtain a Mistral API key from the [Mistral AI Console](https://console.mistral.ai/)
    - Deploy using Wrangler:
      ```bash
      npx wrangler deploy
      ```
    - For detailed deployment instructions, see the [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md)
+
+## Prerequisites
+
+- A Cloudflare account with Workers enabled
+- A Mistral AI API key with access to the OCR model
+- Node.js and npm installed for local development
 
 ## API Usage
 

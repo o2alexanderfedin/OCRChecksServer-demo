@@ -4,14 +4,13 @@ compatibility_date = "2024-04-22"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
-# Enable Cloudflare logging
-[logs]
-tail_consumers = [{service = "tail-consumer", environment = "production"}]
-timeout = 300
+# Enable Cloudflare logging with proper format
+[logging]
+level = "debug"
 
-# Enable verbose logging
-[build.upload]
-format = "service-worker"
+# Increase resource limits for comprehensive logging
+[limits]
+cpu_ms = 50
 
 # Development environment
 [env.dev]

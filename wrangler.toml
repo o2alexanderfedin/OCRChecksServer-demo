@@ -35,4 +35,4 @@ vars = { ENVIRONMENT = "production" }
 
 # Environment variables
 [vars]
-MISTRAL_API_KEY = "vYS1jOH55qvFc5Qqzgn2JHXN3cjMCJQp"
+MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE"

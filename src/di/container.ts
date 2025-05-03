@@ -64,13 +64,6 @@ export class DIContainer {
         throw new Error(errorMessage);
       }
       
-      // Check specifically for the known placeholder key in the project
-      const knownPlaceholder = 'wHAFWZ8ksDNcRseO9CWprd5EuhezolxE';
-      if (apiKey === knownPlaceholder) {
-        const errorMessage = '[DIContainer] CRITICAL ERROR: Using default placeholder API key from wrangler.toml - this is not a valid API key';
-        console.error(errorMessage);
-        throw new Error(errorMessage);
-      }
       
       console.log('Initializing Mistral client with API key (first 4 chars):', apiKey.substring(0, 4) + '...');
       

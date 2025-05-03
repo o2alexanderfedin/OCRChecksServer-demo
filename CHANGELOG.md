@@ -2,7 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.27.0] - 2025-06-12
+## [1.28.0] - 2025-06-10
+
+### Improved
+- Enhanced API key validation with better error location information
+- Added more comprehensive validation for API key format and common placeholders
+- Removed explicit placeholder key check for better security
+
+### Fixed
+- Improved error messages with detailed location information for easier debugging
+- Made API key validation more consistent across all modules
+
+## [1.27.0] - 2025-06-07
 
 ### Changed
 - Merged version 1.26.1 fixes into main branch
@@ -10,6 +21,17 @@ All notable changes to this project will be documented in this file.
 - Enhanced API key validation and error handling
 - Fixed MIME type detection and base64 encoding for Mistral API integration
 - Improved type definitions and TypeScript compatibility
+
+### Added
+- Enhanced validation checks for API keys across all components
+- Detailed error messages with component location for easier debugging
+- Integration with Cloudflare environment variables
+- Improved reliability of environment variable detection
+
+### Fixed
+- Better error handling for invalid or missing API keys
+- More robust initialization process for Mistral client
+- Enhanced stability in cloud environments
 
 ## [1.26.1] - 2025-06-10
 

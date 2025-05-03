@@ -52,15 +52,45 @@ app.post('/process', async (c) => {
 
     // Verify API key is available
     if (!c.env.MISTRAL_API_KEY) {
-      console.error('MISTRAL_API_KEY environment variable is not set');
+      const errorMessage = '[/process:handler] CRITICAL ERROR: MISTRAL_API_KEY environment variable is not set';
+      console.error(errorMessage);
+      // For HTTP endpoints we return a response rather than throw, but with clear error location
       return new Response(JSON.stringify({ 
-        error: 'Server configuration error: Missing API key',
+        error: errorMessage,
         hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
+    
+    // Validate API key format - at minimum it should be a reasonable length
+    if (c.env.MISTRAL_API_KEY.length < 20) {
+      const errorMessage = `[/process:handler] CRITICAL ERROR: Invalid API key format - too short (${c.env.MISTRAL_API_KEY.length} chars)`;
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please provide a valid Mistral API key in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check for obviously invalid placeholder keys
+    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+    if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
+      const errorMessage = '[/process:handler] CRITICAL ERROR: Detected placeholder text in Mistral API key';
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please replace the placeholder API key with a valid Mistral API key'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     
     // Log API key presence (not the actual key)
     console.log('API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
@@ -133,15 +163,44 @@ app.post('/check', async (c) => {
 
     // Verify API key is available
     if (!c.env.MISTRAL_API_KEY) {
-      console.error('MISTRAL_API_KEY environment variable is not set in /check endpoint');
+      const errorMessage = '[/check:handler] CRITICAL ERROR: MISTRAL_API_KEY environment variable is not set';
+      console.error(errorMessage);
       return new Response(JSON.stringify({ 
-        error: 'Server configuration error: Missing API key',
+        error: errorMessage,
         hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
+    
+    // Validate API key format - at minimum it should be a reasonable length
+    if (c.env.MISTRAL_API_KEY.length < 20) {
+      const errorMessage = `[/check:handler] CRITICAL ERROR: Invalid API key format - too short (${c.env.MISTRAL_API_KEY.length} chars)`;
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please provide a valid Mistral API key in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check for obviously invalid placeholder keys
+    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+    if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
+      const errorMessage = '[/check:handler] CRITICAL ERROR: Detected placeholder text in Mistral API key';
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please replace the placeholder API key with a valid Mistral API key'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     
     // Log API key presence (not the actual key)
     console.log('/check: API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
@@ -209,15 +268,44 @@ app.post('/receipt', async (c) => {
 
     // Verify API key is available
     if (!c.env.MISTRAL_API_KEY) {
-      console.error('MISTRAL_API_KEY environment variable is not set in /receipt endpoint');
+      const errorMessage = '[/receipt:handler] CRITICAL ERROR: MISTRAL_API_KEY environment variable is not set';
+      console.error(errorMessage);
       return new Response(JSON.stringify({ 
-        error: 'Server configuration error: Missing API key',
+        error: errorMessage,
         hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
+    
+    // Validate API key format - at minimum it should be a reasonable length
+    if (c.env.MISTRAL_API_KEY.length < 20) {
+      const errorMessage = `[/receipt:handler] CRITICAL ERROR: Invalid API key format - too short (${c.env.MISTRAL_API_KEY.length} chars)`;
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please provide a valid Mistral API key in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check for obviously invalid placeholder keys
+    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+    if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
+      const errorMessage = '[/receipt:handler] CRITICAL ERROR: Detected placeholder text in Mistral API key';
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please replace the placeholder API key with a valid Mistral API key'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     
     // Log API key presence (not the actual key)
     console.log('/receipt: API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
@@ -269,7 +357,7 @@ app.get('/health', (c) => {
   return new Response(JSON.stringify({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.27.0'
+    version: '1.28.0'
   }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }

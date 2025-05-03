@@ -18,6 +18,21 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
     constructor(io: IoE, client: Mistral) {
         this.io = io
         this.client = client
+        
+        // Validate that the client has an API key set
+        const apiKey = (this.client as any).apiKey;
+        if (!apiKey) {
+            const errorMessage = '[MistralJsonExtractorProvider:constructor] CRITICAL ERROR: Initialized with client missing API key';
+            this.io.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+        
+        // Additional validation of API key format
+        if (typeof apiKey !== 'string' || apiKey.trim().length < 20) {
+            const errorMessage = `[MistralJsonExtractorProvider:constructor] CRITICAL ERROR: Invalid API key format - too short or wrong type`;
+            this.io.error(errorMessage);
+            throw new Error(errorMessage);
+        }
     }
 
     /**
@@ -27,6 +42,14 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
      */
     async extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>> {
         try {
+            // Verify API key before proceeding - additional validation at runtime
+            const apiKey = (this.client as any).apiKey;
+            if (!apiKey) {
+                const errorMessage = '[MistralJsonExtractorProvider:extract] CRITICAL ERROR: Missing API key for Mistral client';
+                this.io.error(errorMessage);
+                throw new Error(errorMessage);
+            }
+            
             // Construct the prompt for Mistral
             const prompt = this.constructPrompt(request)
             

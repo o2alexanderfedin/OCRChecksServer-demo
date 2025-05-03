@@ -148,9 +148,16 @@ export class MistralOCRProvider implements OCRProvider {
         // Validate that the client has an API key set
         const apiKey = (this.client as any).apiKey;
         if (!apiKey) {
-            this.io.error('MistralOCRProvider initialized with client missing API key');
-            // We don't throw here to allow the container to complete initialization,
-            // but we'll check again before making API calls
+            const errorMessage = '[MistralOCRProvider:constructor] CRITICAL ERROR: Initialized with client missing API key';
+            this.io.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+        
+        // Additional validation of API key format
+        if (typeof apiKey !== 'string' || apiKey.trim().length < 20) {
+            const errorMessage = `[MistralOCRProvider:constructor] CRITICAL ERROR: Invalid API key format - too short or wrong type`;
+            this.io.error(errorMessage);
+            throw new Error(errorMessage);
         }
     }
 
@@ -168,11 +175,12 @@ export class MistralOCRProvider implements OCRProvider {
         });
         
         try {
-            // Check for API key before proceeding
+            // Check for API key before proceeding - additional validation at runtime
             const apiKey = (this.client as any).apiKey;
             if (!apiKey) {
-                this.io.error('Missing Mistral API key - cannot process document');
-                return ['error', new Error('Mistral API key is required but not configured. Please set the API key in the configuration.')];
+                const errorMessage = '[MistralOCRProvider:processDocument] CRITICAL ERROR: Missing Mistral API key';
+                this.io.error(errorMessage);
+                throw new Error(errorMessage);
             }
             
             // Log document information for debugging

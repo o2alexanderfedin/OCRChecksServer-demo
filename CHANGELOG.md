@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.26.0] - 2025-06-05
+
+### Fixed
+- Fixed base64 encoding issues when calling Mistral OCR API
+- Improved handling of image data encoding for different environments
+- Added Buffer-based encoding as primary approach with fallbacks
+- Enhanced error handling and logging for OCR processing
+- Fixed MIME type detection for proper data URL formatting
+- Made OCR integration more reliable across Node.js and Cloudflare Workers
+
+### Added
+- Direct test for Mistral API integration to verify encoding approach
+- Enhanced logging for better troubleshooting of OCR issues
+
 ## [1.25.1] - 2025-06-03
 
 ### Improved

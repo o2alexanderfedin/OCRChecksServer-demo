@@ -1,4 +1,4 @@
-import { OCRProvider, Document, OCRResult } from '../ocr/types';
+import { OCRProvider, Document } from '../ocr/types';
 import { DocumentScanner, ProcessingResult } from './types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types';

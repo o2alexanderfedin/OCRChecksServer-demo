@@ -156,7 +156,7 @@ export class ReceiptExtractor implements IReceiptExtractor {
     }
 
     // Add overall confidence to the receipt and normalize
-    const extractedData = value.json as Receipt;
+    const extractedData = value.json as unknown as Receipt;
     extractedData.confidence = value.confidence;
     
     // Normalize the receipt data
@@ -240,7 +240,7 @@ Provide confidence levels for the extracted data where appropriate.
         if (!isNaN(date.getTime())) {
           normalized.timestamp = date.toISOString();
         }
-      } catch (e) {
+      } catch {
         // Keep original if conversion fails
       }
     }

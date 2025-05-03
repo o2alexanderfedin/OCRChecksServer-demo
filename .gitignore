@@ -35,3 +35,6 @@ coverage/
 # Debug test scripts
 debug-test/
 **/.claude/settings.local.json
+
+# Server PID file
+.server-pid

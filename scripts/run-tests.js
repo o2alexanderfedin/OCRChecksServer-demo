@@ -72,6 +72,36 @@ if (!testConfigs[testType]) {
   process.exit(1);
 }
 
+// Run GitFlow branch check unless it's bypassed
+if (!process.argv.includes('--bypass-gitflow-check')) {
+  try {
+    console.log('Running GitFlow branch check...');
+    // Run the pre-test-check.sh script and make it non-interactive for automated environments
+    const preTestCheck = spawn('bash', [join(projectRoot, 'scripts', 'pre-test-check.sh')], {
+      stdio: 'inherit',
+      env: { ...process.env, NONINTERACTIVE: process.env.CI ? 'true' : 'false' }
+    });
+    
+    // Wait for the pre-test check to complete
+    await new Promise((resolve, reject) => {
+      preTestCheck.on('exit', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`GitFlow branch check failed with code ${code}`));
+        }
+      });
+      preTestCheck.on('error', reject);
+    });
+    
+    console.log('GitFlow branch check passed.');
+  } catch (error) {
+    console.error('GitFlow branch check error:', error.message);
+    console.error('To bypass this check, use --bypass-gitflow-check flag');
+    process.exit(1);
+  }
+}
+
 const config = testConfigs[testType];
 
 // Start server if needed
@@ -202,6 +232,21 @@ jasmine.addReporter({
   },
   jasmineDone: function(result) {
     console.log(`Tests finished with status: ${result.overallStatus}`);
+    
+    // Show GitFlow reminder if tests failed
+    if (result.overallStatus === 'failed') {
+      console.log('\n=====================================================');
+      console.log('\x1b[33m⚠️  REMINDER: Follow GitFlow Process For Fixes!\x1b[0m');
+      console.log('\x1b[36m1. Create a feature branch BEFORE fixing issues:\x1b[0m');
+      console.log('   git flow feature start fix-[descriptive-name]');
+      console.log('\x1b[36m2. Make fixes on the feature branch\x1b[0m');
+      console.log('\x1b[36m3. Run tests again to verify fixes\x1b[0m');
+      console.log('\x1b[36m4. Finish the feature when done:\x1b[0m');
+      console.log('   git flow feature finish fix-[descriptive-name]');
+      console.log('\nSee .claude/rules/gitflow-testing-workflow.md for details');
+      console.log('=====================================================\n');
+    }
+    
     console.log(`Details: ${JSON.stringify(result, null, 2)}`);
     
     // Shutdown server if it was started
@@ -265,7 +310,7 @@ process.on('SIGINT', () => cleanupAndExit('SIGINT'));  // Ctrl+C
 process.on('SIGTERM', () => cleanupAndExit('SIGTERM')); // Kill command
 
 // Execute tests with timeout protection
-const timeoutMs = config.timeoutInterval * 2;
+const timeoutMs = config.timeoutInterval * 2; // Normal timeout is 2x the interval
 
 // If dry run, just log tests that would be executed
 if (dryRun) {
@@ -300,7 +345,25 @@ const timeoutPromise = new Promise((_, reject) => {
 // Use Promise.race to handle either completion or timeout
 try {
   console.log('Starting test execution...');
-  const result = await Promise.race([testsPromise, timeoutPromise]);
+  
+  // Add unhandled rejection handler specifically for the test execution
+  const testRejectionHandler = (reason) => {
+    console.error('Unhandled rejection during test execution:', reason);
+  };
+  process.on('unhandledRejection', testRejectionHandler);
+  
+  // Create a wrapper for testsPromise that catches any errors
+  const safeTestsPromise = testsPromise.catch(err => {
+    console.error('Caught error from Jasmine execution:', err);
+    throw err; // Re-throw to be caught by the outer try/catch
+  });
+  
+  // Run the tests with timeout protection
+  const result = await Promise.race([safeTestsPromise, timeoutPromise]);
+  
+  // Remove the temporary rejection handler
+  process.removeListener('unhandledRejection', testRejectionHandler);
+  
   console.log('Tests completed with result:', result);
   console.log('Tests completed successfully');
 } catch (error) {
@@ -309,6 +372,9 @@ try {
     console.error(error.stack);
   }
   console.error(`Error type: ${error?.constructor?.name || 'Unknown'}`);
+  
+  // Print more diagnostic information
+  console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
   
   // Print out the server process info
   if (serverProcess) {

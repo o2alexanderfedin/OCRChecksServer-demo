@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.29.0] - 2025-06-10
+
+### Fixed
+- Fixed "unknown error" during test execution caused by TypeScript type safety issues
+- Added proper type assertions for API responses in integration tests
+- Updated version expectations in health check tests to match current API version
+
+### Added
+- Post-mortem analysis process with templates and documentation
+- Type safety rules for API responses to prevent similar issues
+- Documentation of lessons learned from TypeScript type assertion challenges
+
 ## [1.28.0] - 2025-06-10
 
 ### Improved

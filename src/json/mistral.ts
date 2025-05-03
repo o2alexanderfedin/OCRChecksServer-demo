@@ -20,7 +20,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
         this.client = client
         
         // Validate that the client has an API key set
-        const apiKey = (this.client as any).apiKey;
+        const apiKey = 'apiKey' in this.client ? (this.client as {apiKey: string}).apiKey : undefined;
         if (!apiKey) {
             const errorMessage = '[MistralJsonExtractorProvider:constructor] CRITICAL ERROR: Initialized with client missing API key';
             this.io.error(errorMessage);
@@ -43,7 +43,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
     async extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>> {
         try {
             // Verify API key before proceeding - additional validation at runtime
-            const apiKey = (this.client as any).apiKey;
+            const apiKey = 'apiKey' in this.client ? (this.client as {apiKey: string}).apiKey : undefined;
             if (!apiKey) {
                 const errorMessage = '[MistralJsonExtractorProvider:extract] CRITICAL ERROR: Missing API key for Mistral client';
                 this.io.error(errorMessage);
@@ -72,7 +72,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
             })
             
             // Parse the response
-            let jsonContent: any
+            let jsonContent: Record<string, unknown>
             try {
                 // Make sure choices exists and has at least one element
                 if (!response.choices || response.choices.length === 0) {
@@ -120,12 +120,14 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
      * @param extractedJson The extracted JSON data
      * @returns Confidence score between 0 and 1
      */
-    private calculateConfidence(response: any, extractedJson: any): number {
+    private calculateConfidence(response: Record<string, unknown>, extractedJson: Record<string, unknown>): number {
         // Base confidence on multiple factors
         const factors = [
             // 1. Model finish reason (1.0 if "stop", 0.5 if other)
-            response.choices && 
+            Array.isArray(response.choices) && 
             response.choices.length > 0 && 
+            typeof response.choices[0] === 'object' &&
+            response.choices[0] !== null &&
             response.choices[0].finish_reason === 'stop' ? 1.0 : 0.5,
             
             // 2. JSON structure completeness (0.0-1.0)

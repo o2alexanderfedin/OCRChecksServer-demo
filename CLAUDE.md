@@ -8,6 +8,7 @@
    - Never work directly on main or develop branches
    - Follow the [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md) rules to maintain proper branch structure
    - IMPORTANT: Never delete release branches, as they represent historical snapshots
+   - When tests fail, ALWAYS create a feature branch before fixing issues - follow the [Gitflow Testing Workflow](./.claude/rules/gitflow-testing-workflow.md) to avoid premature fixes
 
 2. **Use Test-Driven Development (TDD)**
    - Write tests before implementing functionality
@@ -56,9 +57,23 @@
    - This creates an easily searchable knowledge base for future similar issues
    - Example: [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md) documents the correct branch management practices, including why release branches must be preserved
 
+9. **Perform Post-Mortem Analysis**
+   - After each feature completion, conduct a post-mortem analysis using the [post-mortem template](./.claude/templates/post-mortem.md)
+   - Document all issues encountered, root causes, and solutions applied
+   - Extract reusable lessons and create or update rule files
+   - Store post-mortems in the `.claude/post-mortems/` directory with a descriptive filename
+   - Link relevant post-mortems in related documentation
+   - Example: [Type Safety for API Responses](./.claude/rules/type-safety-api-responses.md) documents how to prevent "unknown errors" by properly typing API responses
+
 ## Testing Guidelines
 
-1. **Don't Test Standard Library Functions**
+1. **Maintain GitFlow Process When Fixing Test Failures**
+   - NEVER fix failing tests while on develop or main branches
+   - Create a feature branch IMMEDIATELY when tests fail: `git flow feature start fix-issue-name`
+   - See [Gitflow Testing Workflow](./.claude/rules/gitflow-testing-workflow.md) for the detailed process
+   - Run `./scripts/pre-test-check.sh` before running tests to verify you're on the correct branch
+
+2. **Don't Test Standard Library Functions**
    - Avoid writing tests for functionality that's already provided by the runtime or standard libraries
    - Examples: base64 encoding/decoding (btoa/atob), standard array methods, built-in type conversions
    - Focus testing efforts on custom business logic and application-specific code

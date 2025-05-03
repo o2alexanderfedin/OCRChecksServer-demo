@@ -17,6 +17,8 @@ export class ScannerFactory {
    * @returns A ReceiptScanner instance
    */
   static createMistralReceiptScanner(io: IoE, apiKey: string): ReceiptScanner {
+    console.log(`[ScannerFactory::createMistralReceiptScanner] Mistral API key: {apiKey}`);
+
     // Create DI container with all dependencies registered
     const container = new DIContainer().registerMistralDependencies(io, apiKey);
     
@@ -32,6 +34,8 @@ export class ScannerFactory {
    * @returns A CheckScanner instance
    */
   static createMistralCheckScanner(io: IoE, apiKey: string): CheckScanner {
+    console.log(`[ScannerFactory::createMistralCheckScanner] Mistral API key: {apiKey}`);
+
     // Create DI container with all dependencies registered
     const container = new DIContainer().registerMistralDependencies(io, apiKey);
     

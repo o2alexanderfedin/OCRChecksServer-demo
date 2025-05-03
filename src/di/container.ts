@@ -39,9 +39,21 @@ export class DIContainer {
     // Register basic dependencies
     this.container.bind(TYPES.IoE).toConstantValue(io);
     this.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
+
+    console.log(`Mistral API Key: {apiKey}`);
     
     // Register Mistral client
-    this.container.bind(TYPES.MistralClient).toDynamicValue((_context) => {
+    this.container.bind(TYPES.MistralClient).toDynamicValue((context) => {
+      const apk = context.get<string>(TYPES.MistralApiKey);
+      console.log(`Mistral apk: {apk}`);
+      // Ensure apk is correctly set and provide more debugging information
+      if (!apk) {
+        const errorMessage = '[DIContainer] CRITICAL ERROR: Mistral apk is missing or empty';
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      console.log(`Mistral API Key: {apiKey}`);
       // Ensure API key is correctly set and provide more debugging information
       if (!apiKey) {
         const errorMessage = '[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty';
@@ -80,7 +92,7 @@ export class DIContainer {
       }
       
       // Verify the client has the API key set
-      if (!(client as any).apiKey) {
+      if (!('apiKey' in client)) {
         const errorMessage = '[DIContainer] CRITICAL ERROR: API key not properly attached to Mistral client';
         console.error(errorMessage);
         throw new Error(errorMessage);
@@ -90,40 +102,40 @@ export class DIContainer {
     }).inSingletonScope();
     
     // Register OCR provider
-    this.container.bind(TYPES.OCRProvider).toDynamicValue((_context) => {
+    this.container.bind(TYPES.OCRProvider).toDynamicValue(() => {
       const io = this.container.get<IoE>(TYPES.IoE);
       const mistralClient = this.container.get<Mistral>(TYPES.MistralClient);
       return new MistralOCRProvider(io, mistralClient);
     }).inSingletonScope();
     
     // Register JSON extractor provider
-    this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue((_context) => {
+    this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue(() => {
       const io = this.container.get<IoE>(TYPES.IoE);
       const mistralClient = this.container.get<Mistral>(TYPES.MistralClient);
       return new MistralJsonExtractorProvider(io, mistralClient);
     }).inSingletonScope();
     
     // Register receipt extractor
-    this.container.bind(TYPES.ReceiptExtractor).toDynamicValue((_context) => {
+    this.container.bind(TYPES.ReceiptExtractor).toDynamicValue(() => {
       const jsonExtractor = this.container.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
       return new ReceiptExtractor(jsonExtractor);
     }).inSingletonScope();
     
     // Register check extractor
-    this.container.bind(TYPES.CheckExtractor).toDynamicValue((_context) => {
+    this.container.bind(TYPES.CheckExtractor).toDynamicValue(() => {
       const jsonExtractor = this.container.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
       return new CheckExtractor(jsonExtractor);
     }).inSingletonScope();
     
     // Register receipt scanner
-    this.container.bind(TYPES.ReceiptScanner).toDynamicValue((_context) => {
+    this.container.bind(TYPES.ReceiptScanner).toDynamicValue(() => {
       const ocrProvider = this.container.get<MistralOCRProvider>(TYPES.OCRProvider);
       const receiptExtractor = this.container.get<ReceiptExtractor>(TYPES.ReceiptExtractor);
       return new ReceiptScanner(ocrProvider, receiptExtractor);
     }).inSingletonScope();
     
     // Register check scanner
-    this.container.bind(TYPES.CheckScanner).toDynamicValue((_context) => {
+    this.container.bind(TYPES.CheckScanner).toDynamicValue(() => {
       const ocrProvider = this.container.get<MistralOCRProvider>(TYPES.OCRProvider);
       const checkExtractor = this.container.get<CheckExtractor>(TYPES.CheckExtractor);
       return new CheckScanner(ocrProvider, checkExtractor);

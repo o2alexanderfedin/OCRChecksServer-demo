@@ -1,12 +1,11 @@
 import type { Result } from 'functionalscript/types/result/module.f.js'
-import type { IoE } from '../ocr/types'
 
 /**
  * Result of JSON extraction
  */
 export type JsonExtractionResult = {
     /** Extracted JSON data */
-    json: any;
+    json: Record<string, unknown>;
     /** Confidence score (0-1) indicating extraction reliability */
     confidence: number;
 }
@@ -18,7 +17,7 @@ export type JsonSchema = {
     name: string;
     description?: string | null;
     schemaDefinition: {
-        [key: string]: any;
+        [key: string]: unknown;
     };
     strict?: boolean;
 };

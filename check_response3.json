@@ -1,0 +1,1 @@
+{"error":"Server configuration error: Missing API key","hint":"Please ensure MISTRAL_API_KEY is set in your environment variables"}

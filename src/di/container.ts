@@ -39,11 +39,24 @@ export class DIContainer {
     // Register basic dependencies
     this.container.bind(TYPES.IoE).toConstantValue(io);
     this.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
+
+    const _apiKey = apiKey;
+    console.log(`Mistral API Key: {apiKey}`);
     
     // Register Mistral client
     this.container.bind(TYPES.MistralClient).toDynamicValue((_context) => {
+      const apk = _context.get<string>(TYPES.MistralApiKey);
+      console.log(`Mistral apk: {apk}`);
+      // Ensure apk is correctly set and provide more debugging information
+      if (!apk) {
+        const errorMessage = '[DIContainer] CRITICAL ERROR: Mistral apk is missing or empty';
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      console.log(`Mistral API Key: {apiKey}`);
       // Ensure API key is correctly set and provide more debugging information
-      if (!apiKey) {
+      if (!_apiKey) {
         const errorMessage = '[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty';
         console.error(errorMessage);
         throw new Error(errorMessage);
@@ -80,7 +93,7 @@ export class DIContainer {
       }
       
       // Verify the client has the API key set
-      if (!(client as any).apiKey) {
+      if (!('apiKey' in client)) {
         const errorMessage = '[DIContainer] CRITICAL ERROR: API key not properly attached to Mistral client';
         console.error(errorMessage);
         throw new Error(errorMessage);

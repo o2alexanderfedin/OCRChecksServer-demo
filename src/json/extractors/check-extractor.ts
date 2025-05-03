@@ -161,7 +161,7 @@ Provide confidence levels for the extracted data where appropriate.
         if (!isNaN(date.getTime())) {
           normalized.date = date.toISOString().substring(0, 10);
         }
-      } catch (e) {
+      } catch {
         // Keep original if conversion fails
       }
     }

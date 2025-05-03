@@ -146,7 +146,7 @@ export class MistralOCRProvider implements OCRProvider {
         this.client = client
         
         // Validate that the client has an API key set
-        const apiKey = (this.client as any).apiKey;
+        const apiKey = 'apiKey' in this.client ? (this.client as {apiKey: string}).apiKey : undefined;
         if (!apiKey) {
             const errorMessage = '[MistralOCRProvider:constructor] CRITICAL ERROR: Initialized with client missing API key';
             this.io.error(errorMessage);
@@ -176,7 +176,7 @@ export class MistralOCRProvider implements OCRProvider {
         
         try {
             // Check for API key before proceeding - additional validation at runtime
-            const apiKey = (this.client as any).apiKey;
+            const apiKey = 'apiKey' in this.client ? (this.client as {apiKey: string}).apiKey : undefined;
             if (!apiKey) {
                 const errorMessage = '[MistralOCRProvider:processDocument] CRITICAL ERROR: Missing Mistral API key';
                 this.io.error(errorMessage);
@@ -193,7 +193,7 @@ export class MistralOCRProvider implements OCRProvider {
             this.io.debug(`Document chunk created in ${Date.now() - documentStartTime}ms`);
             
             // Log detailed document chunk information
-            const docInfo: any = { 
+            const docInfo: Record<string, unknown> = { 
                 type: document.type,
                 contentType: document.type === 'image_url' ? 'image' : 'document'
             };
@@ -225,8 +225,8 @@ export class MistralOCRProvider implements OCRProvider {
                     includeImageBase64: true,
                     urlLength: document.type === 'image_url' ? 
                         (typeof document.imageUrl === 'string' ? document.imageUrl.length : 0) : 
-                        (document.type === 'document_url' && typeof (document as any).documentUrl === 'string' ? 
-                            (document as any).documentUrl.length : 0)
+                        (document.type === 'document_url' && 'documentUrl' in document && typeof (document as {documentUrl: string}).documentUrl === 'string' ? 
+                            (document as {documentUrl: string}).documentUrl.length : 0)
                 };
                 this.io.debug('API request details:', requestDetails);
                 
@@ -276,23 +276,36 @@ export class MistralOCRProvider implements OCRProvider {
                 this.io.error('Mistral API error:', apiError);
                 
                 // Try to extract more detailed error information
-                let errorDetails: any = {
+                const errorDetails: Record<string, unknown> = {
                     errorType: apiError?.constructor?.name || 'Unknown',
                     errorMessage: String(apiError),
                 };
                 
+                // Define MistralAPIError interface to handle API error responses
+                interface MistralAPIErrorResponse {
+                    response?: {
+                        status?: number;
+                        statusText?: string;
+                        json?: () => Promise<unknown>;
+                        text?: () => Promise<string>;
+                    };
+                    code?: string;
+                    type?: string;
+                }
+                
                 // Try to extract status code and response if available
-                if ((apiError as any)?.response) {
-                    errorDetails.status = (apiError as any).response.status;
-                    errorDetails.statusText = (apiError as any).response.statusText;
+                const mistralError = apiError as MistralAPIErrorResponse;
+                if (mistralError?.response) {
+                    errorDetails.status = mistralError.response.status;
+                    errorDetails.statusText = mistralError.response.statusText;
                     
                     // Try to parse response body if present
                     try {
-                        if ((apiError as any).response.json) {
-                            const responseJson = await (apiError as any).response.json();
+                        if (mistralError.response.json) {
+                            const responseJson = await mistralError.response.json();
                             errorDetails.responseBody = responseJson;
-                        } else if ((apiError as any).response.text) {
-                            const responseText = await (apiError as any).response.text();
+                        } else if (mistralError.response.text) {
+                            const responseText = await mistralError.response.text();
                             errorDetails.responseBody = responseText;
                         }
                     } catch (parseError) {
@@ -301,11 +314,11 @@ export class MistralOCRProvider implements OCRProvider {
                 }
                 
                 // If SDK-specific error information is available
-                if ((apiError as any)?.code) {
-                    errorDetails.errorCode = (apiError as any).code;
+                if (mistralError?.code) {
+                    errorDetails.errorCode = mistralError.code;
                 }
-                if ((apiError as any)?.type) {
-                    errorDetails.errorType = (apiError as any).type;
+                if (mistralError?.type) {
+                    errorDetails.errorType = mistralError.type;
                 }
                 
                 this.io.error('Detailed API error information:', errorDetails);

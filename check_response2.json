@@ -1,0 +1,1 @@
+{"error":"OCR processing failed: Mistral API error: SDKError: API error occurred: Status 401 Content-Type application/json; charset=utf-8 Body \n{\n  \"message\":\"No API key found in request\",\n  \"request_id\":\"7f2a9e22ac2a6b6134cc4b561b520a31\"\n}. Please check API key and network connection."}

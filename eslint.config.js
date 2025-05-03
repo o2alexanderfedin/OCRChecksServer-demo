@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import * as tseslint from 'typescript-eslint';
+import globals from 'globals';
 
 export default tseslint.config(
   js.configs.recommended,
@@ -9,7 +10,7 @@ export default tseslint.config(
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: true
+        project: ['./tsconfig.json']
       }
     },
     rules: {
@@ -20,7 +21,34 @@ export default tseslint.config(
         'varsIgnorePattern': '^_',
         'caughtErrorsIgnorePattern': '^_'
       }],
-      '@typescript-eslint/no-non-null-assertion': 'error'
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/no-unsafe-function-type': 'error',
+      'prefer-const': 'error'
+    }
+  },
+  {
+    files: ['**/tests/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.jasmine
+      }
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off'
+    }
+  },
+  {
+    files: ['**/tests/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.jasmine,
+        ...globals.node
+      }
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off'
     }
   },
   {
@@ -28,6 +56,12 @@ export default tseslint.config(
       '**/*.d.ts',
       'dist/**/*',
       'node_modules/**/*',
+      '.wrangler/**/*',
+      'debug-test/**/*',
+      'scripts/**/*',
+      'examples/**/*',
+      'debug-test/**/*',
+      'examples/dist/**/*',
       'coverage/**/*',
       '*.js',
       '*.json',

@@ -1,14 +1,14 @@
 export interface Io {
     readonly asyncTryCatch: <T>(fn: () => Promise<T>) => Promise<['ok', T] | ['error', unknown]>
     readonly log: (message: string) => void
-    readonly debug: (message: string, data?: any) => void
-    readonly warn: (message: string, data?: any) => void
-    readonly error: (message: string, error?: any) => void
-    readonly trace: (source: string, methodName: string, args?: any) => void
+    readonly debug: (message: string, data?: unknown) => void
+    readonly warn: (message: string, data?: unknown) => void
+    readonly error: (message: string, error?: unknown) => void
+    readonly trace: (source: string, methodName: string, args?: unknown) => void
 }
 
 // Generate a unique request ID for tracing
-const generateRequestId = () => {
+const generateRequestId = (): string => {
     return `req_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
 };
 
@@ -16,22 +16,22 @@ const generateRequestId = () => {
 let currentRequestId = generateRequestId();
 
 // Reset request ID for a new request
-export const resetRequestId = () => {
+export const resetRequestId = (): string => {
     currentRequestId = generateRequestId();
     return currentRequestId;
 };
 
 // Get current request ID
-export const getRequestId = () => currentRequestId;
+export const getRequestId = (): string => currentRequestId;
 
 // Format log message with timestamp and request ID
-const formatLogMessage = (level: string, message: string) => {
+const formatLogMessage = (level: string, message: string): string => {
     const timestamp = new Date().toISOString();
     return `[${timestamp}] [${level}] [${currentRequestId}] ${message}`;
 };
 
 // Format error object for logging
-const formatError = (error: any): string => {
+const formatError = (error: unknown): string => {
     if (!error) return 'undefined';
     
     try {
@@ -41,17 +41,17 @@ const formatError = (error: any): string => {
                 message: error.message,
                 stack: error.stack,
                 // Include additional properties that might be present in API errors
-                ...(error as any)
+                ...(error as Record<string, unknown>)
             }, null, 2);
         }
         return JSON.stringify(error, null, 2);
-    } catch (e) {
+    } catch {
         return `[Unserializable Error]: ${String(error)}`;
     }
 };
 
 export const workerIo: Io = {
-    asyncTryCatch: async <T>(fn: () => Promise<T>) => {
+    asyncTryCatch: async <T>(fn: () => Promise<T>): Promise<['ok', T] | ['error', unknown]> => {
         try {
             console.log(formatLogMessage('TRACE', `Starting async operation`));
             const startTime = Date.now();
@@ -64,29 +64,29 @@ export const workerIo: Io = {
             return ['error', error];
         }
     },
-    log: (message: string) => console.log(formatLogMessage('INFO', message)),
-    debug: (message: string, data?: any) => {
+    log: (message: string): void => console.log(formatLogMessage('INFO', message)),
+    debug: (message: string, data?: unknown): void => {
         if (data) {
             console.debug(formatLogMessage('DEBUG', `${message}: ${JSON.stringify(data, null, 2)}`));
         } else {
             console.debug(formatLogMessage('DEBUG', message));
         }
     },
-    warn: (message: string, data?: any) => {
+    warn: (message: string, data?: unknown): void => {
         if (data) {
             console.warn(formatLogMessage('WARN', `${message}: ${JSON.stringify(data, null, 2)}`));
         } else {
             console.warn(formatLogMessage('WARN', message));
         }
     },
-    error: (message: string, error?: any) => {
+    error: (message: string, error?: unknown): void => {
         if (error) {
             console.error(formatLogMessage('ERROR', `${message}: ${formatError(error)}`));
         } else {
             console.error(formatLogMessage('ERROR', message));
         }
     },
-    trace: (source: string, methodName: string, args?: any) => {
+    trace: (source: string, methodName: string, args?: unknown): void => {
         const argsString = args ? ` with args: ${JSON.stringify(args, null, 2)}` : '';
         console.log(formatLogMessage('TRACE', `${source}.${methodName} called${argsString}`));
     }

@@ -7,7 +7,7 @@ import type { Receipt } from '../json/schemas/receipt';
  */
 export type ProcessingResult = {
   /** Extracted JSON data */
-  json: Receipt | any;
+  json: Receipt | Record<string, unknown>;
   /** Confidence score of OCR (0-1) */
   ocrConfidence: number;
   /** Confidence score of extraction (0-1) */

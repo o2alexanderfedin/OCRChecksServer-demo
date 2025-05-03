@@ -89,7 +89,7 @@ describe('Basic Server Health Checks', function() {
     // Verify response content
     const data = await response.json() as HealthResponse;
     expect(data.status).toBe('ok');
-    expect(data.version).toBe('1.26.0');
+    expect(data.version).toBe('1.29.0');
     expect(typeof data.timestamp).toBe('string');
   });
   

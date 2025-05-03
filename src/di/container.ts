@@ -84,15 +84,15 @@ export class DIContainer {
   private registerProviders(): void {
     // Register OCR provider
     this.container.bind(TYPES.OCRProvider).toDynamicValue((context) => {
-      const io = context.container.get<IoE>(TYPES.IoE);
-      const mistralClient = context.container.get<Mistral>(TYPES.MistralClient);
+      const io = context.get<IoE>(TYPES.IoE);
+      const mistralClient = context.get<Mistral>(TYPES.MistralClient);
       return new MistralOCRProvider(io, mistralClient);
     }).inSingletonScope();
     
     // Register JSON extractor provider
     this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue((context) => {
-      const io = context.container.get<IoE>(TYPES.IoE);
-      const mistralClient = context.container.get<Mistral>(TYPES.MistralClient);
+      const io = context.get<IoE>(TYPES.IoE);
+      const mistralClient = context.get<Mistral>(TYPES.MistralClient);
       return new MistralJsonExtractorProvider(io, mistralClient);
     }).inSingletonScope();
   }
@@ -104,13 +104,13 @@ export class DIContainer {
   private registerExtractors(): void {
     // Register receipt extractor
     this.container.bind(TYPES.ReceiptExtractor).toDynamicValue((context) => {
-      const jsonExtractor = context.container.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
+      const jsonExtractor = context.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
       return new ReceiptExtractor(jsonExtractor);
     }).inSingletonScope();
     
     // Register check extractor
     this.container.bind(TYPES.CheckExtractor).toDynamicValue((context) => {
-      const jsonExtractor = context.container.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
+      const jsonExtractor = context.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
       return new CheckExtractor(jsonExtractor);
     }).inSingletonScope();
   }
@@ -122,15 +122,15 @@ export class DIContainer {
   private registerScanners(): void {
     // Register receipt scanner
     this.container.bind(TYPES.ReceiptScanner).toDynamicValue((context) => {
-      const ocrProvider = context.container.get<MistralOCRProvider>(TYPES.OCRProvider);
-      const receiptExtractor = context.container.get<ReceiptExtractor>(TYPES.ReceiptExtractor);
+      const ocrProvider = context.get<MistralOCRProvider>(TYPES.OCRProvider);
+      const receiptExtractor = context.get<ReceiptExtractor>(TYPES.ReceiptExtractor);
       return new ReceiptScanner(ocrProvider, receiptExtractor);
     }).inSingletonScope();
     
     // Register check scanner
     this.container.bind(TYPES.CheckScanner).toDynamicValue((context) => {
-      const ocrProvider = context.container.get<MistralOCRProvider>(TYPES.OCRProvider);
-      const checkExtractor = context.container.get<CheckExtractor>(TYPES.CheckExtractor);
+      const ocrProvider = context.get<MistralOCRProvider>(TYPES.OCRProvider);
+      const checkExtractor = context.get<CheckExtractor>(TYPES.CheckExtractor);
       return new CheckScanner(ocrProvider, checkExtractor);
     }).inSingletonScope();
   }

@@ -52,10 +52,53 @@ app.post('/process', async (c) => {
 
     // Verify API key is available
     if (!c.env.MISTRAL_API_KEY) {
-      console.error('MISTRAL_API_KEY environment variable is not set');
+      const errorMessage = '[/process:handler] CRITICAL ERROR: MISTRAL_API_KEY environment variable is not set';
+      console.error(errorMessage);
+      // For HTTP endpoints we return a response rather than throw, but with clear error location
       return new Response(JSON.stringify({ 
-        error: 'Server configuration error: Missing API key',
+        error: errorMessage,
         hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Validate API key format - at minimum it should be a reasonable length
+    if (c.env.MISTRAL_API_KEY.length < 20) {
+      const errorMessage = `[/process:handler] CRITICAL ERROR: Invalid API key format - too short (${c.env.MISTRAL_API_KEY.length} chars)`;
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please provide a valid Mistral API key in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check for obviously invalid placeholder keys
+    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+    if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
+      const errorMessage = '[/process:handler] CRITICAL ERROR: Detected placeholder text in Mistral API key';
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please replace the placeholder API key with a valid Mistral API key'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check specifically for the known placeholder key in the project
+    const knownPlaceholder = 'wHAFWZ8ksDNcRseO9CWprd5EuhezolxE';
+    if (c.env.MISTRAL_API_KEY === knownPlaceholder) {
+      const errorMessage = '[/process:handler] CRITICAL ERROR: Using default placeholder API key from wrangler.toml - this is not a valid API key';
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please replace the placeholder API key in wrangler.toml with a valid Mistral API key'
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
@@ -133,10 +176,52 @@ app.post('/check', async (c) => {
 
     // Verify API key is available
     if (!c.env.MISTRAL_API_KEY) {
-      console.error('MISTRAL_API_KEY environment variable is not set in /check endpoint');
+      const errorMessage = '[/check:handler] CRITICAL ERROR: MISTRAL_API_KEY environment variable is not set';
+      console.error(errorMessage);
       return new Response(JSON.stringify({ 
-        error: 'Server configuration error: Missing API key',
+        error: errorMessage,
         hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Validate API key format - at minimum it should be a reasonable length
+    if (c.env.MISTRAL_API_KEY.length < 20) {
+      const errorMessage = `[/check:handler] CRITICAL ERROR: Invalid API key format - too short (${c.env.MISTRAL_API_KEY.length} chars)`;
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please provide a valid Mistral API key in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check for obviously invalid placeholder keys
+    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+    if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
+      const errorMessage = '[/check:handler] CRITICAL ERROR: Detected placeholder text in Mistral API key';
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please replace the placeholder API key with a valid Mistral API key'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check specifically for the known placeholder key in the project
+    const knownPlaceholder = 'wHAFWZ8ksDNcRseO9CWprd5EuhezolxE';
+    if (c.env.MISTRAL_API_KEY === knownPlaceholder) {
+      const errorMessage = '[/check:handler] CRITICAL ERROR: Using default placeholder API key from wrangler.toml - this is not a valid API key';
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please replace the placeholder API key in wrangler.toml with a valid Mistral API key'
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
@@ -209,10 +294,52 @@ app.post('/receipt', async (c) => {
 
     // Verify API key is available
     if (!c.env.MISTRAL_API_KEY) {
-      console.error('MISTRAL_API_KEY environment variable is not set in /receipt endpoint');
+      const errorMessage = '[/receipt:handler] CRITICAL ERROR: MISTRAL_API_KEY environment variable is not set';
+      console.error(errorMessage);
       return new Response(JSON.stringify({ 
-        error: 'Server configuration error: Missing API key',
+        error: errorMessage,
         hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Validate API key format - at minimum it should be a reasonable length
+    if (c.env.MISTRAL_API_KEY.length < 20) {
+      const errorMessage = `[/receipt:handler] CRITICAL ERROR: Invalid API key format - too short (${c.env.MISTRAL_API_KEY.length} chars)`;
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please provide a valid Mistral API key in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check for obviously invalid placeholder keys
+    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+    if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
+      const errorMessage = '[/receipt:handler] CRITICAL ERROR: Detected placeholder text in Mistral API key';
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please replace the placeholder API key with a valid Mistral API key'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check specifically for the known placeholder key in the project
+    const knownPlaceholder = 'wHAFWZ8ksDNcRseO9CWprd5EuhezolxE';
+    if (c.env.MISTRAL_API_KEY === knownPlaceholder) {
+      const errorMessage = '[/receipt:handler] CRITICAL ERROR: Using default placeholder API key from wrangler.toml - this is not a valid API key';
+      console.error(errorMessage);
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        hint: 'Please replace the placeholder API key in wrangler.toml with a valid Mistral API key'
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }

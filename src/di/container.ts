@@ -44,22 +44,53 @@ export class DIContainer {
     this.container.bind(TYPES.MistralClient).toDynamicValue((_context) => {
       // Ensure API key is correctly set and provide more debugging information
       if (!apiKey) {
-        console.error('Missing API key in container initialization');
-        throw new Error('Mistral API key is required but was not provided');
+        const errorMessage = '[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty';
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      // Validate API key format - at minimum it should be a reasonable length
+      if (apiKey.length < 20) {
+        const errorMessage = `[DIContainer] CRITICAL ERROR: Invalid Mistral API key format - too short (${apiKey.length} chars)`;
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+      
+      // Check for obviously invalid placeholder keys
+      const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+      if (commonPlaceholders.some(placeholder => apiKey.toLowerCase().includes(placeholder))) {
+        const errorMessage = '[DIContainer] CRITICAL ERROR: Detected placeholder text in Mistral API key';
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+      
+      // Check specifically for the known placeholder key in the project
+      const knownPlaceholder = 'wHAFWZ8ksDNcRseO9CWprd5EuhezolxE';
+      if (apiKey === knownPlaceholder) {
+        const errorMessage = '[DIContainer] CRITICAL ERROR: Using default placeholder API key from wrangler.toml - this is not a valid API key';
+        console.error(errorMessage);
+        throw new Error(errorMessage);
       }
       
       console.log('Initializing Mistral client with API key (first 4 chars):', apiKey.substring(0, 4) + '...');
       
       // Create Mistral client with explicit apiKey property
-      const client = new Mistral({
-        apiKey: apiKey
-      });
+      let client: Mistral;
+      try {
+        client = new Mistral({
+          apiKey: apiKey
+        });
+      } catch (error) {
+        const errorMessage = `[DIContainer] CRITICAL ERROR: Failed to initialize Mistral client: ${error instanceof Error ? error.message : String(error)}`;
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+      }
       
       // Verify the client has the API key set
       if (!(client as any).apiKey) {
-        console.error('API key not properly attached to Mistral client');
-        // Add the API key directly to the client instance for greater compatibility
-        (client as any).apiKey = apiKey;
+        const errorMessage = '[DIContainer] CRITICAL ERROR: API key not properly attached to Mistral client';
+        console.error(errorMessage);
+        throw new Error(errorMessage);
       }
       
       return client;

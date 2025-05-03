@@ -51,9 +51,18 @@ export class DIContainer {
       console.log('Initializing Mistral client with API key (first 4 chars):', apiKey.substring(0, 4) + '...');
       
       // Create Mistral client with explicit apiKey property
-      return new Mistral({
+      const client = new Mistral({
         apiKey: apiKey
       });
+      
+      // Verify the client has the API key set
+      if (!(client as any).apiKey) {
+        console.error('API key not properly attached to Mistral client');
+        // Add the API key directly to the client instance for greater compatibility
+        (client as any).apiKey = apiKey;
+      }
+      
+      return client;
     }).inSingletonScope();
     
     // Register OCR provider

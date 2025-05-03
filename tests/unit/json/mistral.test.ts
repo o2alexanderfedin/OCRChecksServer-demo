@@ -74,6 +74,11 @@ describe('MistralJsonExtractor', () => {
     const mockIo: IoE = {
         fetch: createSpy('fetch'),
         atob: createSpy('atob'),
+        log: createSpy('log'),
+        debug: createSpy('debug'),
+        warn: createSpy('warn'),
+        error: createSpy('error'),
+        trace: createSpy('trace'),
         console: {
             log: console.log,
             error: console.error
@@ -120,6 +125,11 @@ describe('MistralJsonExtractor', () => {
     beforeEach(() => {
         (mockIo.fetch as MockFunction).calls.reset();
         (mockIo.atob as MockFunction).calls.reset();
+        (mockIo.log as MockFunction).calls.reset();
+        (mockIo.debug as MockFunction).calls.reset();
+        (mockIo.warn as MockFunction).calls.reset();
+        (mockIo.error as MockFunction).calls.reset();
+        (mockIo.trace as MockFunction).calls.reset();
     })
 
     it('should extract JSON from markdown text', async () => {

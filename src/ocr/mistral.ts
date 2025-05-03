@@ -144,6 +144,14 @@ export class MistralOCRProvider implements OCRProvider {
     constructor(io: IoE, client: Mistral) {
         this.io = io
         this.client = client
+        
+        // Validate that the client has an API key set
+        const apiKey = (this.client as any).apiKey;
+        if (!apiKey) {
+            this.io.error('MistralOCRProvider initialized with client missing API key');
+            // We don't throw here to allow the container to complete initialization,
+            // but we'll check again before making API calls
+        }
     }
 
     /**
@@ -160,6 +168,13 @@ export class MistralOCRProvider implements OCRProvider {
         });
         
         try {
+            // Check for API key before proceeding
+            const apiKey = (this.client as any).apiKey;
+            if (!apiKey) {
+                this.io.error('Missing Mistral API key - cannot process document');
+                return ['error', new Error('Mistral API key is required but not configured. Please set the API key in the configuration.')];
+            }
+            
             // Log document information for debugging
             this.io.log(`Processing document: ${doc.name || 'unnamed'}, type: ${doc.type}, size: ${doc.content.byteLength} bytes`);
             
@@ -192,13 +207,8 @@ export class MistralOCRProvider implements OCRProvider {
                 this.io.log('Sending request to Mistral OCR API...');
                 
                 // Log API key information (first 4 chars, last 4 chars)
-                const apiKey = (this.client as any).apiKey || 'unknown';
-                if (apiKey !== 'unknown') {
-                    const maskedKey = apiKey.substring(0, 4) + '...' + apiKey.substring(apiKey.length - 4);
-                    this.io.debug(`Using API key: ${maskedKey}`);
-                } else {
-                    this.io.warn('API key not found in client instance');
-                }
+                const maskedKey = apiKey.substring(0, 4) + '...' + apiKey.substring(apiKey.length - 4);
+                this.io.debug(`Using API key: ${maskedKey}`);
                 
                 // Log request details
                 const requestDetails = {
@@ -206,8 +216,9 @@ export class MistralOCRProvider implements OCRProvider {
                     documentType: document.type,
                     includeImageBase64: true,
                     urlLength: document.type === 'image_url' ? 
-                        (document.imageUrl ? document.imageUrl.length : 0) : 
-                        (document.documentUrl ? document.documentUrl.length : 0)
+                        (typeof document.imageUrl === 'string' ? document.imageUrl.length : 0) : 
+                        (document.type === 'document_url' && typeof (document as any).documentUrl === 'string' ? 
+                            (document as any).documentUrl.length : 0)
                 };
                 this.io.debug('API request details:', requestDetails);
                 
@@ -301,6 +312,14 @@ export class MistralOCRProvider implements OCRProvider {
                 // Log total processing time, even though it failed
                 const totalDuration = Date.now() - startTime;
                 this.io.log(`Document processing failed after ${totalDuration}ms`);
+                
+                // Check for authentication errors specifically
+                const errorMessage = String(apiError).toLowerCase();
+                if (errorMessage.includes('authentication') || errorMessage.includes('auth') || 
+                    errorMessage.includes('unauthorized') || errorMessage.includes('api key') ||
+                    (errorDetails.status === 401 || errorDetails.status === 403)) {
+                    return ['error', new Error(`Mistral API authentication error. Please check that your API key is valid and has the correct permissions.`)];
+                }
                 
                 // More specific error message for API failures
                 return ['error', new Error(`Mistral API error: ${String(apiError)}. Please check API key and network connection.`)];

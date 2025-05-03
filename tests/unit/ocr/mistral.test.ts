@@ -50,6 +50,11 @@ describe('MistralOCR', () => {
     const mockIo: IoE = {
         fetch: createSpy('fetch'),
         atob: createSpy('atob'),
+        log: createSpy('log'),
+        debug: createSpy('debug'),
+        warn: createSpy('warn'),
+        error: createSpy('error'),
+        trace: createSpy('trace'),
         console: {
             log: console.log,
             error: console.error
@@ -96,6 +101,11 @@ describe('MistralOCR', () => {
     beforeEach(() => {
         (mockIo.fetch as jasmine.Spy).calls.reset();
         (mockIo.atob as jasmine.Spy).calls.reset();
+        (mockIo.log as MockFunction).calls.reset();
+        (mockIo.debug as MockFunction).calls.reset();
+        (mockIo.warn as MockFunction).calls.reset();
+        (mockIo.error as MockFunction).calls.reset();
+        (mockIo.trace as MockFunction).calls.reset();
     })
 
     it('should process a single image document', async () => {
@@ -115,6 +125,9 @@ describe('MistralOCR', () => {
         };
 
         const mockClient = new Mistral({ apiKey: 'test-key' });
+        // Ensure API key is set properly
+        (mockClient as any).apiKey = 'test-key';
+        
         // Create a mock process function
         mockClient.ocr.process = function() { return Promise.resolve(mockResponse); };
 
@@ -125,7 +138,7 @@ describe('MistralOCR', () => {
         }])
 
         if (result[0] === 'error') {
-            fail('Expected successful result');
+            fail('Expected successful result: ' + result[1].message);
             return;
         }
 
@@ -137,6 +150,9 @@ describe('MistralOCR', () => {
 
     it('should handle API errors', async () => {
         const mockClient = new Mistral({ apiKey: 'test-key' });
+        // Ensure API key is set properly
+        (mockClient as any).apiKey = 'test-key';
+        
         // Create a mock process function that rejects
         mockClient.ocr.process = function() { return Promise.reject(new Error('Bad Request')); };
 
@@ -152,6 +168,27 @@ describe('MistralOCR', () => {
         }
 
         expect(result[1].message).toContain('Bad Request')
+    })
+
+    it('should handle missing API key', async () => {
+        // Create a client without an API key
+        const mockClient = new Mistral({} as any);
+        
+        // Make sure apiKey property is undefined
+        (mockClient as any).apiKey = undefined;
+        
+        const provider = new MistralOCRProvider(mockIo, mockClient)
+        const result = await provider.processDocuments([{
+            content: new Uint8Array([1, 2, 3]).buffer,
+            type: DocumentType.Image
+        }])
+
+        if (result[0] === 'ok') {
+            fail('Expected error result due to missing API key');
+            return;
+        }
+
+        expect(result[1].message).toContain('API key is required')
     })
 
     it('should process multiple documents', async () => {
@@ -188,6 +225,9 @@ describe('MistralOCR', () => {
 
         let callCount = 0;
         const mockClient = new Mistral({ apiKey: 'test-key' });
+        // Ensure API key is set properly
+        (mockClient as any).apiKey = 'test-key';
+        
         // Create a mock process function that returns different responses
         mockClient.ocr.process = function() { return Promise.resolve(mockResponses[callCount++]); };
 
@@ -198,7 +238,7 @@ describe('MistralOCR', () => {
         ])
 
         if (result[0] === 'error') {
-            fail('Expected successful result');
+            fail('Expected successful result: ' + result[1].message);
             return;
         }
 

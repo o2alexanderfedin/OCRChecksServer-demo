@@ -113,10 +113,16 @@ export const workerIoE = {
             const response = await globalThis.fetch(input, init);
             const duration = Date.now() - startTime;
             
+            // Convert headers to simple object
+            const headersObj: Record<string, string> = {};
+            response.headers.forEach((value, key) => {
+                headersObj[key] = value;
+            });
+            
             workerIo.debug(`Received response from ${url} in ${duration}ms`, {
                 status: response.status,
                 statusText: response.statusText,
-                headers: Object.fromEntries(response.headers.entries())
+                headers: headersObj
             });
             
             return response;

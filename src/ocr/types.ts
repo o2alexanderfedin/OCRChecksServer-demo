@@ -5,6 +5,11 @@ import type { Result } from 'functionalscript/types/result/module.f.js'
 export type IoE = Io & {
     readonly fetch: (url: string, options: RequestInit) => Promise<Response>
     readonly atob: (data: string) => string
+    readonly log: (message: string) => void
+    readonly debug: (message: string, data?: any) => void
+    readonly warn: (message: string, data?: any) => void
+    readonly error: (message: string, error?: any) => void
+    readonly trace: (source: string, methodName: string, args?: any) => void
 }
 
 /**

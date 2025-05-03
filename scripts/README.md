@@ -18,6 +18,10 @@ This directory contains utility scripts for running tests and starting the serve
 
 - `start-server.js` - Utility script to start the development server for integration tests
 
+## Release Management
+
+- `generate-release-name.js` - Helper script to generate release names following our convention
+
 ## Usage
 
 These scripts are typically invoked through npm scripts defined in `package.json`:
@@ -34,6 +38,9 @@ npm run test:integration
 
 # Start server
 npm run start-server
+
+# Generate a release name
+node scripts/generate-release-name.js
 ```
 
 ## Implementation Details
@@ -72,3 +79,14 @@ In version 1.12.2, the server management was significantly improved:
 - **Improved Reliability**: Ensures server processes don't remain after tests complete
 
 For detailed documentation on server process management, see [Test Server Management](../docs/test-server-management.md).
+
+### Release Name Generator (`generate-release-name.js`)
+
+The release name generator:
+- Helps create standardized release names following our convention
+- Gets the current version from package.json
+- Suggests appropriate codenames based on the release type
+- Formats the release name in the proper `v{VERSION} - {CODENAME} [{TYPE}]` format
+- Provides guidance on how to use the generated name
+
+For detailed documentation on the release naming convention, see [Release Naming Convention](../docs/release-naming-convention.md).

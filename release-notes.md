@@ -1,3 +1,19 @@
+# OCR Checks Worker v1.29.0 - Sentinel [Maintenance]
+
+## Process Improvements
+
+- **GitFlow Validation**: Implemented workflow validation to prevent direct changes to develop/main branches
+- **Type Safety Enhancements**: Added proper type assertions for API responses in integration tests
+- **Post-mortem Analysis**: Added structured process for documenting lessons from development challenges
+- **Release Naming Convention**: Introduced symbolic codenames and type classifications for releases
+
+## Bug Fixes
+
+- Fixed "unknown error" during test execution caused by TypeScript type safety issues
+- Updated version expectations in health check tests to match current API version
+- Fixed JSON syntax error in package.json
+- Improved server process cleanup in test runner
+
 # OCR Checks Worker v1.12.2
 
 ## Documentation Improvements

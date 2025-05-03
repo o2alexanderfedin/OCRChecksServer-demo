@@ -40,60 +40,45 @@ export class DIContainer {
     this.container.bind(TYPES.IoE).toConstantValue(io);
     this.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
 
-    console.log(`Mistral API Key: {apiKey}`);
+    console.log(`Mistral API Key from parameter: ${apiKey ? apiKey.substring(0, 4) + '...' : 'undefined'}`);
     
     // Register Mistral client
     this.container.bind(TYPES.MistralClient).toDynamicValue((context) => {
-      const apk = context.get<string>(TYPES.MistralApiKey);
-      console.log(`Mistral apk: {apk}`);
-      // Ensure apk is correctly set and provide more debugging information
-      if (!apk) {
-        const errorMessage = '[DIContainer] CRITICAL ERROR: Mistral apk is missing or empty';
-        console.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-
-      console.log(`Mistral API Key: {apiKey}`);
+      const apiKeyFromContext = context.get<string>(TYPES.MistralApiKey);
+      console.log(`Mistral API Key from context: ${apiKeyFromContext ? apiKeyFromContext.substring(0, 4) + '...' : 'undefined'}`);
+      
       // Ensure API key is correctly set and provide more debugging information
-      if (!apiKey) {
+      if (!apiKeyFromContext) {
         const errorMessage = '[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty';
         console.error(errorMessage);
         throw new Error(errorMessage);
       }
 
       // Validate API key format - at minimum it should be a reasonable length
-      if (apiKey.length < 20) {
-        const errorMessage = `[DIContainer] CRITICAL ERROR: Invalid Mistral API key format - too short (${apiKey.length} chars)`;
+      if (apiKeyFromContext.length < 20) {
+        const errorMessage = `[DIContainer] CRITICAL ERROR: Invalid Mistral API key format - too short (${apiKeyFromContext.length} chars)`;
         console.error(errorMessage);
         throw new Error(errorMessage);
       }
       
       // Check for obviously invalid placeholder keys
       const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
-      if (commonPlaceholders.some(placeholder => apiKey.toLowerCase().includes(placeholder))) {
+      if (commonPlaceholders.some(placeholder => apiKeyFromContext.toLowerCase().includes(placeholder))) {
         const errorMessage = '[DIContainer] CRITICAL ERROR: Detected placeholder text in Mistral API key';
         console.error(errorMessage);
         throw new Error(errorMessage);
       }
       
+      console.log(`Initializing Mistral client with API key (first 4 chars): ${apiKeyFromContext.substring(0, 4)}...`);
       
-      console.log('Initializing Mistral client with API key (first 4 chars):', apiKey.substring(0, 4) + '...');
-      
-      // Create Mistral client with explicit apiKey property
+      // Create Mistral client with API key from the container context
       let client: Mistral;
       try {
         client = new Mistral({
-          apiKey: apiKey
+          apiKey: apiKeyFromContext
         });
       } catch (error) {
         const errorMessage = `[DIContainer] CRITICAL ERROR: Failed to initialize Mistral client: ${error instanceof Error ? error.message : String(error)}`;
-        console.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-      
-      // Verify the client has the API key set
-      if (!('apiKey' in client)) {
-        const errorMessage = '[DIContainer] CRITICAL ERROR: API key not properly attached to Mistral client';
         console.error(errorMessage);
         throw new Error(errorMessage);
       }

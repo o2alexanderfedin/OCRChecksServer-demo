@@ -8,9 +8,9 @@ workers_dev = true
 [logging]
 level = "debug"
 
-# Increase resource limits for comprehensive logging
-[limits]
-cpu_ms = 50
+# Note: CPU limits require a paid plan
+# [limits]
+# cpu_ms = 50
 
 # Development environment
 [env.dev]

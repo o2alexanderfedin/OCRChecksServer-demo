@@ -1,3 +1,13 @@
+# OCR Checks Worker v1.31.0 - Sentinel [Maintenance]
+
+## Test Infrastructure Improvements
+
+- **Enhanced Server Management**: Improved server startup error handling in test runner
+- **Process Reliability**: Added robust PID file handling and verification
+- **API Key Validation**: Added explicit environment variable validation before tests
+- **Test Stability**: Improved server shutdown process with better error handling
+- **Error Diagnostics**: Enhanced error reporting for server startup failures
+
 # OCR Checks Worker v1.30.0 - Guardian [Maintenance]
 
 ## Quality Improvements

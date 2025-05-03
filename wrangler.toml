@@ -4,6 +4,15 @@ compatibility_date = "2024-04-22"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
+# Enable Cloudflare logging
+[logs]
+tail_consumers = [{service = "tail-consumer", environment = "production"}]
+timeout = 300
+
+# Enable verbose logging
+[build.upload]
+format = "service-worker"
+
 # Development environment
 [env.dev]
 name = "ocr-checks-worker-dev"

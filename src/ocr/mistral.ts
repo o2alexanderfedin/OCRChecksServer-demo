@@ -19,47 +19,105 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
     const uint8Array = new Uint8Array(arrayBuffer);
     console.log(`Converting array buffer of size ${uint8Array.length} bytes to base64`);
     
+    // Log first few bytes for debugging
+    const byteSample = uint8Array.slice(0, 20);
+    console.debug(`First ${byteSample.length} bytes: [${Array.from(byteSample).join(',')}]`);
+    
+    // Check if Buffer is available (Node.js environment)
+    const hasBuffer = typeof Buffer !== 'undefined';
+    console.log(`Environment check: Buffer is ${hasBuffer ? 'available' : 'not available'}`);
+    
     // In a Node.js environment, use Buffer for reliable conversion (this is what Mistral examples use)
-    if (typeof Buffer !== 'undefined') {
-        // Create a Buffer from the Uint8Array
-        const buffer = Buffer.from(uint8Array);
-        // Convert to base64 - exact method Mistral example uses
-        const base64 = buffer.toString('base64');
-        console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using Buffer`);
-        return base64;
+    if (hasBuffer) {
+        try {
+            // Create a Buffer from the Uint8Array
+            const buffer = Buffer.from(uint8Array);
+            
+            // Log buffer information
+            console.debug(`Created Buffer with length ${buffer.length}`);
+            
+            // Convert to base64 - exact method Mistral example uses
+            const base64 = buffer.toString('base64');
+            console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using Buffer`);
+            
+            // Log sample of base64 string
+            console.debug(`Base64 sample (first 50 chars): ${base64.substring(0, 50)}...`);
+            
+            return base64;
+        } catch (bufferError) {
+            console.error('Error in Buffer-based conversion:', bufferError);
+            console.error('Stack trace:', bufferError instanceof Error ? bufferError.stack : 'No stack trace');
+            // Continue to fallback methods
+        }
     }
     
     // For browser/Cloudflare Workers where Buffer is not available
+    console.log('Using browser/Worker compatible base64 conversion approach');
+    
     // Try the straightforward approach first
     try {
+        console.debug('Attempting direct string conversion...');
+        const startTime = Date.now();
+        
         let binary = '';
         for (let i = 0; i < uint8Array.length; i++) {
             binary += String.fromCharCode(uint8Array[i]);
         }
+        
+        console.debug(`Binary string created with length ${binary.length} in ${Date.now() - startTime}ms`);
+        console.debug(`Binary sample (first 20 chars): ${binary.substring(0, 20).replace(/[^\x20-\x7E]/g, '?')}...`);
+        
         const base64 = btoa(binary);
-        console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using btoa`);
+        console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using btoa in ${Date.now() - startTime}ms`);
+        console.debug(`Base64 sample (first 50 chars): ${base64.substring(0, 50)}...`);
+        
         return base64;
     } catch (err) {
         console.error('Error in direct base64 conversion:', err);
+        console.error('Error type:', err instanceof Error ? err.name : 'Unknown');
+        console.error('Error message:', err instanceof Error ? err.message : String(err));
+        console.error('Stack trace:', err instanceof Error ? err.stack : 'No stack trace');
         
         // Fallback to chunked approach for large files that might cause call stack issues
         console.log('Using chunked approach for base64 conversion');
+        const startTime = Date.now();
         const chunkSize = 8192; // 8KB chunks should be safe
         let base64 = '';
         
-        for (let i = 0; i < uint8Array.length; i += chunkSize) {
-            const end = Math.min(i + chunkSize, uint8Array.length);
-            const chunk = uint8Array.subarray(i, end);
+        try {
+            // Log chunking strategy
+            const numChunks = Math.ceil(uint8Array.length / chunkSize);
+            console.debug(`Chunking strategy: ${numChunks} chunks of ${chunkSize} bytes each`);
             
-            let binary = '';
-            for (let j = 0; j < chunk.length; j++) {
-                binary += String.fromCharCode(chunk[j]);
+            for (let i = 0; i < uint8Array.length; i += chunkSize) {
+                const chunkStartTime = Date.now();
+                const end = Math.min(i + chunkSize, uint8Array.length);
+                const chunk = uint8Array.subarray(i, end);
+                
+                console.debug(`Processing chunk ${Math.floor(i/chunkSize) + 1}/${numChunks}: ${chunk.length} bytes (${i}-${end})`);
+                
+                let binary = '';
+                for (let j = 0; j < chunk.length; j++) {
+                    binary += String.fromCharCode(chunk[j]);
+                }
+                
+                const chunkBase64 = btoa(binary);
+                console.debug(`Chunk ${Math.floor(i/chunkSize) + 1} converted in ${Date.now() - chunkStartTime}ms, length: ${chunkBase64.length}`);
+                
+                base64 += chunkBase64;
             }
             
-            base64 += btoa(binary);
+            console.log(`Chunked conversion complete: ${uint8Array.length} bytes to ${base64.length} base64 chars in ${Date.now() - startTime}ms`);
+            console.debug(`Base64 sample (first 50 chars): ${base64.substring(0, 50)}...`);
+            
+            return base64;
+        } catch (chunkError) {
+            console.error('Fatal error in chunked base64 conversion:', chunkError);
+            console.error('Error type:', chunkError instanceof Error ? chunkError.name : 'Unknown');
+            console.error('Error message:', chunkError instanceof Error ? chunkError.message : String(chunkError));
+            console.error('Stack trace:', chunkError instanceof Error ? chunkError.stack : 'No stack trace');
+            throw new Error(`All base64 conversion methods failed: ${String(chunkError)}`);
         }
-        
-        return base64;
     }
 }
 
@@ -94,49 +152,168 @@ export class MistralOCRProvider implements OCRProvider {
      * @returns Promise of Result containing OCR results
      */
     private async processDocument(doc: Document): Promise<Result<OCRResult[], Error>> {
+        const startTime = Date.now();
+        this.io.trace('MistralOCRProvider', 'processDocument', {
+            docName: doc.name || 'unnamed',
+            docType: doc.type,
+            docSize: doc.content.byteLength
+        });
+        
         try {
             // Log document information for debugging
-            console.log(`Processing document: ${doc.name || 'unnamed'}, type: ${doc.type}, size: ${doc.content.byteLength} bytes`);
+            this.io.log(`Processing document: ${doc.name || 'unnamed'}, type: ${doc.type}, size: ${doc.content.byteLength} bytes`);
             
             // Create document chunk for API
-            const document = this.createDocumentChunk(doc)
+            this.io.debug('Creating document chunk for Mistral API');
+            const documentStartTime = Date.now();
+            const document = this.createDocumentChunk(doc);
+            this.io.debug(`Document chunk created in ${Date.now() - documentStartTime}ms`);
+            
+            // Log detailed document chunk information
+            const docInfo: any = { 
+                type: document.type,
+                contentType: document.type === 'image_url' ? 'image' : 'document'
+            };
+            
+            if (document.type === 'image_url' && typeof document.imageUrl === 'string') {
+                docInfo.urlLength = document.imageUrl.length;
+                docInfo.urlPrefix = document.imageUrl.substring(0, 50);
+                docInfo.mimeType = document.imageUrl.substring(5, document.imageUrl.indexOf(';'));
+            } else if (document.type === 'document_url' && typeof document.documentUrl === 'string') {
+                docInfo.urlLength = document.documentUrl.length;
+                docInfo.urlPrefix = document.documentUrl.substring(0, 50);
+                docInfo.mimeType = document.documentUrl.substring(5, document.documentUrl.indexOf(';'));
+            }
+            
+            this.io.debug('Document chunk details:', docInfo);
             
             try {
-                console.log('Sending request to Mistral OCR API...');
+                // Log API request details
+                this.io.log('Sending request to Mistral OCR API...');
+                
+                // Log API key information (first 4 chars, last 4 chars)
+                const apiKey = (this.client as any).apiKey || 'unknown';
+                if (apiKey !== 'unknown') {
+                    const maskedKey = apiKey.substring(0, 4) + '...' + apiKey.substring(apiKey.length - 4);
+                    this.io.debug(`Using API key: ${maskedKey}`);
+                } else {
+                    this.io.warn('API key not found in client instance');
+                }
+                
+                // Log request details
+                const requestDetails = {
+                    model: "mistral-ocr-latest",
+                    documentType: document.type,
+                    includeImageBase64: true,
+                    urlLength: document.type === 'image_url' ? 
+                        (document.imageUrl ? document.imageUrl.length : 0) : 
+                        (document.documentUrl ? document.documentUrl.length : 0)
+                };
+                this.io.debug('API request details:', requestDetails);
+                
+                // Record request start time for performance measurement
+                const requestStartTime = Date.now();
                 
                 // Process with Mistral OCR API - formatted exactly like the example
+                this.io.debug('Making OCR API call...');
                 const ocrResponse = await this.client.ocr.process({
                     model: "mistral-ocr-latest",
                     document,
                     includeImageBase64: true // Always include image base64, as in the example
-                })
+                });
                 
-                console.log('Received successful response from Mistral OCR API');
+                // Calculate request duration
+                const requestDuration = Date.now() - requestStartTime;
+                this.io.log(`Received successful response from Mistral OCR API in ${requestDuration}ms`);
+                
+                // Log response details
+                this.io.debug('API response summary:', {
+                    model: ocrResponse.model,
+                    pageCount: ocrResponse.pages.length,
+                    usageInfo: ocrResponse.usageInfo
+                });
+                
+                // For each page, log some details
+                ocrResponse.pages.forEach((page, idx) => {
+                    this.io.debug(`Page ${idx+1} details:`, {
+                        index: page.index,
+                        textLength: page.markdown ? page.markdown.length : 0,
+                        imageCount: page.images ? page.images.length : 0,
+                        dimensions: page.dimensions
+                    });
+                });
                 
                 // Convert and return results
-                return ['ok', this.convertResponseToResults(ocrResponse)]
+                const results = this.convertResponseToResults(ocrResponse);
+                this.io.debug(`Converted ${results.length} OCR results`);
+                
+                // Calculate total processing time
+                const totalDuration = Date.now() - startTime;
+                this.io.log(`Document processing completed successfully in ${totalDuration}ms`);
+                
+                return ['ok', results];
             } catch (apiError) {
                 // Enhanced error logging for debugging in Cloudflare Workers
-                console.error('Mistral API error details:', {
-                    error: String(apiError),
-                    errorType: apiError?.constructor?.name,
-                    errorObject: JSON.stringify(apiError)
-                });
+                this.io.error('Mistral API error:', apiError);
+                
+                // Try to extract more detailed error information
+                let errorDetails: any = {
+                    errorType: apiError?.constructor?.name || 'Unknown',
+                    errorMessage: String(apiError),
+                };
+                
+                // Try to extract status code and response if available
+                if ((apiError as any)?.response) {
+                    errorDetails.status = (apiError as any).response.status;
+                    errorDetails.statusText = (apiError as any).response.statusText;
+                    
+                    // Try to parse response body if present
+                    try {
+                        if ((apiError as any).response.json) {
+                            const responseJson = await (apiError as any).response.json();
+                            errorDetails.responseBody = responseJson;
+                        } else if ((apiError as any).response.text) {
+                            const responseText = await (apiError as any).response.text();
+                            errorDetails.responseBody = responseText;
+                        }
+                    } catch (parseError) {
+                        errorDetails.responseParseError = String(parseError);
+                    }
+                }
+                
+                // If SDK-specific error information is available
+                if ((apiError as any)?.code) {
+                    errorDetails.errorCode = (apiError as any).code;
+                }
+                if ((apiError as any)?.type) {
+                    errorDetails.errorType = (apiError as any).type;
+                }
+                
+                this.io.error('Detailed API error information:', errorDetails);
                 
                 // Log the first part of the document data for diagnosis
                 if (document.type === 'image_url' && typeof document.imageUrl === 'string') {
-                    console.error('Image URL format (first 100 chars):', document.imageUrl.substring(0, 100));
+                    this.io.debug('Image URL format (first 100 chars):', document.imageUrl.substring(0, 100));
                 } else if (document.type === 'document_url' && typeof document.documentUrl === 'string') {
-                    console.error('Document URL format (first 100 chars):', document.documentUrl.substring(0, 100));
+                    this.io.debug('Document URL format (first 100 chars):', document.documentUrl.substring(0, 100));
                 }
                 
+                // Log total processing time, even though it failed
+                const totalDuration = Date.now() - startTime;
+                this.io.log(`Document processing failed after ${totalDuration}ms`);
+                
                 // More specific error message for API failures
-                return ['error', new Error(`Mistral API error: ${String(apiError)}. Please check API key and network connection.`)]
+                return ['error', new Error(`Mistral API error: ${String(apiError)}. Please check API key and network connection.`)];
             }
         } catch (err) {
             // Generic error handling for other issues
-            console.error('General error in processing document:', String(err));
-            return ['error', err instanceof Error ? err : new Error(String(err))]
+            this.io.error('General error in processing document:', err);
+            
+            // Log total processing time, even though it failed
+            const totalDuration = Date.now() - startTime;
+            this.io.log(`Document processing failed after ${totalDuration}ms`);
+            
+            return ['error', err instanceof Error ? err : new Error(String(err))];
         }
     }
 

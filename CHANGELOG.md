@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.26.1] - 2025-06-10
+
+### Fixed
+- Improved API key validation and error handling in MistralOCRProvider
+- Added explicit checks for missing API keys before making API calls
+- Enhanced error messages with specific guidance when API key is missing or invalid
+- Added special handling for authentication-related errors
+- Fixed type definitions in IoE interface for better TypeScript compatibility
+
 ## [1.26.0] - 2025-06-05
 
 ### Fixed

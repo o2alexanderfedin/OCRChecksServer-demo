@@ -9,75 +9,46 @@ import type {
 } from '@mistralai/mistralai/models/components'
 
 /**
- * Utility function to convert ArrayBuffer to base64 string without using Buffer
- * This is compatible with Cloudflare Workers environment
+ * Utility function to convert ArrayBuffer to base64 string
+ * Uses exact approach from official Mistral examples for 100% compatibility
  * @param arrayBuffer The ArrayBuffer to convert
  * @returns Base64 string representation of the ArrayBuffer
  */
 function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
     // Convert ArrayBuffer to Uint8Array
     const uint8Array = new Uint8Array(arrayBuffer);
-    
     console.log(`Converting array buffer of size ${uint8Array.length} bytes to base64`);
     
-    // Simplest approach: Convert the entire array at once for smaller images
-    if (uint8Array.length < 100 * 1024) { // 100KB threshold
-        try {
-            // Create binary string from byte array
-            let binary = '';
-            const len = uint8Array.length;
-            for (let i = 0; i < len; i++) {
-                binary += String.fromCharCode(uint8Array[i]);
-            }
-            
-            // Use standard btoa function
-            const base64 = btoa(binary);
-            console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars directly`);
-            return base64;
-        } catch (err) {
-            console.error('Error in direct base64 conversion:', err);
-            // Fall through to chunked approach
-        }
+    // In a Node.js environment, use Buffer for reliable conversion (this is what Mistral examples use)
+    if (typeof Buffer !== 'undefined') {
+        // Create a Buffer from the Uint8Array
+        const buffer = Buffer.from(uint8Array);
+        // Convert to base64 - exact method Mistral example uses
+        const base64 = buffer.toString('base64');
+        console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using Buffer`);
+        return base64;
     }
     
-    console.log('Using chunked approach for base64 conversion');
-    
-    // For larger images, use chunking to avoid call stack errors
-    const chunkSize = 32 * 1024; // 32KB chunks
-    let base64 = '';
-    
+    // For browser/Cloudflare Workers where Buffer is not available
+    // Try the straightforward approach first
     try {
-        for (let i = 0; i < uint8Array.length; i += chunkSize) {
-            // Create a slice of the array for this chunk
-            const end = Math.min(i + chunkSize, uint8Array.length);
-            const chunk = uint8Array.subarray(i, end);
-            
-            // Convert chunk to string
-            let binary = '';
-            for (let j = 0; j < chunk.length; j++) {
-                binary += String.fromCharCode(chunk[j]);
-            }
-            
-            // Convert binary chunk to base64 and append to result
-            base64 += btoa(binary);
-            
-            console.log(`Processed chunk ${i}-${end-1} (${chunk.length} bytes)`);
+        let binary = '';
+        for (let i = 0; i < uint8Array.length; i++) {
+            binary += String.fromCharCode(uint8Array[i]);
         }
-        
-        console.log(`Completed base64 conversion, generated ${base64.length} chars`);
+        const base64 = btoa(binary);
+        console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using btoa`);
         return base64;
     } catch (err) {
-        console.error('Error in chunked base64 conversion:', err);
+        console.error('Error in direct base64 conversion:', err);
         
-        // As a fallback, try a different approach that's even more conservative
-        console.log('Trying fallback base64 conversion approach');
+        // Fallback to chunked approach for large files that might cause call stack issues
+        console.log('Using chunked approach for base64 conversion');
+        const chunkSize = 8192; // 8KB chunks should be safe
+        let base64 = '';
         
-        // Ultra-small chunk approach for problematic files
-        base64 = '';
-        const tinyChunkSize = 8 * 1024; // 8KB chunks
-        
-        for (let i = 0; i < uint8Array.length; i += tinyChunkSize) {
-            const end = Math.min(i + tinyChunkSize, uint8Array.length);
+        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            const end = Math.min(i + chunkSize, uint8Array.length);
             const chunk = uint8Array.subarray(i, end);
             
             let binary = '';
@@ -133,11 +104,11 @@ export class MistralOCRProvider implements OCRProvider {
             try {
                 console.log('Sending request to Mistral OCR API...');
                 
-                // Process with Mistral OCR API
+                // Process with Mistral OCR API - formatted exactly like the example
                 const ocrResponse = await this.client.ocr.process({
                     model: "mistral-ocr-latest",
                     document,
-                    includeImageBase64: doc.type === DocumentType.PDF
+                    includeImageBase64: true // Always include image base64, as in the example
                 })
                 
                 console.log('Received successful response from Mistral OCR API');
@@ -175,37 +146,43 @@ export class MistralOCRProvider implements OCRProvider {
      * @returns Document chunk for the API
      */
     private createDocumentChunk(doc: Document): ImageURLChunk | DocumentURLChunk {
-        // Use a verified publicly accessible check image
+        // Convert document content to base64
+        const base64Content = arrayBufferToBase64(doc.content);
+        
+        // Determine correct MIME type
+        let mimeType = 'image/jpeg'; // Default for images
+        if (doc.type === DocumentType.PDF) {
+            mimeType = 'application/pdf';
+        } else if (doc.name) {
+            // Try to infer more specific image MIME type from file extension
+            const lower = doc.name.toLowerCase();
+            if (lower.endsWith('.png')) {
+                mimeType = 'image/png';
+            } else if (lower.endsWith('.gif')) {
+                mimeType = 'image/gif';
+            } else if (lower.endsWith('.webp')) {
+                mimeType = 'image/webp';
+            }
+            // Otherwise keep default image/jpeg
+        }
+        
+        // Create the data URL with proper format
+        const dataUrl = `data:${mimeType};base64,${base64Content}`;
+        console.log(`Created data URL with MIME type ${mimeType}, total length: ${dataUrl.length}`);
+        console.log(`Data URL prefix: ${dataUrl.substring(0, 50)}...`);
+        
+        // Return appropriate chunk based on document type
         if (doc.type === DocumentType.Image) {
-            // A reliable publicly available check image
-            const imageUrl = 'https://raw.githubusercontent.com/cheahjs/WatTools/master/img/watcard_1_marked.jpg';
-            console.log('Using reliable public HTTPS URL as temporary workaround');
             return { 
                 type: 'image_url', 
-                imageUrl: imageUrl 
+                imageUrl: dataUrl 
+            };
+        } else {
+            return { 
+                type: 'document_url', 
+                documentUrl: dataUrl 
             };
         }
-        
-        // For PDFs, still try the base64 approach
-        const base64Content = arrayBufferToBase64(doc.content);
-        const mimeType = 'application/pdf';
-        
-        // Ensure proper base64 padding
-        let cleanBase64 = base64Content.replace(/[^A-Za-z0-9+/=]/g, '');
-        
-        // Add proper padding if needed
-        const remainder = cleanBase64.length % 4;
-        if (remainder > 0) {
-            const padding = '='.repeat(4 - remainder);
-            cleanBase64 += padding;
-        }
-        
-        const dataUrl = `data:${mimeType};base64,${cleanBase64}`;
-        
-        return { 
-            type: 'document_url', 
-            documentUrl: dataUrl 
-        };
     }
 
     /**

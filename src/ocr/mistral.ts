@@ -10,7 +10,7 @@ import type {
 
 /**
  * Utility function to convert ArrayBuffer to base64 string
- * Uses a robust approach that works in different environments including Cloudflare Workers
+ * Uses exact approach from official Mistral examples for 100% compatibility
  * @param arrayBuffer The ArrayBuffer to convert
  * @returns Base64 string representation of the ArrayBuffer
  */
@@ -19,11 +19,11 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
     const uint8Array = new Uint8Array(arrayBuffer);
     console.log(`Converting array buffer of size ${uint8Array.length} bytes to base64`);
     
-    // In a Node.js environment, use Buffer for reliable conversion
+    // In a Node.js environment, use Buffer for reliable conversion (this is what Mistral examples use)
     if (typeof Buffer !== 'undefined') {
         // Create a Buffer from the Uint8Array
         const buffer = Buffer.from(uint8Array);
-        // Convert to base64
+        // Convert to base64 - exact method Mistral example uses
         const base64 = buffer.toString('base64');
         console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using Buffer`);
         return base64;
@@ -104,11 +104,11 @@ export class MistralOCRProvider implements OCRProvider {
             try {
                 console.log('Sending request to Mistral OCR API...');
                 
-                // Process with Mistral OCR API
+                // Process with Mistral OCR API - formatted exactly like the example
                 const ocrResponse = await this.client.ocr.process({
                     model: "mistral-ocr-latest",
                     document,
-                    includeImageBase64: doc.type === DocumentType.PDF
+                    includeImageBase64: true // Always include image base64, as in the example
                 })
                 
                 console.log('Received successful response from Mistral OCR API');

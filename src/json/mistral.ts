@@ -124,8 +124,10 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
         // Base confidence on multiple factors
         const factors = [
             // 1. Model finish reason (1.0 if "stop", 0.5 if other)
-            response.choices && 
+            Array.isArray(response.choices) && 
             response.choices.length > 0 && 
+            typeof response.choices[0] === 'object' &&
+            response.choices[0] !== null &&
             response.choices[0].finish_reason === 'stop' ? 1.0 : 0.5,
             
             // 2. JSON structure completeness (0.0-1.0)

@@ -41,7 +41,7 @@ const formatError = (error: unknown): string => {
                 message: error.message,
                 stack: error.stack,
                 // Include additional properties that might be present in API errors
-                ...(error as Record<string, unknown>)
+                ...(error as unknown as Record<string, unknown>)
             }, null, 2);
         }
         return JSON.stringify(error, null, 2);

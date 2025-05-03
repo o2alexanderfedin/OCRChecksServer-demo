@@ -156,7 +156,7 @@ export class ReceiptExtractor implements IReceiptExtractor {
     }
 
     // Add overall confidence to the receipt and normalize
-    const extractedData = value.json as Receipt;
+    const extractedData = value.json as unknown as Receipt;
     extractedData.confidence = value.confidence;
     
     // Normalize the receipt data

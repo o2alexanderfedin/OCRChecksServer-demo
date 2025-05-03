@@ -1,13 +1,14 @@
 import type { Document } from '../ocr/types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import type { Receipt } from '../json/schemas/receipt';
+import type { Check } from '../json/schemas/check';
 
 /**
  * Result of the unified processing
  */
 export type ProcessingResult = {
   /** Extracted JSON data */
-  json: Receipt | Record<string, unknown>;
+  json: Receipt | Check;
   /** Confidence score of OCR (0-1) */
   ocrConfidence: number;
   /** Confidence score of extraction (0-1) */

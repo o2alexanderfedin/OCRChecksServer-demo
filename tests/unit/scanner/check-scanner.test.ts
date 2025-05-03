@@ -4,6 +4,7 @@ import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
 import { CheckExtractor as ICheckExtractor } from '../../../src/json/extractors/types';
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
 import type { Result } from 'functionalscript/types/result/module.f.js';
+import type { Check } from '../../../src/json/schemas/check';
 
 // Mock implementations
 class MockOCRProvider implements OCRProvider {
@@ -61,9 +62,10 @@ describe('CheckScanner', () => {
     expect(result[0]).toBe('ok');
     if (result[0] === 'ok') {
       expect(result[1].json).not.toBeUndefined();
-      expect(result[1].json.checkNumber).toBe('A123456789');
-      expect(result[1].json.payee).toBe('John Smith');
-      expect(result[1].json.amount).toBe(1234.56);
+      const checkData = result[1].json as Check;
+      expect(checkData.checkNumber).toBe('A123456789');
+      expect(checkData.payee).toBe('John Smith');
+      expect(checkData.amount).toBe(1234.56);
       expect(result[1].ocrConfidence).not.toBeUndefined();
       expect(result[1].extractionConfidence).not.toBeUndefined();
       expect(result[1].overallConfidence).not.toBeUndefined();
@@ -138,8 +140,10 @@ describe('CheckScanner', () => {
     expect(result[0]).toBe('ok');
     if (result[0] === 'ok') {
       expect(result[1].length).toBe(2);
-      expect(result[1][0].json.checkNumber).toBe('A123456789');
-      expect(result[1][1].json.checkNumber).toBe('A123456789');
+      const checkData0 = result[1][0].json as Check;
+      const checkData1 = result[1][1].json as Check;
+      expect(checkData0.checkNumber).toBe('A123456789');
+      expect(checkData1.checkNumber).toBe('A123456789');
     }
   });
   

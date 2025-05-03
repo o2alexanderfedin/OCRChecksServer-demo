@@ -1,10 +1,11 @@
-import { ScannerFactory } from '../../../src/scanner/factory.js';
-import { workerIoE } from '../../../src/io.js';
-import { Document, DocumentType } from '../../../src/ocr/types.js';
+import { ScannerFactory } from '../../../src/scanner/factory';
+import { workerIoE } from '../../../src/io';
+import { Document, DocumentType, IoE } from '../../../src/ocr/types';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { retry, isRetryableError } from '../../helpers/retry.js';
+import { retry, isRetryableError } from '../../helpers/retry';
+import { Receipt } from '../../../src/json/schemas/receipt';
 
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -25,8 +26,32 @@ describe('ReceiptScanner Integration', function() {
   });
   
   it('should process a receipt image and extract structured data', async function() {
+    // Create a complete IoE implementation
+    const io: IoE = {
+      ...workerIoE,
+      console: console,
+      fs: {
+        writeFileSync: fs.writeFileSync,
+        readFileSync: fs.readFileSync,
+        existsSync: fs.existsSync,
+        promises: fs.promises
+      },
+      process: process,
+      asyncImport: async (path) => import(path),
+      performance: {
+        now: () => performance.now()
+      },
+      tryCatch: <T>(f: () => T) => {
+        try {
+          return ['ok', f()];
+        } catch (error) {
+          return ['error', error];
+        }
+      }
+    };
+    
     // Create scanner
-    const scanner = ScannerFactory.createMistralReceiptScanner(workerIoE, MISTRAL_API_KEY!);
+    const scanner = ScannerFactory.createMistralReceiptScanner(io, MISTRAL_API_KEY!);
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
@@ -85,18 +110,19 @@ describe('ReceiptScanner Integration', function() {
     console.log('Process result:', result);
     
     // Skip test if we hit rate limits or other API errors
-    if (result[0] === 'error') {
-      if (result[1].includes('rate limit') || result[1].includes('API error')) {
+    if (Array.isArray(result) && result[0] === 'error') {
+      const errorMessage = result[1] as string;
+      if (errorMessage.includes('rate limit') || errorMessage.includes('API error')) {
         console.log('Skipping test due to API rate limit or error even after retries');
-        pending('API rate limited or unavailable: ' + result[1]);
+        pending('API rate limited or unavailable: ' + errorMessage);
         return;
       }
     }
     
     // Verify result
-    expect(result[0]).toBe('ok');
+    expect(Array.isArray(result) && result[0]).toBe('ok');
     
-    if (result[0] === 'ok') {
+    if (Array.isArray(result) && result[0] === 'ok') {
       const data = result[1];
       
       // Check that we have the expected properties
@@ -114,19 +140,44 @@ describe('ReceiptScanner Integration', function() {
       expect(data.overallConfidence).toBeLessThanOrEqual(1);
       
       // Check that the JSON data has expected receipt properties
-      expect(data.json.merchant).toBeDefined();
-      expect(data.json.merchant.name).toBeDefined();
-      expect(data.json.timestamp).toBeDefined();
-      expect(data.json.totals).toBeDefined();
-      expect(data.json.totals.total).toBeDefined();
-      expect(data.json.currency).toBeDefined();
-      expect(data.json.confidence).toBeDefined();
+      const receiptData = data.json as Receipt;
+      expect(receiptData.merchant).toBeDefined();
+      expect(receiptData.merchant.name).toBeDefined();
+      expect(receiptData.timestamp).toBeDefined();
+      expect(receiptData.totals).toBeDefined();
+      expect(receiptData.totals.total).toBeDefined();
+      expect(receiptData.currency).toBeDefined();
+      expect(receiptData.confidence).toBeDefined();
     }
   });
   
   it('should use the factory method to create correct scanner type', async function() {
+    // Create a complete IoE implementation
+    const io: IoE = {
+      ...workerIoE,
+      console: console,
+      fs: {
+        writeFileSync: fs.writeFileSync,
+        readFileSync: fs.readFileSync,
+        existsSync: fs.existsSync,
+        promises: fs.promises
+      },
+      process: process,
+      asyncImport: async (path) => import(path),
+      performance: {
+        now: () => performance.now()
+      },
+      tryCatch: <T>(f: () => T) => {
+        try {
+          return ['ok', f()];
+        } catch (error) {
+          return ['error', error];
+        }
+      }
+    };
+    
     // Create scanner using factory method with receipt type
-    const scanner = ScannerFactory.createScannerByType(workerIoE, MISTRAL_API_KEY!, 'receipt');
+    const scanner = ScannerFactory.createScannerByType(io, MISTRAL_API_KEY!, 'receipt');
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
@@ -175,27 +226,29 @@ describe('ReceiptScanner Integration', function() {
     }
     
     // Skip test if we hit rate limits or other API errors
-    if (result[0] === 'error') {
-      if (result[1].includes('rate limit') || result[1].includes('API error')) {
+    if (Array.isArray(result) && result[0] === 'error') {
+      const errorMessage = result[1] as string;
+      if (errorMessage.includes('rate limit') || errorMessage.includes('API error')) {
         console.log('Skipping test due to API rate limit or error even after retries');
-        pending('API rate limited or unavailable: ' + result[1]);
+        pending('API rate limited or unavailable: ' + errorMessage);
         return;
       }
     }
     
     // Verify result
-    expect(result[0]).toBe('ok');
+    expect(Array.isArray(result) && result[0]).toBe('ok');
     
-    if (result[0] === 'ok') {
+    if (Array.isArray(result) && result[0] === 'ok') {
       const data = result[1];
       
       // Check that the JSON data has expected receipt properties
-      expect(data.json.merchant).toBeDefined();
-      expect(data.json.merchant.name).toBeDefined();
-      expect(data.json.timestamp).toBeDefined();
-      expect(data.json.totals).toBeDefined();
-      expect(data.json.totals.total).toBeDefined();
-      expect(data.json.currency).toBeDefined();
+      const receiptData = data.json as Receipt;
+      expect(receiptData.merchant).toBeDefined();
+      expect(receiptData.merchant.name).toBeDefined();
+      expect(receiptData.timestamp).toBeDefined();
+      expect(receiptData.totals).toBeDefined();
+      expect(receiptData.totals.total).toBeDefined();
+      expect(receiptData.currency).toBeDefined();
     }
   });
 });

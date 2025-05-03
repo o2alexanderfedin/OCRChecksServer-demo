@@ -1,6 +1,7 @@
-import { ScannerFactory } from '../../src/scanner/factory';
-import { workerIoE } from '../../src/io';
-import { Document, DocumentType, IoE } from '../../src/ocr/types';
+import { ScannerFactory } from '../../../src/scanner/factory';
+import { workerIoE } from '../../../src/io';
+import { Document, DocumentType, IoE } from '../../../src/ocr/types';
+import { Receipt } from '../../../src/json/schemas/receipt';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -77,7 +78,7 @@ describe('ReceiptScanner Integration', function() {
     const scanner = ScannerFactory.createMistralReceiptScanner(testIoE, MISTRAL_API_KEY!);
     
     // Load test image from fixtures directory
-    const imagePath = path.resolve(__dirname, '../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
+    const imagePath = path.resolve(__dirname, '../../fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
     console.log('Image path:', imagePath);
     
     // Check if the file exists
@@ -137,10 +138,11 @@ describe('ReceiptScanner Integration', function() {
       expect(data.overallConfidence).toBeLessThanOrEqual(1);
       
       // Check that the JSON data has expected receipt properties
-      expect(data.json.merchant).toBeDefined();
-      expect(data.json.totals).toBeDefined();
-      expect(data.json.timestamp).toBeDefined();
-      expect(data.json.currency).toBeDefined();
+      const receiptData = data.json as Receipt;
+      expect(receiptData.merchant).toBeDefined();
+      expect(receiptData.totals).toBeDefined();
+      expect(receiptData.timestamp).toBeDefined();
+      expect(receiptData.currency).toBeDefined();
     }
   });
 });

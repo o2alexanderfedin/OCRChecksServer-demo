@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { ErrorResponse } from '../../src/types/api-responses';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,7 +43,7 @@ describe('API Error Handling', function() {
       expect(contentType).toContain('application/json');
       
       // Parse response body
-      const body = await response.json();
+      const body = await response.json() as ErrorResponse;
       console.log('Error response:', body);
       
       // Verify error structure
@@ -86,7 +87,7 @@ describe('API Error Handling', function() {
       expect(contentType).toContain('application/json');
       
       // Parse response body
-      const body = await response.json();
+      const body = await response.json() as ErrorResponse;
       console.log('Error response:', body);
       
       // Verify error structure

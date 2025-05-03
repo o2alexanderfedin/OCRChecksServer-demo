@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { HealthResponse } from '../../src/types/api-responses';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,7 +42,7 @@ describe('Health Check Endpoint', function() {
       expect(contentType).toContain('application/json');
       
       // Parse response body
-      const body = await response.json();
+      const body = await response.json() as HealthResponse;
       console.log('Health endpoint response:', body);
       
       // Verify response structure

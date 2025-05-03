@@ -17,7 +17,7 @@ function getCheckImages() {
     return fs.readdirSync(checksDir)
       .filter(file => file.endsWith('.jpg') || file.endsWith('.jpeg'))
       .filter(file => !file.startsWith('._')); // Filter out macOS metadata files
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error reading check images directory:', error);
     return [];
   }
@@ -40,7 +40,7 @@ async function sendCheckImage(imagePath: string): Promise<any> {
     }
     
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error sending image ${path.basename(imagePath)}:`, error);
     throw error;
   }
@@ -59,7 +59,7 @@ describe('OCR API Integration', () => {
         throw new Error(`API endpoint returned status ${response.status}`);
       }
       console.log(`API endpoint at ${API_URL} is available`);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`API endpoint at ${API_URL} is not available:`, error);
       throw new Error(`API is not available at ${API_URL}. Make sure the server is running.`);
     }
@@ -118,7 +118,7 @@ describe('OCR API Integration', () => {
       // Send invalid file and expect proper error handling
       await sendCheckImage(testFilePath);
       fail('Expected API to reject invalid image format');
-    } catch (error) {
+    } catch (error: any) {
       // Expected error - API should reject
       expect(error).toBeDefined();
       testResults['invalid_format_test'] = { error: error.message };

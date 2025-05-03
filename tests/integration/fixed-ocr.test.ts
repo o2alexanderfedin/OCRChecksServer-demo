@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { OCRResult } from '../../src/ocr/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -103,7 +104,7 @@ describe('Fixed OCR Tests with Expected Results', () => {
     });
     
     expect(response.ok).toBe(true);
-    const result = await response.json();
+    const result = await response.json() as { text: string; data?: any };
     
     // Verify response has text content
     expect(result.text).toBeDefined();

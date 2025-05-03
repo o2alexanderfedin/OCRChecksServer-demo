@@ -310,7 +310,7 @@ process.on('SIGINT', () => cleanupAndExit('SIGINT'));  // Ctrl+C
 process.on('SIGTERM', () => cleanupAndExit('SIGTERM')); // Kill command
 
 // Execute tests with timeout protection
-const timeoutMs = config.timeoutInterval * 2;
+const timeoutMs = config.timeoutInterval * 2; // Normal timeout is 2x the interval
 
 // If dry run, just log tests that would be executed
 if (dryRun) {
@@ -345,7 +345,25 @@ const timeoutPromise = new Promise((_, reject) => {
 // Use Promise.race to handle either completion or timeout
 try {
   console.log('Starting test execution...');
-  const result = await Promise.race([testsPromise, timeoutPromise]);
+  
+  // Add unhandled rejection handler specifically for the test execution
+  const testRejectionHandler = (reason) => {
+    console.error('Unhandled rejection during test execution:', reason);
+  };
+  process.on('unhandledRejection', testRejectionHandler);
+  
+  // Create a wrapper for testsPromise that catches any errors
+  const safeTestsPromise = testsPromise.catch(err => {
+    console.error('Caught error from Jasmine execution:', err);
+    throw err; // Re-throw to be caught by the outer try/catch
+  });
+  
+  // Run the tests with timeout protection
+  const result = await Promise.race([safeTestsPromise, timeoutPromise]);
+  
+  // Remove the temporary rejection handler
+  process.removeListener('unhandledRejection', testRejectionHandler);
+  
   console.log('Tests completed with result:', result);
   console.log('Tests completed successfully');
 } catch (error) {
@@ -354,6 +372,9 @@ try {
     console.error(error.stack);
   }
   console.error(`Error type: ${error?.constructor?.name || 'Unknown'}`);
+  
+  // Print more diagnostic information
+  console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
   
   // Print out the server process info
   if (serverProcess) {

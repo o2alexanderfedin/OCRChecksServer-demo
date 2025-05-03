@@ -2,6 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Define interfaces for API responses to enable strong typing
+interface HealthResponse {
+  status: string;
+  version: string;
+  timestamp: string;
+}
+
+interface ErrorResponse {
+  error: string;
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..', '..');
@@ -39,8 +50,9 @@ describe('Basic Server Health Checks', function() {
             return null;
           }
           
-          if (!data.status || data.status !== 'ok') {
-            console.error(`Health check status is not 'ok': ${data.status}`);
+          const healthData = data as HealthResponse;
+          if (!healthData.status || healthData.status !== 'ok') {
+            console.error(`Health check status is not 'ok': ${healthData.status}`);
             return null;
           }
           
@@ -75,9 +87,9 @@ describe('Basic Server Health Checks', function() {
     expect(response.headers.get('content-type')).toContain('application/json');
     
     // Verify response content
-    const data = await response.json();
+    const data = await response.json() as HealthResponse;
     expect(data.status).toBe('ok');
-    expect(data.version).toBe('1.12.2');
+    expect(data.version).toBe('1.26.0');
     expect(typeof data.timestamp).toBe('string');
   });
   
@@ -112,7 +124,7 @@ describe('Basic Server Health Checks', function() {
     expect(response.status).toBe(400);
     
     // Verify error response
-    const data = await response.json();
+    const data = await response.json() as ErrorResponse;
     expect(data.error).toBeDefined();
     expect(data.error).toContain('Invalid content type');
   });

@@ -91,19 +91,6 @@ app.post('/process', async (c) => {
       });
     }
     
-    // Check specifically for the known placeholder key in the project
-    const knownPlaceholder = 'wHAFWZ8ksDNcRseO9CWprd5EuhezolxE';
-    if (c.env.MISTRAL_API_KEY === knownPlaceholder) {
-      const errorMessage = '[/process:handler] CRITICAL ERROR: Using default placeholder API key from wrangler.toml - this is not a valid API key';
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please replace the placeholder API key in wrangler.toml with a valid Mistral API key'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
     
     // Log API key presence (not the actual key)
     console.log('API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
@@ -214,19 +201,6 @@ app.post('/check', async (c) => {
       });
     }
     
-    // Check specifically for the known placeholder key in the project
-    const knownPlaceholder = 'wHAFWZ8ksDNcRseO9CWprd5EuhezolxE';
-    if (c.env.MISTRAL_API_KEY === knownPlaceholder) {
-      const errorMessage = '[/check:handler] CRITICAL ERROR: Using default placeholder API key from wrangler.toml - this is not a valid API key';
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please replace the placeholder API key in wrangler.toml with a valid Mistral API key'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
     
     // Log API key presence (not the actual key)
     console.log('/check: API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
@@ -332,19 +306,6 @@ app.post('/receipt', async (c) => {
       });
     }
     
-    // Check specifically for the known placeholder key in the project
-    const knownPlaceholder = 'wHAFWZ8ksDNcRseO9CWprd5EuhezolxE';
-    if (c.env.MISTRAL_API_KEY === knownPlaceholder) {
-      const errorMessage = '[/receipt:handler] CRITICAL ERROR: Using default placeholder API key from wrangler.toml - this is not a valid API key';
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please replace the placeholder API key in wrangler.toml with a valid Mistral API key'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
     
     // Log API key presence (not the actual key)
     console.log('/receipt: API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
@@ -396,7 +357,7 @@ app.get('/health', (c) => {
   return new Response(JSON.stringify({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.26.0'
+    version: '1.28.0'
   }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }

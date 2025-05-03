@@ -4,6 +4,14 @@ compatibility_date = "2024-04-22"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
+# Enable Cloudflare logging with proper format
+[logging]
+level = "debug"
+
+# Note: CPU limits require a paid plan
+# [limits]
+# cpu_ms = 50
+
 # Development environment
 [env.dev]
 name = "ocr-checks-worker-dev"
@@ -27,4 +35,4 @@ vars = { ENVIRONMENT = "production" }
 
 # Environment variables
 [vars]
-MISTRAL_API_KEY = "vYS1jOH55qvFc5Qqzgn2JHXN3cjMCJQp"
+MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE"

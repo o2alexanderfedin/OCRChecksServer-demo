@@ -12,6 +12,11 @@ describe('DIContainer', () => {
   const mockIoE = {
     fetch: async () => new Response(),
     atob: () => '',
+    log: () => {},
+    debug: () => {},
+    warn: () => {},
+    error: () => {},
+    trace: () => {},
     console: {
       log: () => {},
       error: () => {}

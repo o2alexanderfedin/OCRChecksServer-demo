@@ -2,13 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.26.0] - 2025-06-15
+## [1.27.0] - 2025-06-12
+
+### Changed
+- Merged version 1.26.1 fixes into main branch
+- Official production release incorporating all fixes from 1.26.0 and 1.26.1
+- Enhanced API key validation and error handling
+- Fixed MIME type detection and base64 encoding for Mistral API integration
+- Improved type definitions and TypeScript compatibility
+
+## [1.26.1] - 2025-06-10
 
 ### Fixed
-- Fixed base64 encoding for Mistral OCR API to properly process images
-- Improved error handling and logging for OCR processing
-- Implemented Buffer-based encoding approach for better compatibility
-- Enhanced MIME type detection from file extensions
+- Improved API key validation and error handling in MistralOCRProvider
+- Added explicit checks for missing API keys before making API calls
+- Enhanced error messages with specific guidance when API key is missing or invalid
+- Added special handling for authentication-related errors
+- Fixed type definitions in IoE interface for better TypeScript compatibility
+
+## [1.26.0] - 2025-06-05
+
+### Fixed
+- Fixed base64 encoding issues when calling Mistral OCR API
+- Improved handling of image data encoding for different environments
+- Added Buffer-based encoding as primary approach with fallbacks
+- Enhanced error handling and logging for OCR processing
+- Fixed MIME type detection for proper data URL formatting
+- Made OCR integration more reliable across Node.js and Cloudflare Workers
+
+### Added
+- Direct test for Mistral API integration to verify encoding approach
+- Enhanced logging for better troubleshooting of OCR issues
 
 ## [1.25.1] - 2025-06-03
 
@@ -539,3 +563,4 @@ All notable changes to this project will be documented in this file.
 - Mistral AI integration for OCR processing
 - API endpoint for check image processing
 - Unit tests for all components
+EOF < /dev/null

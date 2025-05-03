@@ -57,6 +57,14 @@
    - This creates an easily searchable knowledge base for future similar issues
    - Example: [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md) documents the correct branch management practices, including why release branches must be preserved
 
+9. **Perform Post-Mortem Analysis**
+   - After each feature completion, conduct a post-mortem analysis using the [post-mortem template](./.claude/templates/post-mortem.md)
+   - Document all issues encountered, root causes, and solutions applied
+   - Extract reusable lessons and create or update rule files
+   - Store post-mortems in the `.claude/post-mortems/` directory with a descriptive filename
+   - Link relevant post-mortems in related documentation
+   - Example: [Type Safety for API Responses](./.claude/rules/type-safety-api-responses.md) documents how to prevent "unknown errors" by properly typing API responses
+
 ## Testing Guidelines
 
 1. **Maintain GitFlow Process When Fixing Test Failures**

@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { CheckOCRResponse, ProcessDocumentResponse } from '../../src/types/api-responses';
+import { Check } from '../../src/json/schemas/check';
 
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -53,7 +55,7 @@ describe('Check Processing API', function() {
       expect(response.status).toBe(200);
       
       // Parse JSON response
-      const result = await response.json();
+      const result = await response.json() as CheckOCRResponse;
       console.log('API response:', JSON.stringify(result, null, 2));
       
       // Verify response structure
@@ -64,7 +66,7 @@ describe('Check Processing API', function() {
       expect(result.confidence.overall).toBeDefined();
       
       // Verify check data
-      const checkData = result.data;
+      const checkData = result.data as Check;
       expect(checkData.checkNumber).toBeDefined();
       expect(checkData.date).toBeDefined();
       expect(checkData.payee).toBeDefined();
@@ -116,7 +118,7 @@ describe('Check Processing API', function() {
       expect(response.status).toBe(200);
       
       // Parse JSON response
-      const result = await response.json();
+      const result = await response.json() as ProcessDocumentResponse;
       console.log('API response:', JSON.stringify(result, null, 2));
       
       // Verify response structure
@@ -125,7 +127,7 @@ describe('Check Processing API', function() {
       expect(result.confidence).toBeDefined();
       
       // Verify check data
-      const checkData = result.data;
+      const checkData = result.data as Check;
       expect(checkData.checkNumber).toBeDefined();
       expect(checkData.date).toBeDefined();
       expect(checkData.payee).toBeDefined();

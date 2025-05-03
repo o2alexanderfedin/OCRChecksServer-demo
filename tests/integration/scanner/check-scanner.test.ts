@@ -1,9 +1,10 @@
 import { ScannerFactory } from '../../../src/scanner/factory';
 import { workerIoE } from '../../../src/io';
-import { Document, DocumentType } from '../../../src/ocr/types';
+import { Document, DocumentType, IoE } from '../../../src/ocr/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { Check } from '../../../src/json/schemas/check';
 
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -24,8 +25,32 @@ describe('CheckScanner Integration', function() {
   });
   
   it('should process a check image and extract structured data', async function() {
+    // Create a complete IoE implementation
+    const io: IoE = {
+      ...workerIoE,
+      console: console,
+      fs: {
+        writeFileSync: fs.writeFileSync,
+        readFileSync: fs.readFileSync,
+        existsSync: fs.existsSync,
+        promises: fs.promises
+      },
+      process: process,
+      asyncImport: async (path) => import(path),
+      performance: {
+        now: () => performance.now()
+      },
+      tryCatch: <T>(f: () => T) => {
+        try {
+          return ['ok', f()];
+        } catch (error) {
+          return ['error', error];
+        }
+      }
+    };
+    
     // Create scanner
-    const scanner = ScannerFactory.createMistralCheckScanner(workerIoE, MISTRAL_API_KEY!);
+    const scanner = ScannerFactory.createMistralCheckScanner(io, MISTRAL_API_KEY!);
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../../fixtures/images/IMG_2388.jpg');
@@ -88,16 +113,41 @@ describe('CheckScanner Integration', function() {
       expect(data.overallConfidence).toBeLessThanOrEqual(1);
       
       // Check that the JSON data has expected check properties
-      expect(data.json.checkNumber).toBeDefined();
-      expect(data.json.date).toBeDefined();
-      expect(data.json.payee).toBeDefined();
-      expect(data.json.amount).toBeDefined();
+      const checkData = data.json as Check;
+      expect(checkData.checkNumber).toBeDefined();
+      expect(checkData.date).toBeDefined();
+      expect(checkData.payee).toBeDefined();
+      expect(checkData.amount).toBeDefined();
     }
   });
   
   it('should use the factory method to create correct scanner type', async function() {
+    // Create a complete IoE implementation
+    const io: IoE = {
+      ...workerIoE,
+      console: console,
+      fs: {
+        writeFileSync: fs.writeFileSync,
+        readFileSync: fs.readFileSync,
+        existsSync: fs.existsSync,
+        promises: fs.promises
+      },
+      process: process,
+      asyncImport: async (path) => import(path),
+      performance: {
+        now: () => performance.now()
+      },
+      tryCatch: <T>(f: () => T) => {
+        try {
+          return ['ok', f()];
+        } catch (error) {
+          return ['error', error];
+        }
+      }
+    };
+    
     // Create scanner using factory method with check type
-    const scanner = ScannerFactory.createScannerByType(workerIoE, MISTRAL_API_KEY!, 'check');
+    const scanner = ScannerFactory.createScannerByType(io, MISTRAL_API_KEY!, 'check');
     
     // Load test image from fixtures directory
     const imagePath = path.resolve(__dirname, '../../fixtures/images/IMG_2388.jpg');
@@ -135,10 +185,11 @@ describe('CheckScanner Integration', function() {
       const data = result[1];
       
       // Check that the JSON data has expected check properties
-      expect(data.json.checkNumber).toBeDefined();
-      expect(data.json.date).toBeDefined();
-      expect(data.json.payee).toBeDefined();
-      expect(data.json.amount).toBeDefined();
+      const checkData = data.json as Check;
+      expect(checkData.checkNumber).toBeDefined();
+      expect(checkData.date).toBeDefined();
+      expect(checkData.payee).toBeDefined();
+      expect(checkData.amount).toBeDefined();
     }
   });
 });

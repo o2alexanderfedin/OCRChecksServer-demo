@@ -61,7 +61,7 @@ describe('Mistral Direct API Test', function() {
       expect(response.pages).toBeDefined();
       expect(response.pages.length).toBeGreaterThan(0);
       
-    } catch (error) {
+    } catch (error: any) {
       // Log detailed error for debugging
       console.error('Mistral API Error:', error.message);
       if (error.response) {

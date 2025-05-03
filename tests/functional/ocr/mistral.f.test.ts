@@ -91,7 +91,13 @@ describe('MistralOCR (Functional Style)', () => {
             } catch (error) {
                 return ['error', error];
             }
-        }
+        },
+        // Add missing required IoE methods
+        log: (message: string) => console.log(message),
+        debug: (message: string, data?: unknown) => console.log('DEBUG:', message, data),
+        warn: (message: string, data?: unknown) => console.warn(message, data),
+        error: (message: string, error?: unknown) => console.error(message, error),
+        trace: (source: string, methodName: string, args?: unknown) => console.log(`TRACE: ${source}.${methodName}`, args)
     }
 
     let provider: MistralOCRProvider

@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { ReceiptOCRResponse, ProcessDocumentResponse } from '../../src/types/api-responses';
+import { Receipt } from '../../src/json/schemas/receipt';
 
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -53,7 +55,7 @@ describe('Receipt Processing API', function() {
       expect(response.status).toBe(200);
       
       // Parse JSON response
-      const result = await response.json();
+      const result = await response.json() as ReceiptOCRResponse;
       console.log('API response:', JSON.stringify(result, null, 2));
       
       // Verify response structure
@@ -64,7 +66,7 @@ describe('Receipt Processing API', function() {
       expect(result.confidence.overall).toBeDefined();
       
       // Verify receipt data
-      const receiptData = result.data;
+      const receiptData = result.data as Receipt;
       expect(receiptData.merchant).toBeDefined();
       expect(receiptData.merchant.name).toBeDefined();
       expect(receiptData.timestamp).toBeDefined();
@@ -119,7 +121,7 @@ describe('Receipt Processing API', function() {
       expect(response.status).toBe(200);
       
       // Parse JSON response
-      const result = await response.json();
+      const result = await response.json() as ProcessDocumentResponse;
       console.log('API response:', JSON.stringify(result, null, 2));
       
       // Verify response structure
@@ -128,7 +130,7 @@ describe('Receipt Processing API', function() {
       expect(result.confidence).toBeDefined();
       
       // Verify receipt data
-      const receiptData = result.data;
+      const receiptData = result.data as Receipt;
       expect(receiptData.merchant).toBeDefined();
       expect(receiptData.merchant.name).toBeDefined();
       expect(receiptData.timestamp).toBeDefined();

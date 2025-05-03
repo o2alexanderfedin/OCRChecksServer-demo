@@ -1,17 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-// Define interfaces for API responses to enable strong typing
-interface HealthResponse {
-  status: string;
-  version: string;
-  timestamp: string;
-}
-
-interface ErrorResponse {
-  error: string;
-}
+import { HealthResponse, ErrorResponse } from '../../src/types/api-responses';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,7 +47,7 @@ describe('Basic Server Health Checks', function() {
           }
           
           console.log('Health check validation passed');
-        } catch (jsonError) {
+        } catch (jsonError: any) {
           console.error(`Failed to parse health check response: ${jsonError.message}`);
           return null;
         }
@@ -66,7 +56,7 @@ describe('Basic Server Health Checks', function() {
       }
       
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Server health check failed: ${error.message}`);
       return null;
     }

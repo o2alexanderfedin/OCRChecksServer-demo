@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.26.0] - 2025-06-15
+
+### Fixed
+- Fixed base64 encoding for Mistral OCR API to properly process images
+- Improved error handling and logging for OCR processing
+- Implemented Buffer-based encoding approach for better compatibility
+- Enhanced MIME type detection from file extensions
+
 ## [1.25.1] - 2025-06-03
 
 ### Improved

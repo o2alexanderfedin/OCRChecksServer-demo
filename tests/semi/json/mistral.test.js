@@ -12,11 +12,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../../');
 
-// Read API key from wrangler.toml (now at project root)
+// Get API key from environment variable or from wrangler.toml if available
 const wranglerPath = path.join(projectRoot, 'wrangler.toml');
 console.log(`Looking for wrangler.toml at: ${wranglerPath}`);
-const wranglerContent = fs.readFileSync(wranglerPath, 'utf-8');
-const MISTRAL_API_KEY = wranglerContent.match(/MISTRAL_API_KEY\s*=\s*"([^"]+)"/)[1];
+let MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+
+// If not in environment variables, try to read from wrangler.toml
+if (!MISTRAL_API_KEY && fs.existsSync(wranglerPath)) {
+    const wranglerContent = fs.readFileSync(wranglerPath, 'utf-8');
+    const match = wranglerContent.match(/MISTRAL_API_KEY\s*=\s*"([^"]+)"/);
+    if (match && match[1]) {
+        MISTRAL_API_KEY = match[1];
+    }
+}
+
+// Skip tests if API key is not available
+if (!MISTRAL_API_KEY) {
+    console.warn('MISTRAL_API_KEY not found in environment variables or wrangler.toml');
+    // Will be handled in beforeAll to skip tests
+}
 
 // Helper function to wait between API calls to avoid rate limits
 async function delay(ms) {
@@ -42,6 +56,12 @@ describe('MistralJson Semi-Integration', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000; // 60 seconds
   
     beforeAll(() => {
+        if (!MISTRAL_API_KEY) {
+            console.warn('Skipping tests due to missing MISTRAL_API_KEY');
+            pending('MISTRAL_API_KEY environment variable or configuration not found');
+            return;
+        }
+        
         console.log('Initializing MistralJsonExtractorProvider with real dependencies');
         // Initialize the provider with real dependencies
         extractor = new MistralJsonExtractorProvider(realIo, realMistralClient);

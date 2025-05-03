@@ -9,35 +9,58 @@ import type {
 } from '@mistralai/mistralai/models/components'
 
 /**
- * Utility function to convert ArrayBuffer to base64 string without using Buffer
- * This is compatible with Cloudflare Workers environment
+ * Utility function to convert ArrayBuffer to base64 string
+ * Uses exact approach from official Mistral examples for 100% compatibility
  * @param arrayBuffer The ArrayBuffer to convert
  * @returns Base64 string representation of the ArrayBuffer
  */
 function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
     // Convert ArrayBuffer to Uint8Array
     const uint8Array = new Uint8Array(arrayBuffer);
+    console.log(`Converting array buffer of size ${uint8Array.length} bytes to base64`);
     
-    // Use btoa and String.fromCharCode for base64 conversion
-    // Note: we need to handle the array in smaller chunks for Cloudflare Workers environment
-    const chunkSize = 4096; // Smaller chunk size for better compatibility
-    let base64 = '';
-    
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-        // Create a slice of the array for this chunk
-        const chunk = uint8Array.subarray(i, i + chunkSize);
-        
-        // Convert to string character by character to avoid call stack issues
-        let chunkString = '';
-        for (let j = 0; j < chunk.length; j++) {
-            chunkString += String.fromCharCode(chunk[j]);
-        }
-        
-        // Convert to base64
-        base64 += btoa(chunkString);
+    // In a Node.js environment, use Buffer for reliable conversion (this is what Mistral examples use)
+    if (typeof Buffer !== 'undefined') {
+        // Create a Buffer from the Uint8Array
+        const buffer = Buffer.from(uint8Array);
+        // Convert to base64 - exact method Mistral example uses
+        const base64 = buffer.toString('base64');
+        console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using Buffer`);
+        return base64;
     }
     
-    return base64;
+    // For browser/Cloudflare Workers where Buffer is not available
+    // Try the straightforward approach first
+    try {
+        let binary = '';
+        for (let i = 0; i < uint8Array.length; i++) {
+            binary += String.fromCharCode(uint8Array[i]);
+        }
+        const base64 = btoa(binary);
+        console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using btoa`);
+        return base64;
+    } catch (err) {
+        console.error('Error in direct base64 conversion:', err);
+        
+        // Fallback to chunked approach for large files that might cause call stack issues
+        console.log('Using chunked approach for base64 conversion');
+        const chunkSize = 8192; // 8KB chunks should be safe
+        let base64 = '';
+        
+        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            const end = Math.min(i + chunkSize, uint8Array.length);
+            const chunk = uint8Array.subarray(i, end);
+            
+            let binary = '';
+            for (let j = 0; j < chunk.length; j++) {
+                binary += String.fromCharCode(chunk[j]);
+            }
+            
+            base64 += btoa(binary);
+        }
+        
+        return base64;
+    }
 }
 
 /**
@@ -72,23 +95,40 @@ export class MistralOCRProvider implements OCRProvider {
      */
     private async processDocument(doc: Document): Promise<Result<OCRResult[], Error>> {
         try {
+            // Log document information for debugging
+            console.log(`Processing document: ${doc.name || 'unnamed'}, type: ${doc.type}, size: ${doc.content.byteLength} bytes`);
+            
+            // Create document chunk for API
             const document = this.createDocumentChunk(doc)
             
             try {
+                console.log('Sending request to Mistral OCR API...');
+                
+                // Process with Mistral OCR API - formatted exactly like the example
                 const ocrResponse = await this.client.ocr.process({
                     model: "mistral-ocr-latest",
                     document,
-                    includeImageBase64: doc.type === DocumentType.PDF
+                    includeImageBase64: true // Always include image base64, as in the example
                 })
                 
+                console.log('Received successful response from Mistral OCR API');
+                
+                // Convert and return results
                 return ['ok', this.convertResponseToResults(ocrResponse)]
             } catch (apiError) {
-                // Detailed error logging for debugging in Cloudflare Workers
+                // Enhanced error logging for debugging in Cloudflare Workers
                 console.error('Mistral API error details:', {
                     error: String(apiError),
                     errorType: apiError?.constructor?.name,
                     errorObject: JSON.stringify(apiError)
                 });
+                
+                // Log the first part of the document data for diagnosis
+                if (document.type === 'image_url' && typeof document.imageUrl === 'string') {
+                    console.error('Image URL format (first 100 chars):', document.imageUrl.substring(0, 100));
+                } else if (document.type === 'document_url' && typeof document.documentUrl === 'string') {
+                    console.error('Document URL format (first 100 chars):', document.documentUrl.substring(0, 100));
+                }
                 
                 // More specific error message for API failures
                 return ['error', new Error(`Mistral API error: ${String(apiError)}. Please check API key and network connection.`)]
@@ -106,13 +146,43 @@ export class MistralOCRProvider implements OCRProvider {
      * @returns Document chunk for the API
      */
     private createDocumentChunk(doc: Document): ImageURLChunk | DocumentURLChunk {
-        const base64Content = arrayBufferToBase64(doc.content)
-        const mimeType = doc.type === DocumentType.Image ? 'image/jpeg' : 'application/pdf'
-        const dataUrl = `data:${mimeType};base64,${base64Content}`
-
-        return doc.type === DocumentType.Image 
-            ? { type: 'image_url', imageUrl: dataUrl }
-            : { type: 'document_url', documentUrl: dataUrl }
+        // Convert document content to base64
+        const base64Content = arrayBufferToBase64(doc.content);
+        
+        // Determine correct MIME type
+        let mimeType = 'image/jpeg'; // Default for images
+        if (doc.type === DocumentType.PDF) {
+            mimeType = 'application/pdf';
+        } else if (doc.name) {
+            // Try to infer more specific image MIME type from file extension
+            const lower = doc.name.toLowerCase();
+            if (lower.endsWith('.png')) {
+                mimeType = 'image/png';
+            } else if (lower.endsWith('.gif')) {
+                mimeType = 'image/gif';
+            } else if (lower.endsWith('.webp')) {
+                mimeType = 'image/webp';
+            }
+            // Otherwise keep default image/jpeg
+        }
+        
+        // Create the data URL with proper format
+        const dataUrl = `data:${mimeType};base64,${base64Content}`;
+        console.log(`Created data URL with MIME type ${mimeType}, total length: ${dataUrl.length}`);
+        console.log(`Data URL prefix: ${dataUrl.substring(0, 50)}...`);
+        
+        // Return appropriate chunk based on document type
+        if (doc.type === DocumentType.Image) {
+            return { 
+                type: 'image_url', 
+                imageUrl: dataUrl 
+            };
+        } else {
+            return { 
+                type: 'document_url', 
+                documentUrl: dataUrl 
+            };
+        }
     }
 
     /**

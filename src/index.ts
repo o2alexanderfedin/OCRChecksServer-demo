@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { serveStatic } from 'hono/cloudflare-workers';
 import { workerIoE } from './io';
 import { ScannerFactory } from './scanner/factory';
 import { Document, DocumentType } from './ocr/types';
@@ -11,6 +12,9 @@ interface Env {
 
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
+
+// Serve examples directory for client testing
+app.get('/examples/*', serveStatic({ root: './' }));
 
 // All functionality is now provided through dedicated endpoints:
 // - /process - Universal document processing endpoint
@@ -265,7 +269,7 @@ app.get('/health', (c) => {
   return new Response(JSON.stringify({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.25.1'
+    version: '1.26.0'
   }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }

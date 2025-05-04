@@ -21,7 +21,7 @@ if [ ! -f ".dev.vars" ]; then
 fi
 
 # Extract Mistral API key from .dev.vars
-MISTRAL_API_KEY=$(grep -oP 'MISTRAL_API_KEY=\K.*' .dev.vars)
+MISTRAL_API_KEY=$(grep 'MISTRAL_API_KEY=' .dev.vars | cut -d '=' -f 2)
 
 if [ -z "$MISTRAL_API_KEY" ]; then
   echo -e "${RED}Error: MISTRAL_API_KEY not found in .dev.vars${NC}"

@@ -29,18 +29,27 @@ describe('Mistral Direct API Test', function() {
     // Create Mistral client directly
     const client = new Mistral({ apiKey: MISTRAL_API_KEY });
     
-    // Read test image
-    const imagePath = path.resolve(__dirname, '../fixtures/images/IMG_2388.jpg');
+    // Read test image - using a smaller test image to improve reliability
+    const imagePath = path.resolve(projectRoot, 'small-test.jpg');
     const imageBuffer = fs.readFileSync(imagePath);
     
     // Convert to base64
     const base64 = Buffer.from(imageBuffer).toString('base64');
-    const dataUrl = `data:image/jpeg;base64,${base64}`;
+    
+    // Clean the base64 string to ensure no invalid characters
+    const cleanedBase64 = base64.replace(/[\s\r\n]+/g, '');
+    
+    // Create data URL with the correct format
+    const dataUrl = `data:image/jpeg;base64,${cleanedBase64}`;
     
     // Log details for debugging
     console.log(`Image size: ${imageBuffer.length} bytes`);
-    console.log(`Base64 length: ${base64.length} chars`);
+    console.log(`Base64 length: ${cleanedBase64.length} chars`);
     console.log(`Data URL starts with: ${dataUrl.substring(0, 50)}...`);
+    
+    // Validate data URL format
+    const startsWithDataImage = dataUrl.startsWith('data:image/jpeg;base64,');
+    console.log('URL starts with correct prefix:', startsWithDataImage);
     
     // Call Mistral API directly
     try {

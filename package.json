@@ -1,6 +1,6 @@
 {
   "name": "ocr-checks-worker",
-  "version": "1.37.0",
+  "version": "1.38.0",
   "description": "A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks",
   "type": "module",
   "main": "src/index.ts",
@@ -18,6 +18,8 @@
     "test:receipt-scanner": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-receipt-scanner-test.js",
     "test:swift-e2e": "bash scripts/run-swift-e2e-tests.sh",
     "test:smoke": "bash scripts/run-smoke-tests.sh",
+    "test:smoke:dev": "bash scripts/run-smoke-tests.sh --dev",
+    "test:smoke:dev:force": "bash scripts/run-smoke-tests.sh --dev --force",
     "test:smoke:production": "bash scripts/run-smoke-tests.sh --production",
     "test:smoke:staging": "bash scripts/run-smoke-tests.sh --staging",
     "start-server": "node --no-deprecation scripts/start-server.js",

@@ -41,7 +41,10 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
         try {
             // For Cloudflare Workers, we'll use chunked conversion which is more reliable
             // even with nodejs_compat flag
-            return cloudflareWorkerBase64Conversion(uint8Array);
+            const result = cloudflareWorkerBase64Conversion(uint8Array);
+            
+            // Ensure the result is clean (no whitespace or invalid characters)
+            return cleanBase64(result);
         } catch (workerError) {
             console.error('Error in Cloudflare Worker conversion:', workerError);
             // Fall through to other methods
@@ -64,7 +67,8 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
             // Log sample of base64 string
             console.debug(`Base64 sample (first 50 chars): ${base64.substring(0, 50)}...`);
             
-            return base64;
+            // Ensure the result is clean
+            return cleanBase64(base64);
         } catch (bufferError) {
             console.error('Error in Buffer-based conversion:', bufferError);
             console.error('Stack trace:', bufferError instanceof Error ? bufferError.stack : 'No stack trace');
@@ -92,7 +96,8 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
         console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using btoa in ${Date.now() - startTime}ms`);
         console.debug(`Base64 sample (first 50 chars): ${base64.substring(0, 50)}...`);
         
-        return base64;
+        // Ensure the result is clean
+        return cleanBase64(base64);
     } catch (err) {
         console.error('Error in direct base64 conversion:', err);
         console.error('Error type:', err instanceof Error ? err.name : 'Unknown');
@@ -100,8 +105,40 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
         console.error('Stack trace:', err instanceof Error ? err.stack : 'No stack trace');
         
         // Last resort: try chunked approach
-        return chunkedBase64Conversion(uint8Array);
+        const result = chunkedBase64Conversion(uint8Array);
+        return cleanBase64(result);
     }
+}
+
+/**
+ * Clean base64 string to ensure it meets Mistral API requirements
+ * @param base64 Original base64 string
+ * @returns Cleaned base64 string
+ */
+function cleanBase64(base64: string): string {
+    // Remove any whitespace or newlines that might cause validation errors
+    const cleaned = base64.replace(/[\s\r\n]+/g, '');
+    
+    // Check if the string was modified
+    if (cleaned.length !== base64.length) {
+        console.log(`Cleaned base64 string: removed ${base64.length - cleaned.length} whitespace/newline characters`);
+    }
+    
+    // Validate that the string contains only valid base64 characters
+    const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+    if (!base64Pattern.test(cleaned)) {
+        console.warn('Warning: Base64 string contains invalid characters');
+        
+        // Create a fully sanitized version (though this shouldn't be necessary for properly generated base64)
+        const fullySanitized = cleaned.replace(/[^A-Za-z0-9+/=]/g, '');
+        
+        if (fullySanitized.length !== cleaned.length) {
+            console.log(`Further cleaned base64 string: removed ${cleaned.length - fullySanitized.length} invalid characters`);
+            return fullySanitized;
+        }
+    }
+    
+    return cleaned;
 }
 
 /**
@@ -586,12 +623,32 @@ export class MistralOCRProvider implements OCRProvider {
         }
         
         // Create the data URL with proper format
-        const dataUrl = `data:${mimeType};base64,${base64Content}`;
+        // Use the exact format that Mistral expects to avoid validation errors
+        // Ensure there's no whitespace or special characters that could cause issues
+        const dataUrl = `data:${mimeType};base64,${base64Content.trim()}`;
         console.log(`Created data URL with MIME type ${mimeType}, total length: ${dataUrl.length}`);
         console.log(`Data URL prefix: ${dataUrl.substring(0, 50)}...`);
         
+        // Add extra validation to ensure URL format is correct
+        if (!dataUrl.startsWith('data:')) {
+            this.io.error('Invalid data URL format: URL does not start with "data:"');
+            throw new Error('Invalid data URL format: URL does not start with "data:"');
+        }
+        
+        if (!dataUrl.includes(';base64,')) {
+            this.io.error('Invalid data URL format: URL does not contain ";base64,"');
+            throw new Error('Invalid data URL format: URL does not contain ";base64,"');
+        }
+        
+        const base64Part = dataUrl.split(';base64,')[1];
+        if (!base64Part || base64Part.length === 0) {
+            this.io.error('Invalid data URL format: Empty base64 content');
+            throw new Error('Invalid data URL format: Empty base64 content');
+        }
+        
         // Return appropriate chunk based on document type
         if (doc.type === DocumentType.Image) {
+            // Double-check Mistral API requirements for image_url format
             return { 
                 type: 'image_url', 
                 imageUrl: dataUrl 

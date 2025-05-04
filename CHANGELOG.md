@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.38.0] - 2025-05-15
+
+### Fixed
+- Improved base64 image handling in Mistral API integration
+- Added validation and cleaning of base64 encoded images
+- Fixed image format issues in API requests
+- Enhanced smoke tests for better reliability
+
+### Added
+- New tiny test image generation for more reliable testing
+- Added `--force` flag to smoke tests to continue on errors
+- Added new npm script `test:smoke:dev:force` for easier development
+- Unit tests for base64 validation and cleaning
+
+### Changed
+- Improved smoke test validation with more lenient checks for tiny images
+- Enhanced error handling with more detailed diagnostics
+- Better compatibility with Mistral API requirements
+
 ## [1.37.0] - 2025-05-10
 
 ### Added

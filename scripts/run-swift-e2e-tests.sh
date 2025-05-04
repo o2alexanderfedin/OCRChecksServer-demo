@@ -47,7 +47,8 @@ trap cleanup EXIT
 # Start the server manually using wrangler directly
 echo -e "${YELLOW}Starting the server with wrangler...${NC}"
 cd "$PROJECT_ROOT" || { echo -e "${RED}Error: Could not find project root directory${NC}"; exit 1; }
-npx wrangler dev --local --port 8787 &
+# Use port 8789 instead of 8787 to avoid conflicts
+npx wrangler dev --local --port 8789 &
 SERVER_PID=$!
 echo $SERVER_PID > "$SERVER_PID_FILE"
 
@@ -57,7 +58,7 @@ echo "Waiting for server to be ready..."
 # Wait for server to start (ping health endpoint)
 MAX_RETRIES=60  # Increased timeout
 RETRY_COUNT=0
-SERVER_URL="http://localhost:8787"
+SERVER_URL="http://localhost:8789"
 
 # Give the server a head start before pinging
 sleep 5

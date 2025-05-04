@@ -33,7 +33,7 @@ class OCRClientIntegrationTests: XCTestCase {
     
     // Check if the server is available
     private func isServerAvailable() async -> Bool {
-        guard let url = URL(string: "http://localhost:8787/health") else {
+        guard let url = URL(string: "http://localhost:8789/health") else {
             return false
         }
         
@@ -58,15 +58,21 @@ class OCRClientIntegrationTests: XCTestCase {
             // When running from project root
             "tests/fixtures/images/IMG_2388.jpg",
             // When running from Xcode
-            "../../tests/fixtures/images/IMG_2388.jpg"
+            "../../tests/fixtures/images/IMG_2388.jpg",
+            // Absolute path (for debugging)
+            "/Users/alexanderfedin/Projects/OCRChecksServer/tests/fixtures/images/IMG_2388.jpg"
         ]
         
         for path in possibleImagePaths {
             if let imageData = try? Data(contentsOf: URL(fileURLWithPath: path)) {
+                print("Successfully loaded image from path: \(path)")
                 return imageData
+            } else {
+                print("Failed to load image from path: \(path)")
             }
         }
         
+        print("ERROR: Could not find test image in any location")
         return nil
     }
     
@@ -207,12 +213,21 @@ class OCRClientIntegrationTests: XCTestCase {
     private func runWithTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
         // Create a new task for the operation
         let operationTask = Task {
-            return try await operation()
+            do {
+                return try await operation()
+            } catch {
+                print("Original error: \(error)")
+                if let ocrError = error as? OCRError {
+                    print("OCR Error details: \(ocrError.error)")
+                }
+                throw error
+            }
         }
         
         // Create a timeout task
         let timeoutTask = Task {
             try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            print("TIMEOUT: Operation took longer than \(seconds) seconds")
             operationTask.cancel()
             throw TimeoutError(seconds: seconds)
         }
@@ -225,10 +240,12 @@ class OCRClientIntegrationTests: XCTestCase {
             return result
         } catch is CancellationError {
             // If the operation was cancelled, it was likely due to timeout
+            print("Operation was cancelled - likely due to timeout")
             throw TimeoutError(seconds: seconds)
         } catch {
             // Operation failed with some other error
             timeoutTask.cancel()
+            print("Operation failed with error: \(error)")
             throw error
         }
     }

@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.35.0] - 2025-05-07
+
+### Added
+- Enhanced diagnostic logging for Mistral API interactions
+- Comprehensive error reporting for API service issues
+- Standalone Mistral API test script for direct testing
+- Detailed request and response validation
+
+### Fixed
+- Better error handling for service outages
+- Improved debugging capabilities for third-party API issues
+- Enhanced diagnostic information for troubleshooting
+
+### Improved
+- More detailed logging for API calls and responses
+- Better visibility into API key usage and authentication
+- Enhanced error cause identification
+
 ## [1.34.0] - 2025-05-06
 
 ### Added

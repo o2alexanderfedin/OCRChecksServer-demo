@@ -168,6 +168,39 @@ export class MistralOCRProvider implements OCRProvider {
         });
         
         try {
+            // ENHANCED LOGGING: Log everything about Mistral configuration
+            console.log('======== MISTRAL API DEBUG INFO ========');
+            console.log('Mistral Client Info:');
+            
+            // Log client properties (safely)
+            try {
+                console.log('- Client type:', this.client.constructor.name);
+                // @ts-ignore - for debugging
+                console.log('- API Base URL:', this.client.apiBase || 'default (https://api.mistral.ai/v1)');
+                // @ts-ignore - for debugging
+                console.log('- API Key (first 4 chars):', (this.client.apiKey || 'unknown').substring(0, 4) + '...');
+                // @ts-ignore - for debugging
+                console.log('- API Key length:', (this.client.apiKey || '').length);
+                // @ts-ignore - for debugging
+                console.log('- API Host:', this.client.apiHost || 'default (api.mistral.ai)');
+                // @ts-ignore - for debugging
+                console.log('- API Version:', this.client.apiVersion || 'default (v1)');
+                // @ts-ignore - for debugging
+                console.log('- With Credentials:', this.client.withCredentials || false);
+                
+                // Log endpoints used
+                // @ts-ignore - for debugging purposes
+                const ocrProcessEndpoint = (this.client.apiBase || 'https://api.mistral.ai/v1') + '/ocr/process';
+                console.log('- OCR Process endpoint:', ocrProcessEndpoint);
+                
+                // Log other useful debug info
+                console.log('- Node.js environment:', typeof process !== 'undefined' ? 'Yes' : 'No');
+                console.log('- Browser environment:', typeof window !== 'undefined' ? 'Yes' : 'No');
+                console.log('- Cloudflare Worker environment:', typeof caches !== 'undefined' ? 'Yes' : 'No');
+            } catch (debugError) {
+                console.log('- Error accessing client details:', debugError);
+            }
+            
             // Log document information for debugging
             this.io.log(`Processing document: ${doc.name || 'unnamed'}, type: ${doc.type}, size: ${doc.content.byteLength} bytes`);
             
@@ -177,7 +210,7 @@ export class MistralOCRProvider implements OCRProvider {
             const document = this.createDocumentChunk(doc);
             this.io.debug(`Document chunk created in ${Date.now() - documentStartTime}ms`);
             
-            // Log detailed document chunk information
+            // ENHANCED LOGGING: Log detailed document chunk information
             const docInfo: Record<string, unknown> = { 
                 type: document.type,
                 contentType: document.type === 'image_url' ? 'image' : 'document'
@@ -187,10 +220,31 @@ export class MistralOCRProvider implements OCRProvider {
                 docInfo.urlLength = document.imageUrl.length;
                 docInfo.urlPrefix = document.imageUrl.substring(0, 50);
                 docInfo.mimeType = document.imageUrl.substring(5, document.imageUrl.indexOf(';'));
+                
+                // Enhanced validation
+                console.log('- Image URL validation:');
+                console.log('  - URL format correct:', document.imageUrl.startsWith('data:'));
+                console.log('  - MIME type:', document.imageUrl.substring(5, document.imageUrl.indexOf(';')));
+                console.log('  - Base64 indicator present:', document.imageUrl.includes(';base64,'));
+                console.log('  - URL length:', document.imageUrl.length);
+                
+                // Check for truncation
+                const base64Start = document.imageUrl.indexOf(',') + 1;
+                const base64Content = document.imageUrl.substring(base64Start);
+                console.log('  - Base64 content length:', base64Content.length);
+                console.log('  - Base64 starts with:', base64Content.substring(0, 20) + '...');
+                console.log('  - Base64 ends with:', '...' + base64Content.substring(base64Content.length - 20));
             } else if (document.type === 'document_url' && typeof document.documentUrl === 'string') {
                 docInfo.urlLength = document.documentUrl.length;
                 docInfo.urlPrefix = document.documentUrl.substring(0, 50);
                 docInfo.mimeType = document.documentUrl.substring(5, document.documentUrl.indexOf(';'));
+                
+                // Enhanced validation
+                console.log('- Document URL validation:');
+                console.log('  - URL format correct:', document.documentUrl.startsWith('data:'));
+                console.log('  - MIME type:', document.documentUrl.substring(5, document.documentUrl.indexOf(';')));
+                console.log('  - Base64 indicator present:', document.documentUrl.includes(';base64,'));
+                console.log('  - URL length:', document.documentUrl.length);
             }
             
             this.io.debug('Document chunk details:', docInfo);
@@ -198,9 +252,9 @@ export class MistralOCRProvider implements OCRProvider {
             try {
                 // Log API request details
                 this.io.log('Sending request to Mistral OCR API...');
+                console.log('======== MISTRAL API REQUEST ========');
                 
                 // Log API request details without exposing sensitive information
-                // Log request details
                 const requestDetails = {
                     model: "mistral-ocr-latest",
                     documentType: document.type,
@@ -210,13 +264,20 @@ export class MistralOCRProvider implements OCRProvider {
                         (document.type === 'document_url' && 'documentUrl' in document && typeof (document as {documentUrl: string}).documentUrl === 'string' ? 
                             (document as {documentUrl: string}).documentUrl.length : 0)
                 };
-                this.io.debug('API request details:', requestDetails);
+                
+                // ENHANCED LOGGING: More details about the request
+                console.log('- OCR API Request Parameters:');
+                console.log('  - Model:', 'mistral-ocr-latest');
+                console.log('  - Document Type:', document.type);
+                console.log('  - Include Image Base64:', true);
+                console.log('  - Document Size (bytes):', requestDetails.urlLength);
                 
                 // Record request start time for performance measurement
                 const requestStartTime = Date.now();
+                console.log('- Starting API request at:', new Date().toISOString());
                 
                 // Process with Mistral OCR API - formatted exactly like the example
-                this.io.debug('Making OCR API call...');
+                console.log('- Making OCR API call with mistral-ocr-latest model...');
                 const ocrResponse = await this.client.ocr.process({
                     model: "mistral-ocr-latest",
                     document,
@@ -225,23 +286,36 @@ export class MistralOCRProvider implements OCRProvider {
                 
                 // Calculate request duration
                 const requestDuration = Date.now() - requestStartTime;
-                this.io.log(`Received successful response from Mistral OCR API in ${requestDuration}ms`);
+                console.log('======== MISTRAL API RESPONSE ========');
+                console.log('- Status: SUCCESS');
+                console.log('- Request duration:', requestDuration, 'ms');
+                console.log('- Response received at:', new Date().toISOString());
                 
                 // Log response details
-                this.io.debug('API response summary:', {
-                    model: ocrResponse.model,
-                    pageCount: ocrResponse.pages.length,
-                    usageInfo: ocrResponse.usageInfo
-                });
+                console.log('- API response summary:');
+                console.log('  - Model:', ocrResponse.model);
+                console.log('  - Page count:', ocrResponse.pages.length);
+                if (ocrResponse.usageInfo) {
+                    console.log('  - Usage info:', JSON.stringify(ocrResponse.usageInfo, null, 2));
+                }
                 
                 // For each page, log some details
                 ocrResponse.pages.forEach((page, idx) => {
-                    this.io.debug(`Page ${idx+1} details:`, {
-                        index: page.index,
-                        textLength: page.markdown ? page.markdown.length : 0,
-                        imageCount: page.images ? page.images.length : 0,
-                        dimensions: page.dimensions
-                    });
+                    console.log(`- Page ${idx+1} details:`);
+                    console.log(`  - Index: ${page.index}`);
+                    console.log(`  - Text length: ${page.markdown ? page.markdown.length : 0} chars`);
+                    console.log(`  - Image count: ${page.images ? page.images.length : 0}`);
+                    if (page.dimensions) {
+                        console.log(`  - Dimensions: ${page.dimensions.width}x${page.dimensions.height}`);
+                    }
+                    
+                    // Show a sample of the text for debugging
+                    if (page.markdown) {
+                        const textSample = page.markdown.length > 100 ? 
+                            page.markdown.substring(0, 100) + '...' : 
+                            page.markdown;
+                        console.log(`  - Text sample: ${textSample.replace(/\n/g, ' ')}`);
+                    }
                 });
                 
                 // Convert and return results
@@ -251,10 +325,16 @@ export class MistralOCRProvider implements OCRProvider {
                 // Calculate total processing time
                 const totalDuration = Date.now() - startTime;
                 this.io.log(`Document processing completed successfully in ${totalDuration}ms`);
+                console.log('======== MISTRAL API DEBUG END ========');
                 
                 return ['ok', results];
             } catch (apiError) {
-                // Enhanced error logging for debugging in Cloudflare Workers
+                // ENHANCED ERROR LOGGING for debugging in Cloudflare Workers
+                console.log('======== MISTRAL API ERROR ========');
+                console.log('- Error occurred at:', new Date().toISOString());
+                console.log('- Error type:', apiError?.constructor?.name || 'Unknown');
+                console.log('- Error message:', String(apiError));
+                
                 this.io.error('Mistral API error:', apiError);
                 
                 // Try to extract more detailed error information
@@ -281,26 +361,53 @@ export class MistralOCRProvider implements OCRProvider {
                     errorDetails.status = mistralError.response.status;
                     errorDetails.statusText = mistralError.response.statusText;
                     
+                    console.log('- Response status:', mistralError.response.status);
+                    console.log('- Response status text:', mistralError.response.statusText);
+                    
                     // Try to parse response body if present
                     try {
                         if (mistralError.response.json) {
                             const responseJson = await mistralError.response.json();
                             errorDetails.responseBody = responseJson;
+                            console.log('- Response body (JSON):', JSON.stringify(responseJson, null, 2));
                         } else if (mistralError.response.text) {
                             const responseText = await mistralError.response.text();
                             errorDetails.responseBody = responseText;
+                            console.log('- Response body (text):', responseText);
                         }
                     } catch (parseError) {
                         errorDetails.responseParseError = String(parseError);
+                        console.log('- Response parse error:', String(parseError));
                     }
                 }
                 
                 // If SDK-specific error information is available
                 if (mistralError?.code) {
                     errorDetails.errorCode = mistralError.code;
+                    console.log('- Error code:', mistralError.code);
                 }
                 if (mistralError?.type) {
                     errorDetails.errorType = mistralError.type;
+                    console.log('- Error type:', mistralError.type);
+                }
+                
+                // Check if this is a network error
+                if (apiError instanceof Error && 'cause' in apiError) {
+                    console.log('- Error cause:', apiError.cause);
+                    if (apiError.cause && typeof apiError.cause === 'object') {
+                        const cause = apiError.cause as any;
+                        if (cause.code) {
+                            console.log('- Network error code:', cause.code);
+                        }
+                        if (cause.errno) {
+                            console.log('- Network error number:', cause.errno);
+                        }
+                    }
+                }
+                
+                // Log stack trace if available
+                if (apiError instanceof Error && apiError.stack) {
+                    console.log('- Stack trace:', apiError.stack);
                 }
                 
                 this.io.error('Detailed API error information:', errorDetails);
@@ -315,6 +422,8 @@ export class MistralOCRProvider implements OCRProvider {
                 // Log total processing time, even though it failed
                 const totalDuration = Date.now() - startTime;
                 this.io.log(`Document processing failed after ${totalDuration}ms`);
+                console.log('- Total processing time before failure:', totalDuration, 'ms');
+                console.log('======== MISTRAL API ERROR END ========');
                 
                 // Check for authentication errors specifically
                 const errorMessage = String(apiError).toLowerCase();
@@ -329,6 +438,14 @@ export class MistralOCRProvider implements OCRProvider {
             }
         } catch (err) {
             // Generic error handling for other issues
+            console.log('======== MISTRAL GENERAL ERROR ========');
+            console.log('Error type:', err instanceof Error ? err.constructor.name : typeof err);
+            console.log('Error message:', String(err));
+            if (err instanceof Error && err.stack) {
+                console.log('Stack trace:', err.stack);
+            }
+            console.log('======== MISTRAL GENERAL ERROR END ========');
+            
             this.io.error('General error in processing document:', err);
             
             // Log total processing time, even though it failed

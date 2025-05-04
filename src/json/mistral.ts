@@ -35,57 +35,190 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
      */
     async extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>> {
         try {
-            // Construct the prompt for Mistral
-            const prompt = this.constructPrompt(request)
-            
-            // Call Mistral API
-            const response = await this.client.chat.complete({
-                model: 'mistral-large-latest',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'You are a JSON extraction specialist. Extract structured data from the provided text and return it as valid JSON.'
-                    },
-                    {
-                        role: 'user',
-                        content: prompt
-                    }
-                ],
-                responseFormat: request.schema 
-                    ? { type: 'json_schema', jsonSchema: request.schema }
-                    : { type: 'json_object' }
-            })
-            
-            // Parse the response
-            let jsonContent: Record<string, unknown>
-            try {
-                // Make sure choices exists and has at least one element
-                if (!response.choices || response.choices.length === 0) {
-                    return ['error', new Error('Empty response from Mistral API')]
+            console.log('======== MISTRAL JSON EXTRACTION DEBUG INFO ========');
+            console.log('Extracting JSON from markdown text...');
+            console.log('- Input text length:', request.markdown.length, 'chars');
+            console.log('- Schema provided:', request.schema ? 'Yes' : 'No');
+            if (request.schema) {
+                console.log('- Schema type:', typeof request.schema);
+                if (typeof request.schema === 'object') {
+                    console.log('- Schema properties:', Object.keys(request.schema.properties || {}).join(', '));
                 }
-
-                const content = response.choices[0].message.content
-                if (typeof content !== 'string') {
-                    return ['error', new Error('Invalid response format from Mistral API')]
-                }
-
-                this.io.debug(`JSON content from Mistral: ${content}`);
-                jsonContent = JSON.parse(content)
-            } catch (error) {
-                return ['error', new Error(`Invalid JSON response: ${error instanceof Error ? error.message : String(error)}`)]
             }
             
-            // Validation is handled by Mistral's JSON schema support
+            // Log client info
+            try {
+                console.log('- Mistral client info:');
+                console.log('  - Client type:', this.client.constructor.name);
+                // @ts-ignore - for debugging
+                console.log('  - API Key (first 4 chars):', (this.client.apiKey || 'unknown').substring(0, 4) + '...');
+                // @ts-ignore - for debugging
+                console.log('  - API Key length:', (this.client.apiKey || '').length);
+                // @ts-ignore - for debugging
+                const chatEndpoint = (this.client.apiBase || 'https://api.mistral.ai/v1') + '/chat/completions';
+                console.log('  - Chat endpoint:', chatEndpoint);
+            } catch (debugError) {
+                console.log('  - Error accessing client details:', debugError);
+            }
             
-            // Calculate confidence score
-            const confidence = this.calculateConfidence(response, jsonContent)
+            // Construct the prompt for Mistral
+            const prompt = this.constructPrompt(request);
+            console.log('- Prompt length:', prompt.length, 'chars');
             
-            return ['ok', {
-                json: jsonContent,
-                confidence
-            }]
+            // Sample text from the beginning and end of the input
+            const textSample = request.markdown.length > 200 ? 
+                request.markdown.substring(0, 100) + '...' + request.markdown.substring(request.markdown.length - 100) : 
+                request.markdown;
+            console.log('- Text sample:', textSample.replace(/\n/g, ' '));
+            
+            console.log('======== MISTRAL JSON EXTRACTION REQUEST ========');
+            console.log('- Model:', 'mistral-large-latest');
+            console.log('- System prompt:', 'You are a JSON extraction specialist. Extract structured data from the provided text and return it as valid JSON.');
+            console.log('- Response format:', request.schema ? 'json_schema' : 'json_object');
+            
+            // Start timing the request
+            const requestStartTime = Date.now();
+            console.log('- Starting request at:', new Date().toISOString());
+            
+            // Call Mistral API
+            try {
+                const response = await this.client.chat.complete({
+                    model: 'mistral-large-latest',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are a JSON extraction specialist. Extract structured data from the provided text and return it as valid JSON.'
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    responseFormat: request.schema 
+                        ? { type: 'json_schema', jsonSchema: request.schema }
+                        : { type: 'json_object' }
+                });
+                
+                const requestDuration = Date.now() - requestStartTime;
+                console.log('======== MISTRAL JSON EXTRACTION RESPONSE ========');
+                console.log('- Status: SUCCESS');
+                console.log('- Request duration:', requestDuration, 'ms');
+                console.log('- Model used:', response.model || 'mistral-large-latest');
+                
+                if (response.usage) {
+                    console.log('- Token usage:', JSON.stringify(response.usage, null, 2));
+                }
+                
+                console.log('- Finish reason:', response.choices?.[0]?.finish_reason);
+                
+                // Parse the response
+                let jsonContent: Record<string, unknown>;
+                try {
+                    // Make sure choices exists and has at least one element
+                    if (!response.choices || response.choices.length === 0) {
+                        console.log('- ERROR: Empty response (no choices)');
+                        return ['error', new Error('Empty response from Mistral API')];
+                    }
+
+                    const content = response.choices[0].message.content;
+                    if (typeof content !== 'string') {
+                        console.log('- ERROR: Invalid content type:', typeof content);
+                        return ['error', new Error('Invalid response format from Mistral API')];
+                    }
+
+                    console.log('- Content length:', content.length, 'chars');
+                    console.log('- Content sample:', content.length > 200 ? content.substring(0, 200) + '...' : content);
+                    
+                    // Try to parse the JSON
+                    jsonContent = JSON.parse(content);
+                    console.log('- Successfully parsed JSON response');
+                    console.log('- JSON fields:', Object.keys(jsonContent).join(', '));
+                    
+                    // Log some key values (without logging the entire object, which could be large)
+                    if (Object.keys(jsonContent).length <= 5) {
+                        console.log('- JSON content:', JSON.stringify(jsonContent, null, 2));
+                    } else {
+                        console.log('- JSON content (first 5 fields):');
+                        const firstFiveEntries = Object.entries(jsonContent).slice(0, 5);
+                        for (const [key, value] of firstFiveEntries) {
+                            const valueString = typeof value === 'object' ? 
+                                '[Object]' : String(value).length > 100 ? 
+                                    String(value).substring(0, 100) + '...' : String(value);
+                            console.log(`  ${key}: ${valueString}`);
+                        }
+                    }
+                } catch (error) {
+                    console.log('- ERROR: Failed to parse JSON:', error);
+                    return ['error', new Error(`Invalid JSON response: ${error instanceof Error ? error.message : String(error)}`)];
+                }
+                
+                // Calculate confidence score
+                const confidence = this.calculateConfidence(response, jsonContent);
+                console.log('- Confidence score:', confidence);
+                
+                console.log('======== MISTRAL JSON EXTRACTION COMPLETE ========');
+                
+                return ['ok', {
+                    json: jsonContent,
+                    confidence
+                }];
+            } catch (apiError) {
+                console.log('======== MISTRAL JSON EXTRACTION ERROR ========');
+                console.log('- Error occurred at:', new Date().toISOString());
+                console.log('- Error type:', apiError?.constructor?.name || 'Unknown');
+                console.log('- Error message:', String(apiError));
+                
+                // Try to extract more detailed error information
+                if (apiError instanceof Error) {
+                    console.log('- Stack trace:', apiError.stack);
+                    
+                    if ('cause' in apiError) {
+                        console.log('- Error cause:', apiError.cause);
+                        if (apiError.cause && typeof apiError.cause === 'object') {
+                            const cause = apiError.cause as any;
+                            if (cause.code) {
+                                console.log('- Network error code:', cause.code);
+                            }
+                            if (cause.errno) {
+                                console.log('- Network error number:', cause.errno);
+                            }
+                        }
+                    }
+                    
+                    // Try to get response details if this is a Mistral API error
+                    if ('response' in apiError && apiError.response) {
+                        const response = (apiError as any).response;
+                        console.log('- Response status:', response.status);
+                        console.log('- Response status text:', response.statusText);
+                        
+                        // Try to parse response body
+                        try {
+                            if (typeof response.json === 'function') {
+                                const responseJson = await response.json();
+                                console.log('- Response body:', JSON.stringify(responseJson, null, 2));
+                            } else if (typeof response.text === 'function') {
+                                const responseText = await response.text();
+                                console.log('- Response text:', responseText);
+                            }
+                        } catch (parseError) {
+                            console.log('- Unable to parse response:', parseError);
+                        }
+                    }
+                }
+                
+                console.log('======== MISTRAL JSON EXTRACTION ERROR END ========');
+                return ['error', apiError instanceof Error ? apiError : new Error(String(apiError))];
+            }
         } catch (error) {
-            return ['error', error instanceof Error ? error : new Error(String(error))]
+            console.log('======== MISTRAL JSON GENERAL ERROR ========');
+            console.log('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+            console.log('Error message:', String(error));
+            if (error instanceof Error && error.stack) {
+                console.log('Stack trace:', error.stack);
+            }
+            console.log('======== MISTRAL JSON GENERAL ERROR END ========');
+            
+            return ['error', error instanceof Error ? error : new Error(String(error))];
         }
     }
     

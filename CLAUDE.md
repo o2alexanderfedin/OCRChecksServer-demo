@@ -97,3 +97,12 @@
 - Run all tests: `npm test`
 - Run unit tests: `npm run test:unit`
 - Run integration tests: `npm run test:integration`
+- Deploy with secrets: `npm run deploy:with-secrets`
+
+## Deployment Guidelines
+
+1. **Manage API Keys Securely**
+   - Always use the deployment script that handles secrets: `npm run deploy:with-secrets`
+   - Never commit actual API keys to the repository (except in .dev.vars for development)
+   - Follow the [Cloudflare Mistral API Key Setup](./.claude/rules/Cloudflare_Mistral_API_Key_Setup.md) guide for configuring API keys
+   - Use environment-specific configurations in wrangler.toml for different environments

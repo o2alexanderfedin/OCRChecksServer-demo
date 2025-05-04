@@ -10,9 +10,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Default values
-WORKER_NAME="ocr-checks-worker"
+WORKER_NAME="ocr-checks-worker-dev"
 FORMAT="pretty"
-ENV=""
+ENV="dev"
 SEARCH=""
 STATUS=""
 
@@ -21,18 +21,19 @@ show_help() {
     echo "Usage: bash scripts/tail-logs.sh [options]"
     echo
     echo "Options:"
-    echo "  -e, --env ENV        Environment to tail logs from (e.g., staging, production)"
-    echo "  -w, --worker NAME    Worker name (default: ocr-checks-worker)"
+    echo "  -e, --env ENV        Environment to tail logs from (default: dev)"
+    echo "  -w, --worker NAME    Worker name (default: ocr-checks-worker-dev)"
     echo "  -s, --search TEXT    Filter logs by search text"
     echo "  --errors             Show only error logs"
     echo "  --json               Output logs in JSON format instead of pretty format"
     echo "  -h, --help           Display this help message"
     echo
     echo "Examples:"
-    echo "  bash scripts/tail-logs.sh                          # Tail logs from default worker"
+    echo "  bash scripts/tail-logs.sh                          # Tail logs from dev environment (default)"
     echo "  bash scripts/tail-logs.sh -e staging               # Tail logs from staging environment"
     echo "  bash scripts/tail-logs.sh -s \"MISTRAL API ERROR\"   # Only show Mistral API error logs"
     echo "  bash scripts/tail-logs.sh --errors                 # Only show error logs"
+    echo "  bash scripts/tail-logs.sh --env production         # Tail logs from production"
     echo
 }
 
@@ -72,12 +73,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Build the wrangler tail command
-COMMAND="wrangler tail $WORKER_NAME --format $FORMAT"
-
-# Add environment if specified
-if [ -n "$ENV" ]; then
-    COMMAND="$COMMAND --env $ENV"
-fi
+COMMAND="wrangler tail $WORKER_NAME --format $FORMAT --env $ENV"
 
 # Add search filter if specified
 if [ -n "$SEARCH" ]; then

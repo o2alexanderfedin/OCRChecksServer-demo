@@ -242,10 +242,11 @@ The OCR Checks Server supports three deployment environments, each with its own 
 
 ### 1. Development Environment
 - **Purpose**: Used for ongoing development and testing new features
-- **URL**: dev-api.nolock.social
-- **Wrangler Environment**: `dev`
+- **URL**: dev-api.nolock.social or {your-subdomain}.workers.dev
+- **Wrangler Environment**: `dev` (default)
 - **Configuration**: Less restrictive, may use test API keys
 - **When to use**: For daily development work and testing features before staging
+- **Note**: This is the default environment for all deployment and monitoring tools
 
 ### 2. Staging Environment
 - **Purpose**: Pre-production testing and validation
@@ -269,7 +270,15 @@ This section covers manual deployment using the Wrangler CLI. Follow these steps
 
 ### Step 1: Set Up Environment Variables
 
-Before deploying, you need to set the required environment variables. The most important is the Mistral API key:
+The recommended approach is to create a `.dev.vars` file in the project root with your environment variables:
+
+```
+MISTRAL_API_KEY=your-api-key-here
+```
+
+This file will be automatically used by Wrangler for local development and by our deployment scripts to set up secrets in Cloudflare.
+
+Alternatively, you can set the environment variables manually:
 
 ```bash
 # For Linux/macOS
@@ -293,7 +302,9 @@ Decide which environment you want to deploy to: development, staging, or product
 Run the appropriate deployment command:
 
 ```bash
-# For development environment
+# For development environment (default)
+wrangler deploy 
+# or explicitly specify dev environment
 wrangler deploy --env dev
 
 # For staging environment
@@ -306,7 +317,9 @@ wrangler deploy --env production
 Alternatively, you can use npm scripts:
 
 ```bash
-# For development environment
+# For development environment (default)
+npm run deploy
+# or explicitly specify dev environment  
 npm run deploy -- --env dev
 
 # For staging environment
@@ -314,6 +327,19 @@ npm run deploy -- --env staging
 
 # For production environment
 npm run deploy -- --env production
+```
+
+You can also use our convenience script which handles setting up secrets:
+
+```bash
+# For development environment (default)
+bash scripts/deploy-with-secrets.sh
+
+# For staging environment
+bash scripts/deploy-with-secrets.sh staging
+
+# For production environment
+bash scripts/deploy-with-secrets.sh production
 ```
 
 ### Step 4: Wait for Deployment Completion
@@ -531,7 +557,31 @@ After deployment, it's important to monitor your application to catch any issues
 
 ![Cloudflare Worker Analytics](./images/deployment/cloudflare-worker-analytics.png)
 
-### Real-time Logs
+### Using Wrangler for Real-time Logs
+
+You can view real-time logs using the Wrangler CLI:
+
+```bash
+# For development environment (default)
+bash scripts/tail-logs.sh
+
+# Filter logs to show only errors
+bash scripts/tail-logs.sh --errors
+
+# Filter logs by search term
+bash scripts/tail-logs.sh --search "MISTRAL API"
+
+# Tail logs for a specific environment
+bash scripts/tail-logs.sh --env staging
+bash scripts/tail-logs.sh --env production
+
+# Combined options
+bash scripts/tail-logs.sh --env staging --errors --search "MISTRAL API"
+```
+
+The `tail-logs.sh` script is a convenience wrapper around the Wrangler tail command that automatically targets the dev environment by default.
+
+### Using Cloudflare Dashboard for Logs
 
 1. Log in to the Cloudflare dashboard
 2. Navigate to "Workers & Pages"

@@ -30,14 +30,14 @@ fi
 
 echo -e "${BLUE}Step 1: Setting up secrets...${NC}"
 
-# Check if environment parameter is provided
-ENV_FLAG=""
+# Set environment to dev by default, but allow override with parameter
+ENV="dev"
 if [ -n "$1" ]; then
-  ENV_FLAG="--env $1"
-  echo -e "${BLUE}Deploying to environment: $1${NC}"
-else
-  echo -e "${BLUE}Deploying to default environment${NC}"
+  ENV="$1"
 fi
+
+ENV_FLAG="--env $ENV"
+echo -e "${BLUE}Deploying to environment: $ENV${NC}"
 
 # Try to set the Mistral API key as a secret
 echo -e "${BLUE}Setting MISTRAL_API_KEY secret...${NC}"
@@ -51,14 +51,9 @@ if [ $? -ne 0 ]; then
 fi
 
 echo -e "${BLUE}Step 2: Deploying application...${NC}"
-# Run the deployment with environment if specified
-if [ -n "$1" ]; then
-  echo -e "${BLUE}Running: npm run deploy -- --env $1${NC}"
-  npm run deploy -- --env $1
-else
-  echo -e "${BLUE}Running: npm run deploy${NC}"
-  npm run deploy
-fi
+# Run the deployment with environment
+echo -e "${BLUE}Running: npm run deploy -- $ENV_FLAG${NC}"
+npm run deploy -- $ENV_FLAG
 
 if [ $? -eq 0 ]; then
   echo -e "${GREEN}=== Deployment Complete ===${NC}"

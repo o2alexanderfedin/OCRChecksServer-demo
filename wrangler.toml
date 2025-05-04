@@ -14,15 +14,14 @@ workers_dev = true
 # Development environment
 [env.dev]
 name = "ocr-checks-worker-dev"
-route = "dev-api.nolock.social/*"
-workers_dev = false
+workers_dev = true
 vars = { ENVIRONMENT = "development" }
 
 # Staging environment
 [env.staging]
 name = "ocr-checks-worker-staging"
 route = "staging-api.nolock.social/*"
-workers_dev = false
+workers_dev = true
 vars = { ENVIRONMENT = "staging" }
 
 # Production environment

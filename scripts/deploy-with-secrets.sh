@@ -29,8 +29,19 @@ if [ -z "$MISTRAL_API_KEY" ]; then
 fi
 
 echo -e "${BLUE}Step 1: Setting up secrets...${NC}"
+
+# Check if environment parameter is provided
+ENV_FLAG=""
+if [ -n "$1" ]; then
+  ENV_FLAG="--env $1"
+  echo -e "${BLUE}Deploying to environment: $1${NC}"
+else
+  echo -e "${BLUE}Deploying to default environment${NC}"
+fi
+
 # Try to set the Mistral API key as a secret
-echo "$MISTRAL_API_KEY" | npx wrangler secret put MISTRAL_API_KEY
+echo -e "${BLUE}Setting MISTRAL_API_KEY secret...${NC}"
+echo "$MISTRAL_API_KEY" | wrangler secret put MISTRAL_API_KEY $ENV_FLAG
 
 # Verify the secret was set
 if [ $? -ne 0 ]; then
@@ -40,8 +51,14 @@ if [ $? -ne 0 ]; then
 fi
 
 echo -e "${BLUE}Step 2: Deploying application...${NC}"
-# Run the normal deployment
-npm run deploy
+# Run the deployment with environment if specified
+if [ -n "$1" ]; then
+  echo -e "${BLUE}Running: npm run deploy -- --env $1${NC}"
+  npm run deploy -- --env $1
+else
+  echo -e "${BLUE}Running: npm run deploy${NC}"
+  npm run deploy
+fi
 
 if [ $? -eq 0 ]; then
   echo -e "${GREEN}=== Deployment Complete ===${NC}"

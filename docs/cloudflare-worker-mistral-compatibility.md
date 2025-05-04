@@ -120,12 +120,35 @@ cat .dev.vars
 # List secrets configured for your Worker
 wrangler secret list
 
-# Deploy with proper secrets management
+# Deploy with proper secrets management (default environment)
 bash scripts/deploy-with-secrets.sh
 
-# Check Worker logs for errors
-wrangler tail
+# Deploy to a specific environment (e.g., staging)
+bash scripts/deploy-with-secrets.sh staging
+
+# Check Worker logs for errors (production environment)
+wrangler tail ocr-checks-worker --format pretty
+
+# Check Worker logs for a specific environment
+wrangler tail ocr-checks-worker --env staging --format pretty
+
+# Filter logs to only show Mistral API errors
+wrangler tail ocr-checks-worker --search "MISTRAL API ERROR"
+
+# Show only error status logs
+wrangler tail ocr-checks-worker --status error
+
+# Use the convenience script for tailing logs
+bash scripts/tail-logs.sh
+
+# Tail logs from staging with error filtering
+bash scripts/tail-logs.sh --env staging --errors
+
+# Tail logs with Mistral API error filtering
+bash scripts/tail-logs.sh --search "MISTRAL API ERROR"
 ```
+
+Note: The first parameter `ocr-checks-worker` is the name of your Worker as defined in wrangler.toml. If you're using environment-specific Workers like `ocr-checks-worker-staging`, specify that name instead, or use the `--env` flag to select the right environment.
 
 ## Future Improvements
 

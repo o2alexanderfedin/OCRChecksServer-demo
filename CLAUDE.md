@@ -57,6 +57,7 @@
    - This creates an easily searchable knowledge base for future similar issues
    - Example: [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md) documents the correct branch management practices, including why release branches must be preserved
    - Example: [Integration Problem Solving](./.claude/rules/integration-problem-solving.md) provides a framework for addressing cross-platform integration challenges
+   - Example: [Software Problem Solving](./.claude/rules/software-problem-solving.md) offers a comprehensive approach to tackling diverse technical challenges
 
 9. **Perform Post-Mortem Analysis**
    - After each feature completion, conduct a post-mortem analysis using the [post-mortem template](./.claude/templates/post-mortem.md)

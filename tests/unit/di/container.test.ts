@@ -83,13 +83,11 @@ describe('DIContainer', () => {
       // Check that Mistral client is created correctly
       const mistralClient = container.get<Mistral>(TYPES.MistralClient);
       expect(mistralClient).toBeDefined();
-      // In test environment, we use a mock client that's not an instance of Mistral
-      // Just check that it has the apiKey property and methods we need
-      expect(mistralClient).toEqual(jasmine.objectContaining({
-        apiKey: validApiKey,
-        ocr: jasmine.anything(),
-        chat: jasmine.anything()
-      }));
+      expect(mistralClient instanceof Mistral).toBe(true);
+      
+      // Since we're using a real Mistral client, it should have ocr and chat properties
+      expect(mistralClient.ocr).toBeDefined();
+      expect(mistralClient.chat).toBeDefined();
       
       // Check OCR provider
       const ocrProvider = container.get(TYPES.OCRProvider);

@@ -68,29 +68,8 @@ export class DIContainer {
       
       // Create Mistral client with validated API key
       try {
-        // Create a mock client for testing with a properly formatted apiKey property
-        // This is a special test-only case to ensure the apiKey property is properly set for validation
-        if (process.env.NODE_ENV === 'test') {
-          return {
-            apiKey,
-            ocr: {
-              process: async () => ({
-                model: 'mistral-ocr-latest',
-                pages: [],
-                usageInfo: {}
-              })
-            },
-            chat: {
-              complete: async () => ({
-                choices: [{
-                  message: { content: '{}' },
-                  finish_reason: 'stop'
-                }]
-              })
-            }
-          } as unknown as Mistral;
-        }
-        
+        // Always use the real Mistral client - this ensures proper structure 
+        // for validation in provider constructors, while being simple to test
         return new Mistral({ apiKey });
       } catch (error) {
         const errorMessage = `[DIContainer] CRITICAL ERROR: Failed to initialize Mistral client: ${error instanceof Error ? error.message : String(error)}`;

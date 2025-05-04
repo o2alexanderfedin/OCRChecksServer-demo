@@ -6,6 +6,26 @@ import { workerIo, workerIoE } from '../../src/io';
 describe('IO Utilities', () => {
   describe('workerIo', () => {
     describe('asyncTryCatch', () => {
+      // Save original console methods
+      let originalConsoleLog: typeof console.log;
+      let originalConsoleError: typeof console.error;
+      
+      beforeEach(() => {
+        // Store original console methods
+        originalConsoleLog = console.log;
+        originalConsoleError = console.error;
+        
+        // Mock console methods to suppress output during tests
+        console.log = jasmine.createSpy('console.log');
+        console.error = jasmine.createSpy('console.error');
+      });
+      
+      afterEach(() => {
+        // Restore original console methods
+        console.log = originalConsoleLog;
+        console.error = originalConsoleError;
+      });
+      
       it('should return [ok, result] for successful async functions', async () => {
         // Create a success function
         const successFunc = async () => 'success';
@@ -59,12 +79,8 @@ describe('IO Utilities', () => {
         const originalConsoleLog = console.log;
         
         // Create a spy replacement for console.log
-        let logCalled = false;
-        let logMessage = '';
-        console.log = (msg: string) => {
-          logCalled = true;
-          logMessage = msg;
-        };
+        const consoleSpy = jasmine.createSpy('console.log');
+        console.log = consoleSpy;
         
         try {
           // Call the log function
@@ -72,9 +88,9 @@ describe('IO Utilities', () => {
           workerIo.log(testMessage);
           
           // Assert it was called correctly
-          expect(logCalled).toBe(true);
+          expect(consoleSpy).toHaveBeenCalled();
           // Check that the formatted message contains our test message (not an exact match due to formatting)
-          expect(logMessage).toContain(testMessage);
+          expect(consoleSpy.calls.argsFor(0)[0]).toContain(testMessage);
         } finally {
           // Restore original console.log
           console.log = originalConsoleLog;

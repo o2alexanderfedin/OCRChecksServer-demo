@@ -366,4 +366,108 @@ app.get('/health', () => {
   });
 });
 
+// Experimental endpoint for direct Mistral API testing 
+app.post('/experimental/mistral-direct', async (c) => {
+  try {
+    // Get request body JSON
+    const body = await c.req.json();
+    
+    // Verify API key is available
+    if (!c.env.MISTRAL_API_KEY) {
+      return new Response(JSON.stringify({ 
+        error: 'MISTRAL_API_KEY environment variable is not set'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Extract base64 image from request
+    let base64Image = body.image;
+    if (!base64Image) {
+      return new Response(JSON.stringify({ 
+        error: 'Image data is required in request body'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Log image format info
+    console.log('Experimental endpoint - received image data:');
+    console.log('- Data URL format:', base64Image.startsWith('data:'));
+    console.log('- Length:', base64Image.length);
+    
+    // Clean base64 if not in data URL format
+    if (!base64Image.startsWith('data:')) {
+      base64Image = `data:image/jpeg;base64,${base64Image}`;
+      console.log('- Added data:image/jpeg;base64, prefix');
+    }
+    
+    // Create headers for Mistral API request
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${c.env.MISTRAL_API_KEY}`
+    };
+    
+    // Prepare document for Mistral OCR API
+    const documentPayload = {
+      model: "mistral-ocr-latest",
+      document: {
+        type: 'image_url',
+        imageUrl: base64Image
+      },
+      includeImageBase64: true
+    };
+    
+    console.log('- Sending request to Mistral OCR API');
+    
+    // Make direct request to Mistral API
+    const mistralResponse = await fetch('https://api.mistral.ai/v1/ocr', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(documentPayload)
+    });
+    
+    // Get response details for debugging
+    const statusCode = mistralResponse.status;
+    const statusText = mistralResponse.statusText;
+    const responseHeaders = Object.fromEntries(mistralResponse.headers.entries());
+    
+    console.log(`- Mistral API response: ${statusCode} ${statusText}`);
+    
+    // Get response body
+    let responseData;
+    try {
+      responseData = await mistralResponse.json();
+    } catch (jsonError) {
+      // If not JSON, get text instead
+      const responseText = await mistralResponse.text();
+      console.log('- Response is not valid JSON:', responseText.substring(0, 200));
+      responseData = { rawText: responseText };
+    }
+    
+    // Return detailed response for debugging purposes
+    return new Response(JSON.stringify({
+      success: mistralResponse.ok,
+      statusCode,
+      statusText,
+      responseHeaders,
+      data: responseData
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Error in experimental endpoint:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error in experimental endpoint',
+      message: String(error)
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+});
+
 export default app; 

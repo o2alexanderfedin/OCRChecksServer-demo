@@ -32,6 +32,10 @@ workers_dev = true
 # IMPORTANT: Replace the API key with your actual Mistral API key
 vars = { ENVIRONMENT = "production", MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE" }
 
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true
+
 # Environment variables
 [vars]
 # IMPORTANT: This is a placeholder API key. To use this application, replace this with your actual Mistral API key.

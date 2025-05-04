@@ -5,6 +5,8 @@ import { serveStatic } from 'hono/cloudflare-workers';
 import { workerIoE } from './io';
 import { ScannerFactory } from './scanner/factory';
 import { Document, DocumentType } from './ocr/types';
+// Get package version (used in health check)
+import pkg from '../package.json';
 
 interface Env {
   MISTRAL_API_KEY: string;
@@ -357,7 +359,7 @@ app.get('/health', () => {
   return new Response(JSON.stringify({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.31.0'
+    version: pkg.version
   }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }

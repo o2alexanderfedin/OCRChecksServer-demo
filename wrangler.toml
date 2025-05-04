@@ -38,6 +38,3 @@ enabled = true
 
 # Environment variables
 [vars]
-# IMPORTANT: This is a placeholder API key. To use this application, replace this with your actual Mistral API key.
-# The API key can be obtained from the Mistral AI dashboard at https://console.mistral.ai/
-MISTRAL_API_KEY2 = "Yc8LS3Sco5UjbaOHntElp9Lin58eUzLA"

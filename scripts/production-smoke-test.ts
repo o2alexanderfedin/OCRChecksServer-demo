@@ -1,11 +1,11 @@
 /**
  * Production Smoke Tests
  * 
- * This script performs integration tests against any environment (local, staging, production)
+ * This script performs integration tests against any environment (local, dev, staging, production)
  * to verify that the API is working correctly.
  * 
  * Usage:
- *   ts-node scripts/production-smoke-test.ts [--env production|staging|local] [--save] [--verbose]
+ *   ts-node scripts/production-smoke-test.ts [--env production|staging|dev|local] [--save] [--verbose]
  * 
  * Options:
  *   --env        The environment to test against (default: local)
@@ -13,8 +13,11 @@
  *   --verbose    Show verbose output including API responses
  * 
  * Examples:
- *   ts-node scripts/production-smoke-test.ts
- *   ts-node scripts/production-smoke-test.ts --env production --save
+ *   ts-node scripts/production-smoke-test.ts                      # Test against local environment
+ *   ts-node scripts/production-smoke-test.ts --env dev            # Test against dev environment
+ *   ts-node scripts/production-smoke-test.ts --env staging        # Test against staging environment
+ *   ts-node scripts/production-smoke-test.ts --env production     # Test against production environment
+ *   ts-node scripts/production-smoke-test.ts --env dev --save     # Test against dev and save results
  *   OCR_API_URL=https://custom.api.url ts-node scripts/production-smoke-test.ts --verbose
  */
 
@@ -39,6 +42,7 @@ const options = {
 const environments = {
   production: 'https://api.nolock.social',
   staging: 'https://staging-api.nolock.social',
+  dev: 'https://ocr-checks-worker-dev.af-4a0.workers.dev',
   local: 'http://localhost:8787'
 };
 

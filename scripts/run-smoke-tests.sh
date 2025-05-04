@@ -38,6 +38,10 @@ while [[ $# -gt 0 ]]; do
       ENV="staging"
       shift
       ;;
+    --dev|-d)
+      ENV="dev"
+      shift
+      ;;
     --save)
       SAVE=true
       shift
@@ -66,7 +70,8 @@ if [ "$HELP" = true ]; then
   echo -e "Usage: $0 [options]"
   echo -e ""
   echo -e "Options:"
-  echo -e "  ${CYAN}--env, -e ${NC}ENV       Set the target environment (local, staging, production)"
+  echo -e "  ${CYAN}--env, -e ${NC}ENV       Set the target environment (local, dev, staging, production)"
+  echo -e "  ${CYAN}--dev, -d${NC}           Shorthand for --env dev"
   echo -e "  ${CYAN}--production, -p${NC}    Shorthand for --env production"
   echo -e "  ${CYAN}--staging, -s${NC}       Shorthand for --env staging"
   echo -e "  ${CYAN}--save${NC}              Save detailed test results to a JSON file"
@@ -75,6 +80,7 @@ if [ "$HELP" = true ]; then
   echo -e ""
   echo -e "Examples:"
   echo -e "  $0                   # Run tests against local environment"
+  echo -e "  $0 --dev             # Run tests against dev environment"
   echo -e "  $0 --production      # Run tests against production environment"
   echo -e "  $0 --env staging --save  # Run tests against staging and save results"
   echo -e "${MAGENTA}=======================================================${NC}"

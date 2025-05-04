@@ -74,6 +74,11 @@ describe('Mistral API Direct Test', () => {
     console.log = jasmine.createSpy('console.log');
     console.debug = jasmine.createSpy('console.debug');
     
+    // Set test API key for environment if not already set
+    if (!process.env.MISTRAL_API_KEY) {
+      process.env.MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE";
+    }
+    
     // Ensure the test image exists, or create a simple test image if necessary
     if (!fs.existsSync(testImagePath)) {
       console.log(`Test image not found at path: ${testImagePath}`);

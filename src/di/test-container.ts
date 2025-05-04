@@ -59,7 +59,7 @@ export function createMockMistral(options: {
                 accountNumber: '9876543210'
               })
             },
-            finish_reason: 'stop'
+            finishReason: 'stop'
           }
         ]
       };
@@ -93,7 +93,7 @@ export function createMockMistral(options: {
                 currentCharges: 181.79
               })
             },
-            finish_reason: 'stop'
+            finishReason: 'stop'
           }
         ]
       };
@@ -138,7 +138,7 @@ export function createMockMistral(options: {
                 ]
               })
             },
-            finish_reason: 'stop'
+            finishReason: 'stop'
           }
         ]
       };

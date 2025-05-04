@@ -156,7 +156,7 @@ describe('MistralJsonExtractor (Functional Style)', () => {
                     message: {
                         content: '{"checkNumber":"1234","date":"01/15/2024","payee":"John Smith","amount":500,"memo":"Consulting services"}'
                     },
-                    finish_reason: 'stop'
+                    finishReason: 'stop'
                 }
             ]
         }
@@ -268,7 +268,7 @@ describe('MistralJsonExtractor (Functional Style)', () => {
                     message: {
                         content: 'This is not valid JSON'
                     },
-                    finish_reason: 'stop'
+                    finishReason: 'stop'
                 }
             ]
         }

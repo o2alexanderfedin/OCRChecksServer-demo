@@ -141,7 +141,7 @@ describe('MistralJsonExtractor', () => {
                     message: {
                         content: '{"checkNumber":"1234","date":"01/15/2024","payee":"John Smith","amount":500,"memo":"Consulting services"}'
                     },
-                    finish_reason: 'stop'
+                    finishReason: 'stop'
                 }
             ]
         });
@@ -254,7 +254,7 @@ describe('MistralJsonExtractor', () => {
                     message: {
                         content: 'Not valid JSON'
                     },
-                    finish_reason: 'stop'
+                    finishReason: 'stop'
                 }
             ]
         });
@@ -297,7 +297,7 @@ describe('MistralJsonExtractor', () => {
                     message: {
                         content: '{"checkNumber":"1234","date":"01/15/2024","payee":"John Smith","amount":500,"memo":"Consulting services"}'
                     },
-                    finish_reason: 'stop' // This should give high confidence
+                    finishReason: 'stop' // This should give high confidence
                 }
             ]
         });
@@ -326,7 +326,7 @@ describe('MistralJsonExtractor', () => {
             return;
         }
         
-        // Check confidence score (should be high because finish_reason is 'stop')
+        // Check confidence score (should be high because finishReason is 'stop')
         expect(result[1].confidence).toBeGreaterThanOrEqual(0.9);
     });
 });

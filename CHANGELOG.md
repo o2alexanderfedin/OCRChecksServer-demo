@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.33.0] - 2025-05-05
+
+### Added
+- Production smoke test scripts for all environments
+- TypeScript implementation of comprehensive API smoke tests
+- Shell script wrapper for running smoke tests with environment targeting
+- New npm scripts for running smoke tests against different environments
+- Enhanced logging configuration in Cloudflare Workers
+
+### Improved
+- Better production monitoring with automated smoke tests
+- Simplified testing workflow for operations teams
+- Enhanced visibility into production API health
+- More robust deployment verification process
+
 ## [1.32.0] - 2025-05-04
 
 ### Added

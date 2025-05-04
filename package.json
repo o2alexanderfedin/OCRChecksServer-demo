@@ -9,6 +9,7 @@
     "dev:watch": "wrangler dev --live-reload",
     "start-local": "bash scripts/start-local.sh",
     "deploy": "wrangler deploy",
+    "deploy:with-secrets": "bash scripts/deploy-with-secrets.sh",
     "test": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-tests.js all",
     "test:unit": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-unit-tests.js",
     "test:functional": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-functional-tests.js",

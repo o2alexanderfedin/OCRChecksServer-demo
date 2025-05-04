@@ -366,27 +366,61 @@ app.get('/health', () => {
   });
 });
 
-// Experimental endpoint for direct Mistral API testing 
+// Experimental endpoint for direct Mistral API testing with enhanced debugging
 app.post('/experimental/mistral-direct', async (c) => {
+  const debugInfo = {
+    requestInfo: {},
+    apiKeyInfo: {},
+    imageInfo: {},
+    requestPayload: {},
+    requestResult: {},
+    responseInfo: {},
+    errors: []
+  };
+  
   try {
+    // Start timing the request
+    const startTime = Date.now();
+    debugInfo.requestInfo.startTime = new Date().toISOString();
+    
     // Get request body JSON
     const body = await c.req.json();
+    debugInfo.requestInfo.receivedRequestBody = !!body;
+    debugInfo.requestInfo.bodyKeys = Object.keys(body);
+    
+    // Extract debugging options
+    const debug = body.debug === true;
+    const testMode = body.testMode === true;
+    debugInfo.requestInfo.debugMode = debug;
+    debugInfo.requestInfo.testMode = testMode;
     
     // Verify API key is available
     if (!c.env.MISTRAL_API_KEY) {
+      debugInfo.apiKeyInfo.available = false;
+      debugInfo.errors.push('MISTRAL_API_KEY environment variable is not set');
+      
       return new Response(JSON.stringify({ 
-        error: 'MISTRAL_API_KEY environment variable is not set'
+        error: 'MISTRAL_API_KEY environment variable is not set',
+        debug: debugInfo
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
     
+    // API key info (safely)
+    debugInfo.apiKeyInfo.available = true;
+    debugInfo.apiKeyInfo.length = c.env.MISTRAL_API_KEY.length;
+    debugInfo.apiKeyInfo.prefix = c.env.MISTRAL_API_KEY.substring(0, 4) + '...';
+    
     // Extract base64 image from request
     let base64Image = body.image;
     if (!base64Image) {
+      debugInfo.errors.push('Image data is required in request body');
+      
       return new Response(JSON.stringify({ 
-        error: 'Image data is required in request body'
+        error: 'Image data is required in request body',
+        debug: debugInfo
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -395,13 +429,43 @@ app.post('/experimental/mistral-direct', async (c) => {
     
     // Log image format info
     console.log('Experimental endpoint - received image data:');
-    console.log('- Data URL format:', base64Image.startsWith('data:'));
-    console.log('- Length:', base64Image.length);
+    debugInfo.imageInfo.originalLength = base64Image.length;
+    debugInfo.imageInfo.isDataUrl = base64Image.startsWith('data:');
+    debugInfo.imageInfo.hasMimeType = base64Image.includes('image/');
+    debugInfo.imageInfo.hasBase64Marker = base64Image.includes(';base64,');
+    
+    if (debugInfo.imageInfo.isDataUrl) {
+      // Parse data URL components
+      const mimeMatch = base64Image.match(/^data:([^;]+);/);
+      const base64Start = base64Image.indexOf(',') + 1;
+      
+      debugInfo.imageInfo.mimeType = mimeMatch ? mimeMatch[1] : 'unknown';
+      debugInfo.imageInfo.dataPrefix = base64Image.substring(0, base64Start);
+      debugInfo.imageInfo.actualBase64Length = base64Image.length - base64Start;
+      
+      // Validate base64 content
+      const base64Content = base64Image.substring(base64Start);
+      const validBase64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+      debugInfo.imageInfo.isValidBase64 = validBase64Regex.test(base64Content);
+    }
     
     // Clean base64 if not in data URL format
     if (!base64Image.startsWith('data:')) {
+      // Check if it's already valid base64
+      const validBase64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+      debugInfo.imageInfo.isValidRawBase64 = validBase64Regex.test(base64Image);
+      
+      // Store original format for debugging
+      debugInfo.imageInfo.originalFormat = 'raw base64';
+      debugInfo.imageInfo.added = 'data:image/jpeg;base64, prefix';
+      
+      // Add data URL prefix
       base64Image = `data:image/jpeg;base64,${base64Image}`;
+      debugInfo.imageInfo.newLength = base64Image.length;
       console.log('- Added data:image/jpeg;base64, prefix');
+    } else {
+      debugInfo.imageInfo.originalFormat = 'data URL';
+      debugInfo.imageInfo.preserved = 'already had data URL prefix';
     }
     
     // Create headers for Mistral API request
@@ -409,31 +473,97 @@ app.post('/experimental/mistral-direct', async (c) => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${c.env.MISTRAL_API_KEY}`
     };
-    
-    // Prepare document for Mistral OCR API
-    // The error indicates we need to use image_url field, not imageUrl
-    const documentPayload = {
-      model: "mistral-ocr-latest",
-      document: {
-        type: 'image_url',
-        image_url: base64Image
-      },
-      include_image_base64: true
+    debugInfo.requestInfo.headers = {
+      contentType: headers['Content-Type'],
+      authHeaderLength: headers['Authorization'].length
     };
     
+    // Prepare document for Mistral API
+    // Try both snake_case and camelCase to compare
+    let documentPayload;
+    
+    if (body.format === 'camelCase' || body.useSnakeCase === false) {
+      // Use camelCase format
+      documentPayload = {
+        model: "mistral-ocr-latest",
+        document: {
+          type: 'image_url',
+          imageUrl: base64Image
+        },
+        includeImageBase64: true
+      };
+      debugInfo.requestPayload.format = 'camelCase';
+    } else {
+      // Use snake_case format (default)
+      documentPayload = {
+        model: "mistral-ocr-latest",
+        document: {
+          type: 'image_url',
+          image_url: base64Image
+        },
+        include_image_base64: true
+      };
+      debugInfo.requestPayload.format = 'snake_case';
+    }
+    
+    // Add optional fields from request body
+    if (body.model) {
+      documentPayload.model = body.model;
+      debugInfo.requestPayload.customModel = body.model;
+    }
+    
+    // Set endpoint based on the SDK version
+    const endpoint = 'https://api.mistral.ai/v1/ocr';
+    debugInfo.requestPayload.endpoint = endpoint;
+    debugInfo.requestPayload.method = 'POST';
+    
+    // Optional test mode - don't actually make the API call
+    if (testMode) {
+      console.log('- Test mode: Not sending actual API request');
+      debugInfo.requestInfo.testMode = true;
+      
+      // Return the detailed debug info
+      return new Response(JSON.stringify({
+        success: true,
+        testMode: true,
+        message: 'Test mode: API request not sent',
+        documentPayload, // Include what would have been sent
+        debug: debugInfo
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     console.log('- Sending request to Mistral OCR API');
+    debugInfo.requestInfo.sentAt = new Date().toISOString();
+    
+    // For debugging, stringify the document payload to see exactly what's sent
+    const payloadJson = JSON.stringify(documentPayload);
+    debugInfo.requestPayload.sentJson = payloadJson.substring(0, 500) + 
+      (payloadJson.length > 500 ? '...(truncated)' : '');
     
     // Make direct request to Mistral API
-    const mistralResponse = await fetch('https://api.mistral.ai/v1/ocr', {
+    const mistralResponse = await fetch(endpoint, {
       method: 'POST',
       headers,
-      body: JSON.stringify(documentPayload)
+      body: payloadJson
     });
+    
+    // Calculate request duration
+    const requestDuration = Date.now() - startTime;
+    debugInfo.requestResult.duration = requestDuration;
+    debugInfo.requestResult.receivedAt = new Date().toISOString();
     
     // Get response details for debugging
     const statusCode = mistralResponse.status;
     const statusText = mistralResponse.statusText;
     const responseHeaders = Object.fromEntries(mistralResponse.headers.entries());
+    
+    debugInfo.responseInfo.statusCode = statusCode;
+    debugInfo.responseInfo.statusText = statusText;
+    debugInfo.responseInfo.headers = responseHeaders;
+    debugInfo.responseInfo.ok = mistralResponse.ok;
     
     console.log(`- Mistral API response: ${statusCode} ${statusText}`);
     
@@ -441,29 +571,58 @@ app.post('/experimental/mistral-direct', async (c) => {
     let responseData;
     try {
       responseData = await mistralResponse.json();
+      debugInfo.responseInfo.format = 'json';
+      
+      // Check for specific success indicators in the response
+      if (responseData.pages) {
+        debugInfo.responseInfo.hasPagesArray = true;
+        debugInfo.responseInfo.pageCount = responseData.pages.length;
+      }
+      
+      if (responseData.model) {
+        debugInfo.responseInfo.model = responseData.model;
+      }
+      
+      if (responseData.usage_info) {
+        debugInfo.responseInfo.usageInfo = responseData.usage_info;
+      }
     } catch (jsonError) {
       // If not JSON, get text instead
       const responseText = await mistralResponse.text();
+      debugInfo.responseInfo.format = 'text';
+      debugInfo.responseInfo.textLength = responseText.length;
+      debugInfo.errors.push('Response is not valid JSON: ' + String(jsonError));
+      
       console.log('- Response is not valid JSON:', responseText.substring(0, 200));
       responseData = { rawText: responseText };
     }
     
-    // Return detailed response for debugging purposes
+    // Return detailed response with all debugging info
     return new Response(JSON.stringify({
       success: mistralResponse.ok,
       statusCode,
       statusText,
+      duration: requestDuration,
       responseHeaders,
-      data: responseData
+      data: responseData,
+      debug: debugInfo
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error in experimental endpoint:', error);
+    const errorMsg = String(error);
+    console.error('Error in experimental endpoint:', errorMsg);
+    debugInfo.errors.push(errorMsg);
+    
+    if (error instanceof Error) {
+      debugInfo.errors.push('Stack trace: ' + error.stack);
+    }
+    
     return new Response(JSON.stringify({ 
       error: 'Internal server error in experimental endpoint',
-      message: String(error)
+      message: errorMsg,
+      debug: debugInfo
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

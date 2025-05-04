@@ -41,3 +41,9 @@ debug-test/
 
 # Test results
 integration-test-results.json
+
+# Response and test files
+*_response.json
+mistral_sdk_sample.json
+sdk_json_test.json
+reconstructed*.jpg

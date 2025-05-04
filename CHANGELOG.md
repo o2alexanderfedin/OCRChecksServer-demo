@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.40.1] - 2025-05-04
+
+### Removed
+- Removed entire debug-test directory with all experimental test scripts and documentation
+- Further cleaned up repository by eliminating all development debugging artifacts
+
 ## [1.40.0] - 2025-05-04
 
 ### Removed

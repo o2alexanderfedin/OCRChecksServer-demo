@@ -1231,4 +1231,1113 @@ app.post('/experimental/mistral-direct', async (c) => {
   }
 });
 
+// Experimental endpoint for Mistral SDK testing with enhanced debugging
+app.post('/experimental2/mistral-sdk', async (c) => {
+  // Enhanced debugging structure with more detailed categories
+  const debugInfo = {
+    requestInfo: {
+      timestamps: {},
+      metrics: {},
+      headers: {},
+      body: {}
+    },
+    apiKeyInfo: {},
+    environment: {
+      runtime: {},
+      compatibility: {}
+    },
+    imageInfo: {
+      metadata: {},
+      format: {},
+      validation: {},
+      conversions: []
+    },
+    requestPayload: {
+      format: {},
+      fields: {},
+      validation: {}
+    },
+    requestResult: {
+      metrics: {},
+      network: {}
+    },
+    responseInfo: {
+      metadata: {},
+      content: {},
+      validation: {}
+    },
+    errors: [],
+    warnings: []
+  };
+  
+  try {
+    // Start timing the request with high-resolution timer
+    const startTime = Date.now();
+    const startTimeHR = performance.now();
+    debugInfo.requestInfo.timestamps.start = new Date().toISOString();
+    debugInfo.requestInfo.timestamps.startTimestamp = startTime;
+    
+    // Get request body JSON with error handling
+    let body;
+    try {
+      body = await c.req.json();
+      debugInfo.requestInfo.body.received = true;
+      debugInfo.requestInfo.body.keys = Object.keys(body);
+      debugInfo.requestInfo.body.size = JSON.stringify(body).length;
+    } catch (jsonError) {
+      debugInfo.errors.push(`Failed to parse request body as JSON: ${String(jsonError)}`);
+      debugInfo.requestInfo.body.received = false;
+      debugInfo.requestInfo.body.parseError = String(jsonError);
+      
+      return new Response(JSON.stringify({ 
+        error: 'Failed to parse request body as JSON',
+        message: String(jsonError),
+        debug: debugInfo
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Extract debugging options
+    const debug = body.debug === true;
+    const testMode = body.testMode === true;
+    const diagnosticMode = body.diagnosticMode === true; // Extra detailed diagnostics
+    debugInfo.requestInfo.body.debugMode = debug;
+    debugInfo.requestInfo.body.testMode = testMode;
+    debugInfo.requestInfo.body.diagnosticMode = diagnosticMode;
+    
+    // Detect and log environment information
+    debugInfo.environment.runtime.isCloudflareWorker = typeof caches !== 'undefined' && typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers';
+    debugInfo.environment.runtime.isNodeJS = typeof process !== 'undefined' && process.versions && process.versions.node;
+    debugInfo.environment.runtime.isBrowser = typeof window !== 'undefined';
+    debugInfo.environment.runtime.hasBuffer = typeof Buffer !== 'undefined';
+    debugInfo.environment.runtime.hasPerformanceNow = typeof performance !== 'undefined' && typeof performance.now === 'function';
+    
+    // Collect request headers for diagnostics (if in diagnostic mode)
+    if (diagnosticMode) {
+      const requestHeaders = Object.fromEntries(
+        [...c.req.headers.entries()].map(([key, value]) => 
+          [key, key.toLowerCase().includes('auth') ? 
+           (value.length > 4 ? value.substring(0, 4) + '...' : '[REDACTED]') : 
+           value]
+        )
+      );
+      debugInfo.requestInfo.headers.all = requestHeaders;
+    } else {
+      // Just extract content-type even in normal mode
+      debugInfo.requestInfo.headers.contentType = c.req.header('Content-Type');
+    }
+    
+    // Verify API key is available with enhanced diagnostics
+    if (!c.env.MISTRAL_API_KEY) {
+      debugInfo.apiKeyInfo.available = false;
+      debugInfo.apiKeyInfo.source = 'environment';
+      debugInfo.errors.push('MISTRAL_API_KEY environment variable is not set');
+      
+      // Check for runtime environment issues that might affect API key access
+      if (debugInfo.environment.runtime.isCloudflareWorker) {
+        debugInfo.errors.push('CloudflareWorker detected: Ensure API key is properly set in wrangler.toml or environment variables');
+        debugInfo.environment.compatibility.missingApiKeyHint = 'For Cloudflare Workers, add MISTRAL_API_KEY to wrangler.toml or use wrangler secret put MISTRAL_API_KEY';
+      }
+      
+      return new Response(JSON.stringify({ 
+        error: 'MISTRAL_API_KEY environment variable is not set',
+        hint: 'Please check your environment configuration for the Mistral API key',
+        debug: debugInfo
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Enhanced API key validation
+    const apiKey = c.env.MISTRAL_API_KEY;
+    debugInfo.apiKeyInfo.available = true;
+    debugInfo.apiKeyInfo.length = apiKey.length;
+    debugInfo.apiKeyInfo.prefix = apiKey.substring(0, 4) + '...';
+    
+    // Extended API key format validation
+    debugInfo.apiKeyInfo.validFormat = apiKey.length >= 20; // Basic length check
+    
+    // Check for obviously invalid/placeholder keys
+    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+    const containsPlaceholder = commonPlaceholders.some(placeholder => 
+      apiKey.toLowerCase().includes(placeholder)
+    );
+    
+    if (containsPlaceholder) {
+      debugInfo.apiKeyInfo.isPlaceholder = true;
+      debugInfo.warnings.push('API key appears to contain placeholder text');
+    }
+    
+    // Pattern matching for common API key formats (without revealing the key)
+    const hasCommonPrefix = apiKey.startsWith('msk_') || apiKey.startsWith('sk-');
+    debugInfo.apiKeyInfo.hasRecognizedPrefix = hasCommonPrefix;
+    
+    if (!debugInfo.apiKeyInfo.validFormat) {
+      debugInfo.errors.push(`Invalid API key format - too short (${apiKey.length} chars)`);
+      debugInfo.apiKeyInfo.validationErrors = [`API key is too short (${apiKey.length} chars)`];
+      
+      return new Response(JSON.stringify({ 
+        error: 'Invalid Mistral API key format',
+        hint: 'API key is too short or improperly formatted',
+        debug: debugInfo
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Extract base64 image from request with enhanced validation
+    let base64Image = body.image;
+    if (!base64Image) {
+      debugInfo.errors.push('Image data is required in request body');
+      debugInfo.imageInfo.validation.received = false;
+      
+      return new Response(JSON.stringify({ 
+        error: 'Image data is required in request body',
+        hint: 'Please provide an image in base64 format or as a data URL',
+        debug: debugInfo
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Detailed image validation and format detection
+    console.log('Experimental2 endpoint - received image data:');
+    debugInfo.imageInfo.metadata.originalLength = base64Image.length;
+    debugInfo.imageInfo.format.isDataUrl = base64Image.startsWith('data:');
+    debugInfo.imageInfo.format.hasMimeType = base64Image.includes('image/');
+    debugInfo.imageInfo.format.hasBase64Marker = base64Image.includes(';base64,');
+    
+    // Store original format sample (safely truncated)
+    const sampleLength = Math.min(100, base64Image.length);
+    debugInfo.imageInfo.format.originalSample = 
+      base64Image.substring(0, sampleLength) + 
+      (base64Image.length > sampleLength ? '... (truncated)' : '');
+    
+    // Enhanced data URL parsing and validation
+    if (debugInfo.imageInfo.format.isDataUrl) {
+      debugInfo.imageInfo.format.type = 'data URL';
+      
+      // Parse data URL components with more robust pattern matching
+      const mimeMatch = base64Image.match(/^data:([^;]+);/);
+      const base64Start = base64Image.indexOf(',') + 1;
+      
+      if (base64Start > 0) {
+        debugInfo.imageInfo.format.mimeType = mimeMatch ? mimeMatch[1] : 'unknown';
+        debugInfo.imageInfo.format.dataPrefix = base64Image.substring(0, base64Start);
+        debugInfo.imageInfo.format.actualBase64Length = base64Image.length - base64Start;
+        
+        // Extract and validate base64 content
+        const base64Content = base64Image.substring(base64Start);
+        
+        // More comprehensive base64 validation
+        const basicValidBase64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+        const hasValidChars = basicValidBase64Regex.test(base64Content);
+        debugInfo.imageInfo.validation.hasValidChars = hasValidChars;
+        
+        // Check for correct padding
+        const correctPadding = base64Content.length % 4 === 0;
+        debugInfo.imageInfo.validation.correctPadding = correctPadding;
+        
+        // Check for proper length
+        const isReasonableLength = base64Content.length > 100; // Sanity check
+        debugInfo.imageInfo.validation.isReasonableLength = isReasonableLength;
+        
+        // Overall validation result
+        debugInfo.imageInfo.validation.isValidBase64 = hasValidChars && correctPadding && isReasonableLength;
+        
+        // Record validation issues for troubleshooting
+        if (!hasValidChars) {
+          debugInfo.warnings.push('Base64 content contains invalid characters');
+        }
+        if (!correctPadding) {
+          debugInfo.warnings.push('Base64 content has incorrect padding');
+        }
+        if (!isReasonableLength) {
+          debugInfo.warnings.push('Base64 content is suspiciously short');
+        }
+        
+        // Extract the base64 content to convert to binary
+        const rawBase64 = base64Content;
+        
+        // Convert base64 to binary using the appropriate method for the environment
+        let binaryData;
+        try {
+          if (typeof Buffer !== 'undefined') {
+            // Node.js environment
+            binaryData = Buffer.from(rawBase64, 'base64');
+            debugInfo.imageInfo.conversions.push({
+              operation: 'base64_to_binary',
+              method: 'Buffer.from',
+              success: true,
+              resultSize: binaryData.byteLength
+            });
+          } else {
+            // Browser or Cloudflare Worker environment
+            const binaryString = atob(rawBase64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            binaryData = bytes.buffer;
+            debugInfo.imageInfo.conversions.push({
+              operation: 'base64_to_binary',
+              method: 'atob + Uint8Array',
+              success: true,
+              resultSize: binaryData.byteLength
+            });
+          }
+        } catch (conversionError) {
+          debugInfo.errors.push(`Error converting base64 to binary: ${String(conversionError)}`);
+          debugInfo.imageInfo.conversions.push({
+            operation: 'base64_to_binary',
+            success: false,
+            error: String(conversionError)
+          });
+          
+          return new Response(JSON.stringify({ 
+            error: 'Failed to convert base64 image to binary',
+            message: String(conversionError),
+            debug: debugInfo
+          }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      } else {
+        // Malformed data URL
+        debugInfo.imageInfo.validation.isValidDataUrl = false;
+        debugInfo.errors.push('Malformed data URL: missing comma separator');
+        
+        return new Response(JSON.stringify({ 
+          error: 'Malformed data URL format',
+          hint: 'Data URL must include the format "data:image/jpeg;base64," followed by the base64 content',
+          debug: debugInfo
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    } else {
+      // Handle raw base64 content
+      debugInfo.imageInfo.format.type = 'raw base64';
+      
+      // Validate raw base64 content
+      const validBase64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+      const isValidRawBase64 = validBase64Regex.test(base64Image);
+      debugInfo.imageInfo.validation.isValidRawBase64 = isValidRawBase64;
+      
+      if (!isValidRawBase64) {
+        debugInfo.warnings.push('Raw base64 content contains invalid characters');
+        
+        // Additional format detection
+        if (base64Image.includes('data:image')) {
+          debugInfo.warnings.push('Base64 content appears to contain a partial data URL');
+        }
+      }
+      
+      // Check for correct padding
+      const correctPadding = base64Image.length % 4 === 0;
+      debugInfo.imageInfo.validation.rawBase64CorrectPadding = correctPadding;
+      
+      if (!correctPadding) {
+        debugInfo.warnings.push('Raw base64 content has incorrect padding');
+      }
+      
+      // Convert base64 to binary using the appropriate method for the environment
+      let binaryData;
+      try {
+        if (typeof Buffer !== 'undefined') {
+          // Node.js environment
+          binaryData = Buffer.from(base64Image, 'base64');
+          debugInfo.imageInfo.conversions.push({
+            operation: 'base64_to_binary',
+            method: 'Buffer.from',
+            success: true,
+            resultSize: binaryData.byteLength
+          });
+        } else {
+          // Browser or Cloudflare Worker environment
+          const binaryString = atob(base64Image);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          binaryData = bytes.buffer;
+          debugInfo.imageInfo.conversions.push({
+            operation: 'base64_to_binary',
+            method: 'atob + Uint8Array',
+            success: true,
+            resultSize: binaryData.byteLength
+          });
+        }
+      } catch (conversionError) {
+        debugInfo.errors.push(`Error converting raw base64 to binary: ${String(conversionError)}`);
+        debugInfo.imageInfo.conversions.push({
+          operation: 'base64_to_binary',
+          success: false,
+          error: String(conversionError)
+        });
+        
+        return new Response(JSON.stringify({ 
+          error: 'Failed to convert base64 image to binary',
+          message: String(conversionError),
+          debug: debugInfo
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+    
+    // Enhanced test mode with payload validation
+    if (testMode) {
+      console.log('- Test mode: Not sending actual API request');
+      debugInfo.requestInfo.body.testMode = true;
+      
+      // Add test mode validation results
+      debugInfo.requestPayload.validation.testModeValidation = {
+        endpointReachable: true, // Assumed
+        payloadValid: true,      // Assumed
+        apiKeyValid: null,       // Unknown without actual API call
+        imageFormatValid: debugInfo.imageInfo.validation.isValidBase64 || debugInfo.imageInfo.validation.isValidRawBase64
+      };
+      
+      // Calculate processing time even in test mode
+      const testModeDuration = Date.now() - startTime;
+      const testModeDurationHR = performance.now() - startTimeHR;
+      debugInfo.requestInfo.metrics.testModeDuration = testModeDuration;
+      debugInfo.requestInfo.metrics.testModeDurationHR = testModeDurationHR.toFixed(2);
+      
+      // Return detailed test mode response
+      const testResponse = {
+        success: true,
+        testMode: true,
+        message: 'Test mode: Mistral SDK request not initiated',
+        duration: testModeDuration,
+        validationResults: {
+          apiKey: debugInfo.apiKeyInfo,
+          image: debugInfo.imageInfo.validation
+        },
+        debug: debugInfo
+      };
+      
+      return new Response(JSON.stringify(testResponse), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Create binary document and prepare Mistral SDK request
+    // Import necessary components
+    const { Mistral } = await import('@mistralai/mistralai');
+    const { Document, DocumentType } = await import('./ocr/types');
+    const { MistralOCRProvider } = await import('./ocr/mistral');
+    
+    // Initialize Mistral client
+    const mistralClient = new Mistral(apiKey);
+    
+    // Set up document and provider
+    const documentType = body.documentType === 'pdf' ? DocumentType.PDF : DocumentType.Image;
+    const documentName = body.filename || 'uploaded-document';
+    
+    // Check for field format preference
+    const useSnakeCase = body.format !== 'camelCase' && body.useSnakeCase !== false;
+    debugInfo.requestPayload.format.selected = useSnakeCase ? 'snake_case' : 'camelCase';
+
+    console.log(`- Using ${debugInfo.requestPayload.format.selected} format with Mistral SDK`);
+    
+    // Enhanced comparison mode: try both formats if requested
+    const comparison = body.comparison === true;
+    if (comparison) {
+      debugInfo.requestPayload.format.comparison = true;
+      console.log('- Comparison mode requested but not supported with SDK');
+      debugInfo.warnings.push('Comparison mode is not directly supported with the SDK - using only the default format');
+    }
+    
+    // Set up the enhanced I/O wrapper to capture logs
+    console.log('- Creating worker I/O interface for MistralOCRProvider');
+    
+    // Create custom IoE instance to capture more detailed logs
+    const enhancedIoE = {
+      ...workerIoE,
+      log: (message: string) => {
+        console.log(message);
+        if (!debugInfo.responseInfo.logs) {
+          debugInfo.responseInfo.logs = [];
+        }
+        debugInfo.responseInfo.logs.push({ level: 'info', message });
+      },
+      debug: (message: string, data?: unknown) => {
+        console.debug(message, data);
+        if (!debugInfo.responseInfo.logs) {
+          debugInfo.responseInfo.logs = [];
+        }
+        debugInfo.responseInfo.logs.push({ 
+          level: 'debug', 
+          message, 
+          data: data ? JSON.stringify(data).substring(0, 500) : undefined 
+        });
+      },
+      error: (message: string, error?: unknown) => {
+        console.error(message, error);
+        if (!debugInfo.responseInfo.logs) {
+          debugInfo.responseInfo.logs = [];
+        }
+        debugInfo.responseInfo.logs.push({ 
+          level: 'error', 
+          message, 
+          error: error ? String(error) : undefined 
+        });
+        debugInfo.errors.push(message);
+      },
+      warn: (message: string, data?: unknown) => {
+        console.warn(message, data);
+        if (!debugInfo.responseInfo.logs) {
+          debugInfo.responseInfo.logs = [];
+        }
+        debugInfo.responseInfo.logs.push({ 
+          level: 'warn', 
+          message, 
+          data: data ? JSON.stringify(data).substring(0, 500) : undefined 
+        });
+        debugInfo.warnings.push(message);
+      },
+      trace: (source: string, methodName: string, args?: unknown) => {
+        console.debug(`TRACE: ${source}.${methodName}`, args);
+        if (!debugInfo.responseInfo.logs) {
+          debugInfo.responseInfo.logs = [];
+        }
+        debugInfo.responseInfo.logs.push({ 
+          level: 'trace', 
+          source, 
+          methodName, 
+          args: args ? JSON.stringify(args).substring(0, 500) : undefined 
+        });
+      }
+    };
+    
+    // Create MistralOCRProvider instance
+    console.log('- Creating MistralOCRProvider instance');
+    const mistralProvider = new MistralOCRProvider(enhancedIoE, mistralClient);
+    
+    // Extract the binary data from earlier conversion
+    // We need to ensure we have the binary data from the previous step
+    const binaryData = debugInfo.imageInfo.conversions[0]?.resultSize ? 
+      (typeof Buffer !== 'undefined' ? 
+        Buffer.from(base64Image.includes(';base64,') ? 
+          base64Image.split(';base64,')[1] : 
+          base64Image, 'base64') :
+        new Uint8Array([]).buffer // This will be replaced below
+      ) : 
+      new Uint8Array([]).buffer;
+    
+    // Re-convert if we don't have valid binary data yet
+    let imageBuffer: ArrayBuffer;
+    if (binaryData.byteLength === 0) {
+      console.log('- Re-converting base64 to binary');
+      // Extract base64 content
+      let rawBase64 = base64Image;
+      if (base64Image.includes(';base64,')) {
+        rawBase64 = base64Image.split(';base64,')[1];
+      }
+      
+      try {
+        if (typeof Buffer !== 'undefined') {
+          // Node.js environment
+          imageBuffer = Buffer.from(rawBase64, 'base64');
+        } else {
+          // Browser or Cloudflare Worker environment
+          const binaryString = atob(rawBase64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          imageBuffer = bytes.buffer;
+        }
+        console.log(`- Successfully converted to binary: ${imageBuffer.byteLength} bytes`);
+      } catch (conversionError) {
+        debugInfo.errors.push(`Error re-converting base64 to binary: ${String(conversionError)}`);
+        return new Response(JSON.stringify({ 
+          error: 'Failed to convert base64 image to binary',
+          message: String(conversionError),
+          debug: debugInfo
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    } else {
+      imageBuffer = binaryData;
+      console.log(`- Using previously converted binary data: ${imageBuffer.byteLength} bytes`);
+    }
+    
+    // Create document for processing
+    // For Mistral SDK, we need to fix the document format
+    // First, ensure we have a data URL for the image - this is what MistralOCRProvider needs
+    let dataUrl;
+    if (base64Image.startsWith('data:')) {
+      dataUrl = base64Image;
+      console.log('- Using existing data URL');
+    } else {
+      dataUrl = `data:image/jpeg;base64,${base64Image}`;
+      console.log('- Created data URL from raw base64');
+    }
+    
+    // Create document with special format for better debugging
+    const document: Document = {
+      content: imageBuffer,
+      type: documentType,
+      name: documentName,
+      // Add extra property for debugging
+      _dataUrl: dataUrl
+    };
+    
+    console.log(`- Created document: type=${documentType}, name=${documentName}, size=${imageBuffer.byteLength} bytes`);
+    debugInfo.requestPayload.document = {
+      type: documentType,
+      name: documentName,
+      size: imageBuffer.byteLength,
+      hasDataUrl: true
+    };
+    
+    // Process with MistralOCRProvider
+    console.log('- Processing document with MistralOCRProvider');
+    debugInfo.requestInfo.timestamps.sdkRequestStart = new Date().toISOString();
+    const sdkStartTime = Date.now();
+    const sdkStartTimeHR = performance.now();
+    
+    try {
+      // Process the document using the SDK
+      const result = await mistralProvider.processDocuments([document]);
+      
+      // Calculate SDK request duration
+      const sdkDuration = Date.now() - sdkStartTime;
+      const sdkDurationHR = performance.now() - sdkStartTimeHR;
+      debugInfo.requestResult.metrics.sdkDuration = sdkDuration;
+      debugInfo.requestResult.metrics.sdkDurationHR = sdkDurationHR.toFixed(2);
+      debugInfo.requestInfo.timestamps.sdkRequestEnd = new Date().toISOString();
+      
+      // Handle processing result
+      if (result[0] === 'error') {
+        // Error from SDK
+        const error = result[1];
+        debugInfo.errors.push(`SDK error: ${String(error)}`);
+        debugInfo.requestResult.error = String(error);
+        debugInfo.requestResult.success = false;
+        
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: 'Mistral SDK error',
+          message: String(error),
+          duration: sdkDuration,
+          debug: debugInfo
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      // Successfully processed
+      const ocrResults = result[1][0]; // First document's results
+      
+      // Format the OCR results
+      debugInfo.responseInfo.content.format = 'OCRResult[]';
+      debugInfo.responseInfo.content.resultCount = ocrResults.length;
+      debugInfo.responseInfo.content.pageCount = ocrResults.length;
+      debugInfo.responseInfo.content.textSamples = ocrResults.map(page => ({
+        pageNumber: page.pageNumber,
+        textLength: page.text.length,
+        sample: page.text.substring(0, 200) + (page.text.length > 200 ? '...' : '')
+      }));
+      
+      // Calculate total processing time
+      const totalDuration = Date.now() - startTime;
+      const totalDurationHR = performance.now() - startTimeHR;
+      debugInfo.requestInfo.metrics.totalDuration = totalDuration;
+      debugInfo.requestInfo.metrics.totalDurationHR = totalDurationHR.toFixed(2);
+      debugInfo.requestInfo.timestamps.end = new Date().toISOString();
+      
+      // Return successful response with OCR results
+      const response = {
+        success: true,
+        message: 'Document processed successfully using Mistral SDK',
+        sdkDuration,
+        totalDuration,
+        format: debugInfo.requestPayload.format.selected,
+        pages: ocrResults.map(page => ({
+          pageNumber: page.pageNumber,
+          text: page.text,
+          confidence: page.confidence,
+          dimensions: page.boundingBox ? {
+            width: page.boundingBox.width,
+            height: page.boundingBox.height
+          } : undefined
+        }))
+      };
+      
+      // Add debug info if requested
+      if (debug || diagnosticMode) {
+        response.debug = debugInfo;
+      }
+      
+      return new Response(JSON.stringify(response), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (sdkError) {
+      // Handle SDK exception
+      const errorMsg = String(sdkError);
+      console.error('Error in SDK processing:', errorMsg);
+      debugInfo.errors.push(`SDK exception: ${errorMsg}`);
+      debugInfo.requestResult.exception = errorMsg;
+      debugInfo.requestResult.success = false;
+      
+      // Get stack trace if available
+      if (sdkError instanceof Error && sdkError.stack) {
+        debugInfo.requestResult.stackTrace = sdkError.stack;
+      }
+      
+      // Calculate times even for errors
+      const errorDuration = Date.now() - sdkStartTime;
+      const totalDuration = Date.now() - startTime;
+      debugInfo.requestResult.metrics.errorDuration = errorDuration;
+      debugInfo.requestInfo.metrics.totalDuration = totalDuration;
+      
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Mistral SDK exception',
+        message: errorMsg,
+        duration: errorDuration,
+        totalDuration,
+        debug: debugInfo
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  } catch (error) {
+    // Enhanced error handling for general exceptions
+    const errorMsg = String(error);
+    console.error('Error in experimental2 endpoint:', errorMsg);
+    debugInfo.errors.push(errorMsg);
+    
+    // Get more details from the error object
+    if (error instanceof Error) {
+      debugInfo.errors.push('Stack trace: ' + (error.stack || 'No stack trace available'));
+      debugInfo.errors.push('Error name: ' + error.name);
+    }
+    
+    // Calculate timestamps even for errors
+    debugInfo.requestInfo.timestamps.errorTime = new Date().toISOString();
+    if (debugInfo.requestInfo.timestamps.start) {
+      const errorDuration = Date.now() - new Date(debugInfo.requestInfo.timestamps.start).getTime();
+      debugInfo.requestInfo.metrics.errorDuration = errorDuration;
+    }
+    
+    return new Response(JSON.stringify({ 
+      success: false,
+      error: 'Internal server error',
+      message: errorMsg,
+      timestamp: new Date().toISOString(),
+      debug: debugInfo
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+});
+
+// Experimental binary endpoint that accepts image data directly (like /receipt)
+app.post('/experimental/binary', async (c) => {
+  try {
+    // Check content type
+    const contentType = c.req.header('Content-Type');
+    if (!contentType?.startsWith('image/')) {
+      return new Response(JSON.stringify({ error: 'Invalid content type. Expected image/*' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Get debugging options from headers
+    const debug = c.req.header('X-Debug') === 'true';
+    const testMode = c.req.header('X-Test-Mode') === 'true';
+    const comparison = c.req.header('X-Comparison') === 'true';
+    const format = c.req.header('X-Format') || 'snake_case';
+    const model = c.req.header('X-Model') || 'mistral-ocr-latest';
+    
+    // Get document format (image/pdf) from query
+    const documentFormat = c.req.query('format') || 'image';
+    const documentType = documentFormat === 'pdf' ? 'pdf' : 'image';
+    
+    // Get image data
+    const imageBuffer = await c.req.arrayBuffer();
+    
+    // Verify API key is available
+    if (!c.env.MISTRAL_API_KEY) {
+      return new Response(JSON.stringify({ 
+        error: 'MISTRAL_API_KEY environment variable is not set',
+        hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Convert binary image to base64
+    let base64Image;
+    try {
+      if (typeof Buffer !== 'undefined') {
+        // Node.js environment
+        base64Image = Buffer.from(imageBuffer).toString('base64');
+      } else {
+        // Browser or Cloudflare Worker environment
+        const uint8Array = new Uint8Array(imageBuffer);
+        let binary = '';
+        for (let i = 0; i < uint8Array.length; i++) {
+          binary += String.fromCharCode(uint8Array[i]);
+        }
+        base64Image = btoa(binary);
+      }
+    } catch (conversionError) {
+      return new Response(JSON.stringify({ 
+        error: 'Failed to convert image to base64',
+        message: String(conversionError)
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Add data URL prefix based on content type
+    const mimeType = contentType || 'image/jpeg';
+    const dataUrl = `data:${mimeType};base64,${base64Image}`;
+    
+    // Create headers for Mistral API request
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${c.env.MISTRAL_API_KEY}`
+    };
+    
+    // Prepare the payload
+    let documentPayload;
+    if (format === 'camelCase') {
+      documentPayload = {
+        model: model,
+        document: {
+          type: 'image_url',
+          imageUrl: dataUrl
+        },
+        includeImageBase64: true
+      };
+    } else {
+      documentPayload = {
+        model: model,
+        document: {
+          type: 'image_url',
+          image_url: dataUrl
+        },
+        include_image_base64: true
+      };
+    }
+    
+    // Test mode - don't make the API call
+    if (testMode) {
+      return new Response(JSON.stringify({
+        success: true,
+        testMode: true,
+        message: 'Test mode: API request not sent',
+        imageSize: imageBuffer.byteLength,
+        base64Size: base64Image.length,
+        format: format
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Comparison mode - try both formats
+    if (comparison) {
+      const snakeCasePayload = {
+        model: model,
+        document: {
+          type: 'image_url',
+          image_url: dataUrl
+        },
+        include_image_base64: true
+      };
+      
+      const camelCasePayload = {
+        model: model,
+        document: {
+          type: 'image_url',
+          imageUrl: dataUrl
+        },
+        includeImageBase64: true
+      };
+      
+      // Make snake_case request
+      const snakeCaseResponse = await fetch('https://api.mistral.ai/v1/ocr', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(snakeCasePayload)
+      });
+      
+      // Make camelCase request
+      const camelCaseResponse = await fetch('https://api.mistral.ai/v1/ocr', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(camelCasePayload)
+      });
+      
+      // Get response data
+      const snakeCaseData = snakeCaseResponse.ok ? await snakeCaseResponse.json() : { error: await snakeCaseResponse.text() };
+      const camelCaseData = camelCaseResponse.ok ? await camelCaseResponse.json() : { error: await camelCaseResponse.text() };
+      
+      // Return comparison results
+      return new Response(JSON.stringify({
+        success: snakeCaseResponse.ok || camelCaseResponse.ok,
+        comparisonMode: true,
+        results: {
+          snakeCase: {
+            success: snakeCaseResponse.ok,
+            statusCode: snakeCaseResponse.status,
+            statusText: snakeCaseResponse.statusText,
+            data: snakeCaseData
+          },
+          camelCase: {
+            success: camelCaseResponse.ok,
+            statusCode: camelCaseResponse.status,
+            statusText: camelCaseResponse.statusText,
+            data: camelCaseData
+          }
+        }
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Standard mode - make the API call
+    const response = await fetch('https://api.mistral.ai/v1/ocr', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(documentPayload)
+    });
+    
+    // Get response data
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch (e) {
+      responseData = { error: await response.text() };
+    }
+    
+    // Return the results
+    return new Response(JSON.stringify({
+      success: response.ok,
+      statusCode: response.status,
+      statusText: response.statusText,
+      format: format,
+      data: responseData
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ 
+      success: false,
+      error: 'Internal server error',
+      message: String(error)
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+});
+
+// Experimental binary endpoint using Mistral SDK (like /receipt)
+app.post('/experimental2/binary', async (c) => {
+  try {
+    // Check content type
+    const contentType = c.req.header('Content-Type');
+    if (!contentType?.startsWith('image/')) {
+      return new Response(JSON.stringify({ error: 'Invalid content type. Expected image/*' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Get debugging options from headers
+    const debug = c.req.header('X-Debug') === 'true';
+    const testMode = c.req.header('X-Test-Mode') === 'true';
+    
+    // Get document format (image/pdf) from query
+    const documentFormat = c.req.query('format') || 'image';
+    const documentType = documentFormat === 'pdf' ? DocumentType.PDF : DocumentType.Image;
+    
+    // Get image data
+    const imageBuffer = await c.req.arrayBuffer();
+    
+    // Verify API key is available
+    if (!c.env.MISTRAL_API_KEY) {
+      return new Response(JSON.stringify({ 
+        error: 'MISTRAL_API_KEY environment variable is not set',
+        hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Test mode - don't make the API call
+    if (testMode) {
+      return new Response(JSON.stringify({
+        success: true,
+        testMode: true,
+        message: 'Test mode: Mistral SDK request not initiated',
+        imageSize: imageBuffer.byteLength
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Convert binary image to base64 for debugging
+    let base64Image;
+    try {
+      if (typeof Buffer !== 'undefined') {
+        base64Image = Buffer.from(imageBuffer).toString('base64');
+      } else {
+        const uint8Array = new Uint8Array(imageBuffer);
+        let binary = '';
+        for (let i = 0; i < uint8Array.length; i++) {
+          binary += String.fromCharCode(uint8Array[i]);
+        }
+        base64Image = btoa(binary);
+      }
+    } catch (conversionError) {
+      console.error('Error converting to base64 (for debugging only):', conversionError);
+    }
+    
+    // Add data URL prefix based on content type for special processing
+    const mimeType = contentType || 'image/jpeg';
+    const dataUrl = base64Image ? `data:${mimeType};base64,${base64Image}` : null;
+    
+    // For testing/validation, return just the conversion result if requested via header
+    if (c.req.header('X-Return-Base64') === 'true') {
+      // Add validation info
+      const validBase64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+      const isValidBase64 = base64Image ? validBase64Regex.test(base64Image) : false;
+      const hasCorrectPadding = base64Image ? base64Image.length % 4 === 0 : false;
+      
+      // Create response object
+      const responseObj = {
+        success: true,
+        base64Image: base64Image,
+        dataUrl: dataUrl,
+        mimeType: mimeType,
+        imageBufferSize: imageBuffer.byteLength,
+        validation: {
+          isValidBase64: isValidBase64,
+          hasCorrectPadding: hasCorrectPadding,
+          base64Length: base64Image ? base64Image.length : 0
+        }
+      };
+
+      return new Response(JSON.stringify(responseObj), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Import necessary components
+    const { Mistral } = await import('@mistralai/mistralai');
+    const { MistralOCRProvider } = await import('./ocr/mistral');
+    
+    // Initialize Mistral client
+    const mistralClient = new Mistral(c.env.MISTRAL_API_KEY);
+    
+    // Create enhanced IoE for better debugging
+    const enhancedIoE = {
+      ...workerIoE,
+      log: (message) => console.log(message),
+      debug: (message, data) => console.debug(message, data),
+      error: (message, error) => console.error(message, error),
+      warn: (message, data) => console.warn(message, data),
+      trace: (source, methodName, args) => console.debug(`TRACE: ${source}.${methodName}`, args)
+    };
+    
+    // Create MistralOCRProvider instance
+    const mistralProvider = new MistralOCRProvider(enhancedIoE, mistralClient);
+    
+    // Create document for processing with special handling for SDK compatibility
+    const document = {
+      content: imageBuffer,
+      type: documentType,
+      name: c.req.query('filename') || 'document',
+      // Add special field for SDK compatibility
+      _dataUrl: dataUrl
+    };
+    
+    // Process the document using SDK
+    try {
+      const result = await mistralProvider.processDocuments([document]);
+      
+      if (result[0] === 'error') {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: String(result[1])
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      // Successfully processed
+      const ocrResults = result[1][0]; // First document's results
+      
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Document processed successfully using Mistral SDK',
+        pages: ocrResults.map(page => ({
+          pageNumber: page.pageNumber,
+          text: page.text,
+          confidence: page.confidence,
+          dimensions: page.boundingBox ? {
+            width: page.boundingBox.width,
+            height: page.boundingBox.height
+          } : undefined
+        }))
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (sdkError) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Mistral SDK error',
+        message: String(sdkError)
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  } catch (error) {
+    return new Response(JSON.stringify({ 
+      success: false,
+      error: 'Internal server error',
+      message: String(error)
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+});
+
 export default app; 

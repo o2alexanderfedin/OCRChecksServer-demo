@@ -40,3 +40,4 @@ enabled = true
 # Use Cloudflare Worker secrets instead: wrangler secret put MISTRAL_API_KEY
 # Example: echo "your-api-key" | wrangler secret put MISTRAL_API_KEY
 [vars]
+MISTRAL_DEBUG=true

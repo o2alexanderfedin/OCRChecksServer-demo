@@ -69,6 +69,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                     return ['error', new Error('Invalid response format from Mistral API')]
                 }
 
+                this.io.debug(`JSON content from Mistral: ${content}`);
                 jsonContent = JSON.parse(content)
             } catch (error) {
                 return ['error', new Error(`Invalid JSON response: ${error instanceof Error ? error.message : String(error)}`)]

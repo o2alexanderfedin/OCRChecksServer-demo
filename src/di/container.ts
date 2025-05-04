@@ -29,7 +29,7 @@ export const TYPES = {
  * Handles the creation and lifetime of service objects
  */
 export class DIContainer {
-  private container: Container;
+  protected readonly container: Container;
 
   constructor() {
     this.container = new Container();
@@ -57,9 +57,9 @@ export class DIContainer {
 
   /**
    * Register Mistral client with validation
-   * @private
+   * @protected
    */
-  private registerMistralClient(): void {
+  protected registerMistralClient(): void {
     this.container.bind(TYPES.MistralClient).toDynamicValue((context) => {
       const apiKey = context.get<string>(TYPES.MistralApiKey);
       
@@ -81,9 +81,9 @@ export class DIContainer {
 
   /**
    * Register OCR and JSON extractor providers
-   * @private
+   * @protected
    */
-  private registerProviders(): void {
+  protected registerProviders(): void {
     // Register OCR provider
     this.container.bind(TYPES.OCRProvider).toDynamicValue((context) => {
       const io = context.get<IoE>(TYPES.IoE);
@@ -101,9 +101,9 @@ export class DIContainer {
 
   /**
    * Register receipt and check extractors
-   * @private
+   * @protected
    */
-  private registerExtractors(): void {
+  protected registerExtractors(): void {
     // Register receipt extractor
     this.container.bind(TYPES.ReceiptExtractor).toDynamicValue((context) => {
       const jsonExtractor = context.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
@@ -119,9 +119,9 @@ export class DIContainer {
 
   /**
    * Register receipt and check scanners
-   * @private
+   * @protected
    */
-  private registerScanners(): void {
+  protected registerScanners(): void {
     // Register receipt scanner
     this.container.bind(TYPES.ReceiptScanner).toDynamicValue((context) => {
       const ocrProvider = context.get<MistralOCRProvider>(TYPES.OCRProvider);
@@ -141,9 +141,9 @@ export class DIContainer {
    * Validate that an API key is present and in the correct format
    * 
    * @param apiKey - The API key to validate
-   * @private
+   * @protected
    */
-  private validateApiKey(apiKey: string): void {
+  protected validateApiKey(apiKey: string): void {
     // Log partial key for debugging (first 4 chars only)
     const maskedKey = apiKey ? `${apiKey.substring(0, 4)}...` : 'undefined';
     console.log(`Validating Mistral API key: ${maskedKey}`);

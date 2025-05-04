@@ -411,13 +411,14 @@ app.post('/experimental/mistral-direct', async (c) => {
     };
     
     // Prepare document for Mistral OCR API
+    // The error indicates we need to use image_url field, not imageUrl
     const documentPayload = {
       model: "mistral-ocr-latest",
       document: {
         type: 'image_url',
-        imageUrl: base64Image
+        image_url: base64Image
       },
-      includeImageBase64: true
+      include_image_base64: true
     };
     
     console.log('- Sending request to Mistral OCR API');

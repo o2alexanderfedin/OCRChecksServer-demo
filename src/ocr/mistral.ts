@@ -656,16 +656,17 @@ export class MistralOCRProvider implements OCRProvider {
         }
         
         // Return appropriate chunk based on document type
+        // Using snake_case property names as required by Mistral API
         if (doc.type === DocumentType.Image) {
             // Double-check Mistral API requirements for image_url format
             return { 
                 type: 'image_url', 
-                imageUrl: dataUrl 
+                image_url: dataUrl  // Use snake_case field name as required by API
             };
         } else {
             return { 
                 type: 'document_url', 
-                documentUrl: dataUrl 
+                document_url: dataUrl  // Use snake_case field name as required by API
             };
         }
     }

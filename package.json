@@ -19,6 +19,7 @@
     "test:swift-e2e": "bash scripts/run-swift-e2e-tests.sh",
     "test:smoke": "bash scripts/run-smoke-tests.sh",
     "test:smoke:dev": "bash scripts/run-smoke-tests.sh --dev",
+    "test:smoke:dev:force": "bash scripts/run-smoke-tests.sh --dev --force",
     "test:smoke:production": "bash scripts/run-smoke-tests.sh --production",
     "test:smoke:staging": "bash scripts/run-smoke-tests.sh --staging",
     "start-server": "node --no-deprecation scripts/start-server.js",

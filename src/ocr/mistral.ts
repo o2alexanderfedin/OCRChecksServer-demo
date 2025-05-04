@@ -8,9 +8,12 @@ import type {
     DocumentURLChunk
 } from '@mistralai/mistralai/models/components'
 
+// Import Buffer from the buffer package - this will be available in all environments including Cloudflare Workers
+import { Buffer } from 'buffer';
+
 /**
  * Utility function to convert ArrayBuffer to base64 string
- * Improved with specific Cloudflare Worker environment detection and handling
+ * Using the buffer package for cross-platform compatibility
  * @param arrayBuffer The ArrayBuffer to convert
  * @returns Base64 string representation of the ArrayBuffer
  */
@@ -23,90 +26,60 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
     const byteSample = uint8Array.slice(0, 20);
     console.debug(`First ${byteSample.length} bytes: [${Array.from(byteSample).join(',')}]`);
     
-    // Detect environment more precisely
+    // Detect environment more precisely for logging purposes
     const isNodeJS = typeof process !== 'undefined' && process.versions && process.versions.node;
     const isCloudflareWorker = typeof caches !== 'undefined' && typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers';
     const isBrowser = typeof window !== 'undefined';
-    const hasBuffer = typeof Buffer !== 'undefined';
+    const hasNativeBuffer = typeof global !== 'undefined' && typeof global.Buffer !== 'undefined';
     
     console.log(`Environment detection:
     - Node.js: ${isNodeJS ? 'Yes' : 'No'}
     - Cloudflare Worker: ${isCloudflareWorker ? 'Yes' : 'No'}
     - Browser: ${isBrowser ? 'Yes' : 'No'}
-    - Buffer available: ${hasBuffer ? 'Yes' : 'No'}`);
+    - Native Buffer: ${hasNativeBuffer ? 'Yes' : 'No'}
+    - Using buffer package polyfill`);
     
-    // Cloudflare Worker specific approach - most reliable for Workers
-    if (isCloudflareWorker) {
-        console.log('Using Cloudflare Worker optimized base64 conversion');
-        try {
-            // For Cloudflare Workers, we'll use chunked conversion which is more reliable
-            // even with nodejs_compat flag
-            const result = cloudflareWorkerBase64Conversion(uint8Array);
-            
-            // Ensure the result is clean (no whitespace or invalid characters)
-            return cleanBase64(result);
-        } catch (workerError) {
-            console.error('Error in Cloudflare Worker conversion:', workerError);
-            // Fall through to other methods
-        }
-    }
-    
-    // Node.js environment with Buffer - most reliable for Node.js
-    if (hasBuffer) {
-        try {
-            // Create a Buffer from the Uint8Array
-            const buffer = Buffer.from(uint8Array);
-            
-            // Log buffer information
-            console.debug(`Created Buffer with length ${buffer.length}`);
-            
-            // Convert to base64 - exact method Mistral example uses
-            const base64 = buffer.toString('base64');
-            console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using Buffer`);
-            
-            // Log sample of base64 string
-            console.debug(`Base64 sample (first 50 chars): ${base64.substring(0, 50)}...`);
-            
-            // Ensure the result is clean
-            return cleanBase64(base64);
-        } catch (bufferError) {
-            console.error('Error in Buffer-based conversion:', bufferError);
-            console.error('Stack trace:', bufferError instanceof Error ? bufferError.stack : 'No stack trace');
-            // Continue to fallback methods
-        }
-    }
-    
-    // Browser compatible approach (also works in Workers with limitations)
-    console.log('Using browser-compatible base64 conversion approach');
-    
-    // Try the straightforward approach first
     try {
-        console.debug('Attempting direct string conversion...');
-        const startTime = Date.now();
+        // Use the buffer package which works in all environments
+        const buffer = Buffer.from(uint8Array);
         
-        let binary = '';
-        for (let i = 0; i < uint8Array.length; i++) {
-            binary += String.fromCharCode(uint8Array[i]);
-        }
+        // Log buffer information
+        console.debug(`Created Buffer with length ${buffer.length}`);
         
-        console.debug(`Binary string created with length ${binary.length} in ${Date.now() - startTime}ms`);
-        console.debug(`Binary sample (first 20 chars): ${binary.substring(0, 20).replace(/[^\x20-\x7E]/g, '?')}...`);
+        // Convert to base64 - consistent cross-platform approach
+        const base64 = buffer.toString('base64');
+        console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using buffer package`);
         
-        const base64 = btoa(binary);
-        console.log(`Converted ${uint8Array.length} bytes to ${base64.length} base64 chars using btoa in ${Date.now() - startTime}ms`);
+        // Log sample of base64 string
         console.debug(`Base64 sample (first 50 chars): ${base64.substring(0, 50)}...`);
         
         // Ensure the result is clean
         return cleanBase64(base64);
-    } catch (err) {
-        console.error('Error in direct base64 conversion:', err);
-        console.error('Error type:', err instanceof Error ? err.name : 'Unknown');
-        console.error('Error message:', err instanceof Error ? err.message : String(err));
-        console.error('Stack trace:', err instanceof Error ? err.stack : 'No stack trace');
+    } catch (bufferError) {
+        console.error('Error in buffer package conversion:', bufferError);
+        console.error('Stack trace:', bufferError instanceof Error ? bufferError.stack : 'No stack trace');
         
-        // Last resort: try chunked approach
-        const result = chunkedBase64Conversion(uint8Array);
-        return cleanBase64(result);
+        // Fallback to basic approach if the buffer package fails
+        console.log('Falling back to basic base64 conversion');
+        
+        try {
+            let binary = '';
+            for (let i = 0; i < uint8Array.length; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            
+            const base64 = btoa(binary);
+            console.log(`Fallback converted ${uint8Array.length} bytes to ${base64.length} base64 chars`);
+            
+            // Ensure the result is clean
+            return cleanBase64(base64);
+        } catch (fallbackError) {
+            console.error('Error in fallback base64 conversion:', fallbackError);
+            
+            // Last resort: try chunked approach
+            const result = chunkedBase64Conversion(uint8Array);
+            return cleanBase64(result);
+        }
     }
 }
 
@@ -602,6 +575,9 @@ export class MistralOCRProvider implements OCRProvider {
      * @returns Document chunk for the API
      */
     private createDocumentChunk(doc: Document): ImageURLChunk | DocumentURLChunk {
+        // Standard processing with buffer package for cross-platform compatibility
+        console.log('Converting document to data URL with buffer package');
+
         // Convert document content to base64
         const base64Content = arrayBufferToBase64(doc.content);
         
@@ -629,6 +605,7 @@ export class MistralOCRProvider implements OCRProvider {
         const dataUrl = `data:${mimeType};base64,${cleanedBase64}`;
         
         console.log(`Created data URL with MIME type ${mimeType}, total length: ${dataUrl.length}`);
+        
         console.log(`Data URL prefix: ${dataUrl.substring(0, 50)}...`);
         
         // Add extra validation to ensure URL format is correct
@@ -656,17 +633,19 @@ export class MistralOCRProvider implements OCRProvider {
         }
         
         // Return appropriate chunk based on document type
+        // IMPORTANT: The Mistral SDK expects camelCase field names despite the API using snake_case
+        // This is a critical difference between direct API calls and SDK usage
         if (doc.type === DocumentType.Image) {
-            // Double-check Mistral API requirements for image_url format
+            // For SDK compatibility, we use camelCase property names
             return { 
                 type: 'image_url', 
-                imageUrl: dataUrl 
-            };
+                imageUrl: dataUrl  // Use camelCase for SDK compatibility
+            } as any; // Type assertion to bypass TypeScript checking
         } else {
             return { 
                 type: 'document_url', 
-                documentUrl: dataUrl 
-            };
+                documentUrl: dataUrl  // Use camelCase for SDK compatibility
+            } as any; // Type assertion to bypass TypeScript checking
         }
     }
 

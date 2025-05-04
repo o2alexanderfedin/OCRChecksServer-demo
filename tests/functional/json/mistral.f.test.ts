@@ -3,6 +3,7 @@ import { JsonExtractionRequest } from '../../../src/json/types'
 import { MistralJsonExtractorProvider } from '../../../src/json/mistral'
 import 'jasmine'
 import { Mistral } from '@mistralai/mistralai'
+import { TestDIContainer, TYPES } from '../../../src/di/index'
 
 // Create our own simplified mock function since jasmine.createSpy might not be available
 interface MockFunction {
@@ -118,19 +119,33 @@ describe('MistralJsonExtractor (Functional Style)', () => {
     let mockClient: MockMistralClient
 
     beforeEach(() => {
-        // Reset spies
-        (mockIo.fetch as MockFunction).calls.reset()
+        // Reset spies if needed
+        (mockIo.fetch as MockFunction)?.calls?.reset?.()
         
-        // Create mock client
+        // Setup spy for complete
+        const completeSpy = createSpy('complete')
+        
+        // Create a container with our FakeMistral
+        const container = TestDIContainer.createForTests(mockIo, 'test_valid_api_key', {
+            chatComplete: async (params: any) => {
+                // Call the spy to track calls
+                return completeSpy(params)
+            }
+        })
+        
+        // Get the extractor from the container
+        extractor = container.get(TYPES.JsonExtractorProvider)
+        
+        // Get the mock Mistral client - we don't need to store it
+        // since we're using the spy to track calls
+        
+        // Store reference to mock client for test assertions
         mockClient = {
             apiKey: 'test-key',
             chat: {
-                complete: createSpy('complete')
+                complete: completeSpy
             }
         }
-        
-        // Create extractor with mock client
-        extractor = new MistralJsonExtractorProvider(mockIo, mockClient as unknown as Mistral)
     })
 
     it('should extract JSON with schema and calculate confidence', async () => {

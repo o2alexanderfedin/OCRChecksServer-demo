@@ -188,7 +188,7 @@ describe('MistralOCR', () => {
             return;
         }
 
-        expect(result[1].message).toContain('API key is required')
+        expect(result[1].message).toContain('Mistral API authentication error')
     })
 
     it('should process multiple documents', async () => {

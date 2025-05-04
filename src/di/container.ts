@@ -9,7 +9,9 @@ import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
 
-// Create symbols for dependency identifiers
+/**
+ * Symbols for dependency identifiers - used for type-safe dependency injection
+ */
 export const TYPES = {
   IoE: Symbol.for('IoE'),
   MistralApiKey: Symbol.for('MistralApiKey'),
@@ -22,126 +24,145 @@ export const TYPES = {
   CheckScanner: Symbol.for('CheckScanner')
 };
 
+/**
+ * Dependency Injection Container for managing application dependencies
+ * Handles the creation and lifetime of service objects
+ */
 export class DIContainer {
-  private container: Container;
+  protected readonly container: Container;
 
   constructor() {
     this.container = new Container();
   }
 
   /**
-   * Register all dependencies with default Mistral implementation
+   * Register all dependencies with Mistral implementation
    * 
    * @param io - The IO interface for network operations
    * @param apiKey - Mistral API key
+   * @returns The container instance for method chaining
    */
   registerMistralDependencies(io: IoE, apiKey: string): DIContainer {
     // Register basic dependencies
     this.container.bind(TYPES.IoE).toConstantValue(io);
     this.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
 
-    console.log(`Mistral API Key: {apiKey}`);
+    this.registerMistralClient();
+    this.registerProviders();
+    this.registerExtractors();
+    this.registerScanners();
     
-    // Register Mistral client
+    return this;
+  }
+
+  /**
+   * Register Mistral client with validation
+   * @protected
+   */
+  protected registerMistralClient(): void {
     this.container.bind(TYPES.MistralClient).toDynamicValue((context) => {
-      const apk = context.get<string>(TYPES.MistralApiKey);
-      console.log(`Mistral apk: {apk}`);
-      // Ensure apk is correctly set and provide more debugging information
-      if (!apk) {
-        const errorMessage = '[DIContainer] CRITICAL ERROR: Mistral apk is missing or empty';
-        console.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-
-      console.log(`Mistral API Key: {apiKey}`);
-      // Ensure API key is correctly set and provide more debugging information
-      if (!apiKey) {
-        const errorMessage = '[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty';
-        console.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-
-      // Validate API key format - at minimum it should be a reasonable length
-      if (apiKey.length < 20) {
-        const errorMessage = `[DIContainer] CRITICAL ERROR: Invalid Mistral API key format - too short (${apiKey.length} chars)`;
-        console.error(errorMessage);
-        throw new Error(errorMessage);
-      }
+      const apiKey = context.get<string>(TYPES.MistralApiKey);
       
-      // Check for obviously invalid placeholder keys
-      const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
-      if (commonPlaceholders.some(placeholder => apiKey.toLowerCase().includes(placeholder))) {
-        const errorMessage = '[DIContainer] CRITICAL ERROR: Detected placeholder text in Mistral API key';
-        console.error(errorMessage);
-        throw new Error(errorMessage);
-      }
+      // Validate API key is present and valid
+      this.validateApiKey(apiKey);
       
-      
-      console.log('Initializing Mistral client with API key (first 4 chars):', apiKey.substring(0, 4) + '...');
-      
-      // Create Mistral client with explicit apiKey property
-      let client: Mistral;
+      // Create Mistral client with validated API key
       try {
-        client = new Mistral({
-          apiKey: apiKey
-        });
+        // Always use the real Mistral client - this ensures proper structure 
+        // for validation in provider constructors, while being simple to test
+        return new Mistral({ apiKey });
       } catch (error) {
         const errorMessage = `[DIContainer] CRITICAL ERROR: Failed to initialize Mistral client: ${error instanceof Error ? error.message : String(error)}`;
         console.error(errorMessage);
         throw new Error(errorMessage);
       }
-      
-      // Verify the client has the API key set
-      if (!('apiKey' in client)) {
-        const errorMessage = '[DIContainer] CRITICAL ERROR: API key not properly attached to Mistral client';
-        console.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-      
-      return client;
     }).inSingletonScope();
-    
+  }
+
+  /**
+   * Register OCR and JSON extractor providers
+   * @protected
+   */
+  protected registerProviders(): void {
     // Register OCR provider
-    this.container.bind(TYPES.OCRProvider).toDynamicValue(() => {
-      const io = this.container.get<IoE>(TYPES.IoE);
-      const mistralClient = this.container.get<Mistral>(TYPES.MistralClient);
+    this.container.bind(TYPES.OCRProvider).toDynamicValue((context) => {
+      const io = context.get<IoE>(TYPES.IoE);
+      const mistralClient = context.get<Mistral>(TYPES.MistralClient);
       return new MistralOCRProvider(io, mistralClient);
     }).inSingletonScope();
     
     // Register JSON extractor provider
-    this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue(() => {
-      const io = this.container.get<IoE>(TYPES.IoE);
-      const mistralClient = this.container.get<Mistral>(TYPES.MistralClient);
+    this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue((context) => {
+      const io = context.get<IoE>(TYPES.IoE);
+      const mistralClient = context.get<Mistral>(TYPES.MistralClient);
       return new MistralJsonExtractorProvider(io, mistralClient);
     }).inSingletonScope();
-    
+  }
+
+  /**
+   * Register receipt and check extractors
+   * @protected
+   */
+  protected registerExtractors(): void {
     // Register receipt extractor
-    this.container.bind(TYPES.ReceiptExtractor).toDynamicValue(() => {
-      const jsonExtractor = this.container.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
+    this.container.bind(TYPES.ReceiptExtractor).toDynamicValue((context) => {
+      const jsonExtractor = context.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
       return new ReceiptExtractor(jsonExtractor);
     }).inSingletonScope();
     
     // Register check extractor
-    this.container.bind(TYPES.CheckExtractor).toDynamicValue(() => {
-      const jsonExtractor = this.container.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
+    this.container.bind(TYPES.CheckExtractor).toDynamicValue((context) => {
+      const jsonExtractor = context.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
       return new CheckExtractor(jsonExtractor);
     }).inSingletonScope();
-    
+  }
+
+  /**
+   * Register receipt and check scanners
+   * @protected
+   */
+  protected registerScanners(): void {
     // Register receipt scanner
-    this.container.bind(TYPES.ReceiptScanner).toDynamicValue(() => {
-      const ocrProvider = this.container.get<MistralOCRProvider>(TYPES.OCRProvider);
-      const receiptExtractor = this.container.get<ReceiptExtractor>(TYPES.ReceiptExtractor);
+    this.container.bind(TYPES.ReceiptScanner).toDynamicValue((context) => {
+      const ocrProvider = context.get<MistralOCRProvider>(TYPES.OCRProvider);
+      const receiptExtractor = context.get<ReceiptExtractor>(TYPES.ReceiptExtractor);
       return new ReceiptScanner(ocrProvider, receiptExtractor);
     }).inSingletonScope();
     
     // Register check scanner
-    this.container.bind(TYPES.CheckScanner).toDynamicValue(() => {
-      const ocrProvider = this.container.get<MistralOCRProvider>(TYPES.OCRProvider);
-      const checkExtractor = this.container.get<CheckExtractor>(TYPES.CheckExtractor);
+    this.container.bind(TYPES.CheckScanner).toDynamicValue((context) => {
+      const ocrProvider = context.get<MistralOCRProvider>(TYPES.OCRProvider);
+      const checkExtractor = context.get<CheckExtractor>(TYPES.CheckExtractor);
       return new CheckScanner(ocrProvider, checkExtractor);
     }).inSingletonScope();
+  }
+
+  /**
+   * Validate that an API key is present and in the correct format
+   * 
+   * @param apiKey - The API key to validate
+   * @protected
+   */
+  protected validateApiKey(apiKey: string): void {
+    // Log partial key for debugging (first 4 chars only)
+    const maskedKey = apiKey ? `${apiKey.substring(0, 4)}...` : 'undefined';
+    console.log(`Validating Mistral API key: ${maskedKey}`);
     
-    return this;
+    // Ensure API key is present
+    if (!apiKey) {
+      throw new Error('[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty');
+    }
+
+    // Validate API key length
+    if (apiKey.length < 20) {
+      throw new Error(`[DIContainer] CRITICAL ERROR: Invalid Mistral API key format - too short (${apiKey.length} chars)`);
+    }
+    
+    // Check for obviously invalid placeholder keys
+    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+    if (commonPlaceholders.some(placeholder => apiKey.toLowerCase().includes(placeholder))) {
+      throw new Error('[DIContainer] CRITICAL ERROR: Detected placeholder text in Mistral API key');
+    }
   }
 
   /**

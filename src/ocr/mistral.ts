@@ -145,17 +145,10 @@ export class MistralOCRProvider implements OCRProvider {
         this.io = io
         this.client = client
         
-        // Validate that the client has an API key set
-        const apiKey = 'apiKey' in this.client ? (this.client as {apiKey: string}).apiKey : undefined;
-        if (!apiKey) {
-            const errorMessage = '[MistralOCRProvider:constructor] CRITICAL ERROR: Initialized with client missing API key';
-            this.io.error(errorMessage);
-            throw new Error(errorMessage);
-        }
-        
-        // Additional validation of API key format
-        if (typeof apiKey !== 'string' || apiKey.trim().length < 20) {
-            const errorMessage = `[MistralOCRProvider:constructor] CRITICAL ERROR: Invalid API key format - too short or wrong type`;
+        // Only verify that we have a Mistral instance
+        // Trust that the Mistral client will handle API key validation internally
+        if (!(client instanceof Mistral)) {
+            const errorMessage = '[MistralOCRProvider:constructor] CRITICAL ERROR: Client must be an instance of Mistral';
             this.io.error(errorMessage);
             throw new Error(errorMessage);
         }
@@ -175,14 +168,6 @@ export class MistralOCRProvider implements OCRProvider {
         });
         
         try {
-            // Check for API key before proceeding - additional validation at runtime
-            const apiKey = 'apiKey' in this.client ? (this.client as {apiKey: string}).apiKey : undefined;
-            if (!apiKey) {
-                const errorMessage = '[MistralOCRProvider:processDocument] CRITICAL ERROR: Missing Mistral API key';
-                this.io.error(errorMessage);
-                throw new Error(errorMessage);
-            }
-            
             // Log document information for debugging
             this.io.log(`Processing document: ${doc.name || 'unnamed'}, type: ${doc.type}, size: ${doc.content.byteLength} bytes`);
             
@@ -214,10 +199,7 @@ export class MistralOCRProvider implements OCRProvider {
                 // Log API request details
                 this.io.log('Sending request to Mistral OCR API...');
                 
-                // Log API key information (first 4 chars, last 4 chars)
-                const maskedKey = apiKey.substring(0, 4) + '...' + apiKey.substring(apiKey.length - 4);
-                this.io.debug(`Using API key: ${maskedKey}`);
-                
+                // Log API request details without exposing sensitive information
                 // Log request details
                 const requestDetails = {
                     model: "mistral-ocr-latest",

@@ -1,5 +1,5 @@
 import type { Result } from 'functionalscript/types/result/module.f.js'
-import type { Mistral } from '@mistralai/mistralai'
+import { Mistral } from '@mistralai/mistralai'
 import type { IoE } from '../ocr/types'
 import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './types'
 
@@ -19,17 +19,10 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
         this.io = io
         this.client = client
         
-        // Validate that the client has an API key set
-        const apiKey = 'apiKey' in this.client ? (this.client as {apiKey: string}).apiKey : undefined;
-        if (!apiKey) {
-            const errorMessage = '[MistralJsonExtractorProvider:constructor] CRITICAL ERROR: Initialized with client missing API key';
-            this.io.error(errorMessage);
-            throw new Error(errorMessage);
-        }
-        
-        // Additional validation of API key format
-        if (typeof apiKey !== 'string' || apiKey.trim().length < 20) {
-            const errorMessage = `[MistralJsonExtractorProvider:constructor] CRITICAL ERROR: Invalid API key format - too short or wrong type`;
+        // Only verify that we have a Mistral instance
+        // Trust that the Mistral client will handle API key validation internally
+        if (!(client instanceof Mistral)) {
+            const errorMessage = '[MistralJsonExtractorProvider:constructor] CRITICAL ERROR: Client must be an instance of Mistral';
             this.io.error(errorMessage);
             throw new Error(errorMessage);
         }
@@ -42,14 +35,6 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
      */
     async extract(request: JsonExtractionRequest): Promise<Result<JsonExtractionResult, Error>> {
         try {
-            // Verify API key before proceeding - additional validation at runtime
-            const apiKey = 'apiKey' in this.client ? (this.client as {apiKey: string}).apiKey : undefined;
-            if (!apiKey) {
-                const errorMessage = '[MistralJsonExtractorProvider:extract] CRITICAL ERROR: Missing API key for Mistral client';
-                this.io.error(errorMessage);
-                throw new Error(errorMessage);
-            }
-            
             // Construct the prompt for Mistral
             const prompt = this.constructPrompt(request)
             
@@ -84,6 +69,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                     return ['error', new Error('Invalid response format from Mistral API')]
                 }
 
+                this.io.debug(`JSON content from Mistral: ${content}`);
                 jsonContent = JSON.parse(content)
             } catch (error) {
                 return ['error', new Error(`Invalid JSON response: ${error instanceof Error ? error.message : String(error)}`)]

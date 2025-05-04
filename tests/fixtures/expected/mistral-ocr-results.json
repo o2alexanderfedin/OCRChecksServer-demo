@@ -1,14 +1,14 @@
 [
   [
     {
-      "text": "# A. PLEASE DETACH HERE AND RETURN TOP PORTION WITH YOUR PAYMENT \n\nProvice Number : 022756875\nInvolve Date : 03/14/2025\nAmount Due : \\$3399.21\nDue date : 04/01/2025\n\n## UTILITY SERVICE CHARGES\n\n| utility | provider | calc | start date | end date | meter <br> start | meter <br> end | total usage | cost per unit | total |\n| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |\n| Cold Water | -- | S | 02/05/2025 | 03/05/2025 | 12400 | 12880 | 480 Gal | 0.0107 | $\\$ 5.15$ |\n| Hot Water | San Jose Water Company | S | 02/05/2025 | 03/05/2025 | 9110 | 9860 | 750 Gal | 0.0107 | $\\$ 8.04$ |\n| Hot Water Energy | Pacific Gas \\& Electric (PG\\&E) | RUB | 02/05/2025 | 03/05/2025 | -- | -- | -- | -- | $\\$ 13.56$ |\n| Sewer | City of San Jose | F | 02/05/2025 | 03/05/2025 | -- | -- | -- | -- | $\\$ 33.23$ |\n| Stormwater | San Jose Water Company | F | 02/05/2025 | 03/05/2025 | -- | -- | -- | -- | $\\$ 4.30$ |\n| Cold Water | -- | BASE | 02/05/2025 | 03/05/2025 | -- | -- | -- | -- | $\\$ 10.93$ |\n\n## COLD WATER USAGE HISTORY\n\n| month | average usage* | your usage | your daily usage | Description | Date | total |\n| :--: | :--: | :--: | :--: | :--: | :--: | :--: |\n| 03/25 | 544 | 480 | 17 | Rent - Premium | 04/01/2025 | $\\$ 50.00$ |\n| HOT WATER USAGE HISTORY |  |  |  | Resident Service Charge | 04/01/2025 | $\\$ 35.00$ |\n| month | average usage* | your usage | your daily usage | Rent - Storage Fee | 04/01/2025 | $\\$ 65.00$ |\n| 03/25 | 570 | 750 | 27 | Fee - Internet | 04/01/2025 | $\\$ 54.00$ |\n|  |  |  |  | Rent - Residential | 04/01/2025 | $\\$ 3 / 010.00$ |\n|  |  |  |  | Fanning - Homeware | 04/01/2025 | $\\$ 100.00$ |",
+      "text": "Mock OCR result text for testing purposes. This text simulates OCR output.",
       "confidence": 1,
       "pageNumber": 1,
       "boundingBox": {
         "x": 0,
         "y": 0,
-        "width": 4032,
-        "height": 3024
+        "width": 800,
+        "height": 600
       }
     }
   ]

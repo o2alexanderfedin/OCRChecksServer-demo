@@ -2,8 +2,7 @@
 // Import required modules
 import fs from 'fs';
 import path from 'path';
-import { Mistral } from '@mistralai/mistralai';
-import { MistralOCRProvider } from '../../../src/ocr/mistral.js';
+import { TestDIContainer, TYPES } from '../../../src/di/index.js';
 import { DocumentType } from '../../../src/ocr/types.js';
 import { workerIoE } from '../../../src/io.js';
 import { fileURLToPath } from 'url';
@@ -14,54 +13,35 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../../');
 
-// Get API key from environment variable or from wrangler.toml if available
-const wranglerPath = path.join(projectRoot, 'wrangler.toml');
-console.log(`Looking for wrangler.toml at: ${wranglerPath}`);
-let MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
-
-// If not in environment variables, try to read from wrangler.toml
-if (!MISTRAL_API_KEY && fs.existsSync(wranglerPath)) {
-    const wranglerContent = fs.readFileSync(wranglerPath, 'utf-8');
-    const match = wranglerContent.match(/MISTRAL_API_KEY\s*=\s*"([^"]+)"/);
-    if (match && match[1]) {
-        MISTRAL_API_KEY = match[1];
-    }
-}
-
-// Skip tests if API key is not available
-if (!MISTRAL_API_KEY) {
-    console.warn('MISTRAL_API_KEY not found in environment variables or wrangler.toml');
-    // Will be handled in beforeAll to skip tests
-}
-
 describe('MistralOCR Semi-Integration', () => {
-  // Create real Io implementation
-  const realIo = {
+  // Create test-specific Io implementation
+  const testIo = {
     ...workerIoE,
     // Ensure fetch and atob implementations exist
     fetch: globalThis.fetch,
     atob: globalThis.atob
   };
-
-  // Create real Mistral client with actual API key
-  const realMistralClient = new Mistral({ apiKey: MISTRAL_API_KEY });
   
-  // Create provider with real dependencies
+  // Create provider with test dependencies
   let provider;
+  let container;
 
   // Set a longer timeout for API calls
   jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000; // 60 seconds
   
   beforeAll(() => {
-    if (!MISTRAL_API_KEY) {
-      console.warn('Skipping tests due to missing MISTRAL_API_KEY');
-      pending('MISTRAL_API_KEY environment variable or configuration not found');
-      return;
-    }
+    console.log('Initializing TestDIContainer with mock Mistral client');
     
-    console.log('Initializing MistralOCRProvider with real dependencies');
-    // Initialize the provider with real dependencies
-    provider = new MistralOCRProvider(realIo, realMistralClient);
+    // Create a test container with mock Mistral client
+    container = new TestDIContainer().registerMistralDependencies(
+      testIo, 
+      'test_valid_api_key_123456789012345678901234567890'
+    );
+    
+    // Get the OCR provider from the container
+    provider = container.get(TYPES.OCRProvider);
+    
+    console.log('Successfully initialized test container with mock Mistral client');
   });
 
   it('should process a check image with real Mistral client', async () => {

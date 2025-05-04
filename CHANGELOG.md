@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.38.1] - 2025-05-04
+
+### Fixed
+- Further improved base64 image handling for Mistral API
+- Enhanced validation and cleaning of base64 data
+- Fixed SDK compatibility with latest Mistral OCR API requirements
+- Improved data URL format handling
+
 ## [1.38.0] - 2025-05-15
 
 ### Fixed

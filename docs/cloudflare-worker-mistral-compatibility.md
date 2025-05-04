@@ -120,35 +120,34 @@ cat .dev.vars
 # List secrets configured for your Worker
 wrangler secret list
 
-# Deploy with proper secrets management (default environment)
+# Deploy to dev environment (default)
 bash scripts/deploy-with-secrets.sh
 
-# Deploy to a specific environment (e.g., staging)
+# Deploy to another environment (e.g., staging, production)
 bash scripts/deploy-with-secrets.sh staging
+bash scripts/deploy-with-secrets.sh production
 
-# Check Worker logs for errors (production environment)
-wrangler tail ocr-checks-worker --format pretty
-
-# Check Worker logs for a specific environment
-wrangler tail ocr-checks-worker --env staging --format pretty
-
-# Filter logs to only show Mistral API errors
-wrangler tail ocr-checks-worker --search "MISTRAL API ERROR"
-
-# Show only error status logs
-wrangler tail ocr-checks-worker --status error
-
-# Use the convenience script for tailing logs
+# Check Worker logs (dev environment by default)
 bash scripts/tail-logs.sh
 
-# Tail logs from staging with error filtering
-bash scripts/tail-logs.sh --env staging --errors
+# Check Worker logs for other environments
+bash scripts/tail-logs.sh --env staging
+bash scripts/tail-logs.sh --env production
 
-# Tail logs with Mistral API error filtering
+# Filter logs to only show Mistral API errors
 bash scripts/tail-logs.sh --search "MISTRAL API ERROR"
+
+# Show only error status logs
+bash scripts/tail-logs.sh --errors
+
+# Manually using wrangler tail with dev environment
+wrangler tail ocr-checks-worker-dev --format pretty --env dev
+
+# Combined filtering options
+bash scripts/tail-logs.sh --env staging --errors --search "MISTRAL API"
 ```
 
-Note: The first parameter `ocr-checks-worker` is the name of your Worker as defined in wrangler.toml. If you're using environment-specific Workers like `ocr-checks-worker-staging`, specify that name instead, or use the `--env` flag to select the right environment.
+Note: When using the convenience script, it automatically uses the name `ocr-checks-worker-dev` and environment `dev` by default. You can override this with the `--worker` and `--env` flags when needed.
 
 ## Future Improvements
 

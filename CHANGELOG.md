@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.34.0] - 2025-05-06
+
+### Added
+- Secure deployment workflow with Cloudflare secrets management
+- New `deploy:with-secrets` script for handling API keys securely
+- Comprehensive deployment guidelines in CLAUDE.md
+- Documentation for Cloudflare Mistral API key setup
+
+### Fixed
+- Improved API key management with Cloudflare Secrets API
+- Fixed version reading from package.json in health endpoint
+- Updated deployment script for better cross-platform compatibility
+
+### Improved
+- Enhanced security practices for API key management
+- Standardized deployment process with explicit secrets handling
+- Better documentation on proper API key management
+
 ## [1.33.0] - 2025-05-05
 
 ### Added

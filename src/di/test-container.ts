@@ -164,7 +164,7 @@ export function createMockMistral(options: {
               dueDate: '2024-05-30'
             })
           },
-          finish_reason: 'stop'
+          finishReason: 'stop'
         }
       ]
     };

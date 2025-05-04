@@ -11,6 +11,19 @@ public enum CheckType: String, Codable {
     case payroll
     case moneyOrder = "money_order"
     case other
+    
+    // Add a fallback case for unknown values
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        if let knownValue = CheckType(rawValue: rawValue) {
+            self = knownValue
+        } else {
+            print("Warning: Unknown CheckType value: '\(rawValue)', defaulting to .other")
+            self = .other
+        }
+    }
 }
 
 /// Type of bank account

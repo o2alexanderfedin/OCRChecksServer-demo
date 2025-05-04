@@ -22,6 +22,7 @@ ENV="local"
 SAVE=false
 VERBOSE=false
 HELP=false
+FORCE=false  # Continue on error
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -50,6 +51,10 @@ while [[ $# -gt 0 ]]; do
       VERBOSE=true
       shift
       ;;
+    --force|-f)
+      FORCE=true
+      shift
+      ;;
     --help|-h)
       HELP=true
       shift
@@ -76,11 +81,13 @@ if [ "$HELP" = true ]; then
   echo -e "  ${CYAN}--staging, -s${NC}       Shorthand for --env staging"
   echo -e "  ${CYAN}--save${NC}              Save detailed test results to a JSON file"
   echo -e "  ${CYAN}--verbose, -v${NC}       Show verbose output including API responses"
+  echo -e "  ${CYAN}--force, -f${NC}         Continue execution even if some tests fail (treat as warnings)"
   echo -e "  ${CYAN}--help, -h${NC}          Show this help message"
   echo -e ""
   echo -e "Examples:"
   echo -e "  $0                   # Run tests against local environment"
   echo -e "  $0 --dev             # Run tests against dev environment"
+  echo -e "  $0 --dev --force     # Run tests against dev environment, continue on errors"
   echo -e "  $0 --production      # Run tests against production environment"
   echo -e "  $0 --env staging --save  # Run tests against staging and save results"
   echo -e "${MAGENTA}=======================================================${NC}"
@@ -115,8 +122,12 @@ EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then
   echo -e "\n${GREEN}Smoke tests completed successfully!${NC}"
+elif [ "$FORCE" = true ]; then
+  echo -e "\n${YELLOW}Some smoke tests failed with exit code $EXIT_CODE, but continuing due to --force flag${NC}"
+  # When using --force, we treat errors as warnings and return success
+  exit 0
 else
   echo -e "\n${RED}Smoke tests failed with exit code $EXIT_CODE${NC}"
+  echo -e "${YELLOW}Tip: Use --force to treat failures as warnings and continue execution${NC}"
+  exit $EXIT_CODE
 fi
-
-exit $EXIT_CODE

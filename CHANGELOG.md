@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.37.0] - 2025-05-10
+
+### Added
+- Default dev environment for all deployment and monitoring tools
+- Updated `tail-logs.sh` script with dev environment defaults
+- Enhanced deployment documentation with default environment examples
+
+### Changed
+- Modified `deploy-with-secrets.sh` to target dev environment by default
+- Updated `wrangler.toml` to use consistent workers_dev configuration
+- Improved documentation with better examples using default environments
+- Simplified deployment and monitoring process with sensible defaults
+
+### Improved
+- Streamlined developer workflow with default environment targeting
+- Reduced configuration errors with consistent environment defaults
+- Enhanced monitoring capabilities with default filtering options 
+- More comprehensive documentation in cloudflare-deployment-guide.md
+
 ## [1.36.0] - 2025-05-08
 
 ### Added

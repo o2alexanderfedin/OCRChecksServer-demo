@@ -168,10 +168,21 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                 console.log('- Error type:', apiError?.constructor?.name || 'Unknown');
                 console.log('- Error message:', String(apiError));
                 
+                // Detect environment for environment-specific error handling
+                const isNodeJS = typeof process !== 'undefined' && process.versions && process.versions.node;
+                const isCloudflareWorker = typeof caches !== 'undefined' && typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers';
+                const isBrowser = typeof window !== 'undefined';
+                
+                console.log('- Environment context:');
+                console.log(`  - Node.js: ${isNodeJS ? 'Yes' : 'No'}`);
+                console.log(`  - Cloudflare Worker: ${isCloudflareWorker ? 'Yes' : 'No'}`);
+                console.log(`  - Browser: ${isBrowser ? 'Yes' : 'No'}`);
+                
                 // Try to extract more detailed error information
                 if (apiError instanceof Error) {
                     console.log('- Stack trace:', apiError.stack);
                     
+                    // Check for error cause (useful in Node.js)
                     if ('cause' in apiError) {
                         console.log('- Error cause:', apiError.cause);
                         if (apiError.cause && typeof apiError.cause === 'object') {
@@ -196,13 +207,51 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                             if (typeof response.json === 'function') {
                                 const responseJson = await response.json();
                                 console.log('- Response body:', JSON.stringify(responseJson, null, 2));
+                                
+                                // Check for Mistral-specific error codes
+                                if (responseJson.error && responseJson.error.code) {
+                                    console.log('- Mistral error code:', responseJson.error.code);
+                                    
+                                    // Handle specific Mistral error codes
+                                    if (responseJson.error.code === 3000) {
+                                        console.log('- CRITICAL: Mistral service unavailable error detected');
+                                        console.log('- This is a temporary service outage on Mistral\'s end');
+                                    } else if (responseJson.error.code === 401) {
+                                        console.log('- CRITICAL: Authentication error detected');
+                                        console.log('- Check if API key is correct and properly set in Cloudflare');
+                                    }
+                                }
                             } else if (typeof response.text === 'function') {
                                 const responseText = await response.text();
                                 console.log('- Response text:', responseText);
+                                
+                                // Try to parse text as JSON if possible
+                                try {
+                                    const jsonFromText = JSON.parse(responseText);
+                                    console.log('- Parsed JSON from text response:', JSON.stringify(jsonFromText, null, 2));
+                                } catch (jsonParseError) {
+                                    // Not JSON, that's fine
+                                }
                             }
                         } catch (parseError) {
                             console.log('- Unable to parse response:', parseError);
                         }
+                    }
+                }
+                
+                // Environment-specific diagnostics
+                if (isCloudflareWorker) {
+                    console.log('- Cloudflare Worker specific diagnostics:');
+                    try {
+                        // Check if we can access the Mistral API key (without logging it)
+                        // @ts-ignore - for debugging
+                        console.log('  - API key available:', this.client.apiKey ? 'Yes (length: ' + this.client.apiKey.length + ')' : 'No');
+                        
+                        // Try to detect any Worker-specific issues
+                        console.log('  - Worker CPU time limits may be exceeded for large images');
+                        console.log('  - Check if Worker has appropriate memory limits configured');
+                    } catch (workerDiagError) {
+                        console.log('  - Error during Worker diagnostics:', workerDiagError);
                     }
                 }
                 

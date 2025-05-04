@@ -32,8 +32,7 @@ logs/
 # Test coverage
 coverage/ 
 
-# Debug test scripts
-debug-test/
+# Local Claude settings
 **/.claude/settings.local.json
 
 # Server PID file

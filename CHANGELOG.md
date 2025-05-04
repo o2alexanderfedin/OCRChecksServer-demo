@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.39.0] - 2025-05-04
+
+### Added
+- Binary image support for experimental endpoints with improved handling
+- Buffer package for consistent cross-platform base64 encoding
+
+### Fixed
+- Fixed Mistral SDK property naming issues (camelCase vs snake_case)
+- Fixed `/receipt` and `/check` endpoints to work with binary image uploads
+- Improved base64 encoding with proper validation and error handling
+
+### Changed
+- Simplified implementation by using standardized Buffer package
+- Enhanced error handling and logging for better debugging
+- Removed custom _dataUrl property with standardized approach
+
 ## [1.38.1] - 2025-05-04
 
 ### Fixed

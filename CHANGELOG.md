@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.40.0] - 2025-05-04
+
+### Removed
+- Removed all experimental endpoints (/experimental/mistral-direct, /experimental2/mistral-sdk, /experimental/binary, /experimental2/binary)
+- Cleaned up codebase by focusing only on stable, production-ready endpoints
+
+### Changed
+- Simplified API surface by providing only stable endpoints
+- Improved code clarity and maintainability by removing experimental code
+- Enhanced code organization with cleaner endpoint structure
+
 ## [1.39.0] - 2025-05-04
 
 ### Added

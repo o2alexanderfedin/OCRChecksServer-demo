@@ -41,8 +41,8 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
             console.log('- Schema provided:', request.schema ? 'Yes' : 'No');
             if (request.schema) {
                 console.log('- Schema type:', typeof request.schema);
-                if (typeof request.schema === 'object') {
-                    console.log('- Schema properties:', Object.keys(request.schema.properties || {}).join(', '));
+                if (typeof request.schema === 'object' && request.schema !== null) {
+                    console.log('- Schema properties:', Object.keys((request.schema as any).properties || {}).join(', '));
                 }
             }
             
@@ -109,7 +109,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                     console.log('- Token usage:', JSON.stringify(response.usage, null, 2));
                 }
                 
-                console.log('- Finish reason:', response.choices?.[0]?.finish_reason);
+                console.log('- Finish reason:', response.choices?.[0]?.finishReason);
                 
                 // Parse the response
                 let jsonContent: Record<string, unknown>;
@@ -240,27 +240,30 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
      * @returns Confidence score between 0 and 1
      */
     private calculateConfidence(response: Record<string, unknown>, extractedJson: Record<string, unknown>): number {
+        // Weigh the finishReason more heavily in the confidence calculation
+        
         // Base confidence on multiple factors
-        const factors = [
-            // 1. Model finish reason (1.0 if "stop", 0.5 if other)
-            Array.isArray(response.choices) && 
+        let finishReasonConfidence = 0.75; // Default value
+        
+        // Check finish reason from response
+        if (Array.isArray(response.choices) && 
             response.choices.length > 0 && 
             typeof response.choices[0] === 'object' &&
-            response.choices[0] !== null &&
-            response.choices[0].finish_reason === 'stop' ? 1.0 : 0.5,
-            
-            // 2. JSON structure completeness (0.0-1.0)
-            extractedJson && Object.keys(extractedJson).length > 0 ? 1.0 : 0.3,
-            
-            // 3. Additional confidence factors can be added here
-            // such as schema validation percentage, field completeness, etc.
-        ]
+            response.choices[0] !== null) {
+            // If finishReason is "stop", give it maximum confidence
+            if (response.choices[0].finishReason === 'stop') {
+                finishReasonConfidence = 1.0;
+            }
+        }
         
-        // Average the factors for final confidence score
-        const confidenceScore = factors.reduce((sum, factor) => sum + factor, 0) / factors.length
+        // Evaluate JSON structure completeness
+        const jsonStructureConfidence = extractedJson && Object.keys(extractedJson).length > 0 ? 0.9 : 0.3;
+        
+        // Weigh finish reason more heavily (70%) than JSON structure (30%)
+        const confidenceScore = (finishReasonConfidence * 0.7) + (jsonStructureConfidence * 0.3);
         
         // Return normalized score between 0 and 1, rounded to 2 decimal places
-        return Math.round(confidenceScore * 100) / 100
+        return Math.round(confidenceScore * 100) / 100;
     }
     
     // Schema validation is now handled by Mistral's API

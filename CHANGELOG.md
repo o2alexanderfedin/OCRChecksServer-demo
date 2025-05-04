@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.32.0] - 2025-05-04
+
+### Added
+- TestDIContainer class for consistent test mocking
+- createMockMistral factory function for type-safe mocking
+- Enhanced mock testing support for all test types
+
+### Fixed
+- Fixed instanceof type check failures in tests 
+- Improved error handling in Mistral client validation tests
+- Added hardcoded test API key for integration tests
+- Fixed console output suppression in I/O tests
+
+### Improved
+- Better prototype chain preservation in mock objects
+- Enhanced developer experience with more reliable tests
+- Improved mock test context awareness with typed responses
+- Consistent mock API behavior across test suites
+
 ## [1.29.0] - 2025-06-10
 
 ### Fixed

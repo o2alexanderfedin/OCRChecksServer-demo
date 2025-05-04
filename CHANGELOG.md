@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.36.0] - 2025-05-08
+
+### Added
+- New Cloudflare Worker compatibility documentation
+- Dedicated `tail-logs.sh` script for convenient Worker log monitoring
+- Environment-specific deployment support in deploy scripts
+- Enhanced environment detection for base64 encoding
+
+### Fixed
+- Removed hardcoded API keys from configuration files
+- Fixed Mistral API compatibility issues in Cloudflare Workers
+- Improved base64 encoding for larger images in Worker environment
+
+### Improved
+- Enhanced error diagnostics with environment-specific details
+- Better deployment process with environment parameter support
+- More efficient chunked processing for Worker environments
+- Streamlined logging with targeted filtering capabilities
+
 ## [1.35.0] - 2025-05-07
 
 ### Added

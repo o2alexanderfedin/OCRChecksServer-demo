@@ -29,12 +29,15 @@ vars = { ENVIRONMENT = "staging" }
 [env.production]
 name = "ocr-checks-worker"
 workers_dev = true
-# IMPORTANT: Replace the API key with your actual Mistral API key
-vars = { ENVIRONMENT = "production", MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE" }
+# IMPORTANT: Do not store API keys here, use secrets instead
+vars = { ENVIRONMENT = "production" }
 
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]
 enabled = true
 
 # Environment variables
+# IMPORTANT: DO NOT ADD API KEYS HERE!
+# Use Cloudflare Worker secrets instead: wrangler secret put MISTRAL_API_KEY
+# Example: echo "your-api-key" | wrangler secret put MISTRAL_API_KEY
 [vars]

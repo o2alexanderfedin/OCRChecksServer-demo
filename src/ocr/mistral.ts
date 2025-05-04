@@ -10,7 +10,7 @@ import type {
 
 /**
  * Utility function to convert ArrayBuffer to base64 string
- * Uses exact approach from official Mistral examples for 100% compatibility
+ * Improved with specific Cloudflare Worker environment detection and handling
  * @param arrayBuffer The ArrayBuffer to convert
  * @returns Base64 string representation of the ArrayBuffer
  */
@@ -23,11 +23,32 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
     const byteSample = uint8Array.slice(0, 20);
     console.debug(`First ${byteSample.length} bytes: [${Array.from(byteSample).join(',')}]`);
     
-    // Check if Buffer is available (Node.js environment)
+    // Detect environment more precisely
+    const isNodeJS = typeof process !== 'undefined' && process.versions && process.versions.node;
+    const isCloudflareWorker = typeof caches !== 'undefined' && typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers';
+    const isBrowser = typeof window !== 'undefined';
     const hasBuffer = typeof Buffer !== 'undefined';
-    console.log(`Environment check: Buffer is ${hasBuffer ? 'available' : 'not available'}`);
     
-    // In a Node.js environment, use Buffer for reliable conversion (this is what Mistral examples use)
+    console.log(`Environment detection:
+    - Node.js: ${isNodeJS ? 'Yes' : 'No'}
+    - Cloudflare Worker: ${isCloudflareWorker ? 'Yes' : 'No'}
+    - Browser: ${isBrowser ? 'Yes' : 'No'}
+    - Buffer available: ${hasBuffer ? 'Yes' : 'No'}`);
+    
+    // Cloudflare Worker specific approach - most reliable for Workers
+    if (isCloudflareWorker) {
+        console.log('Using Cloudflare Worker optimized base64 conversion');
+        try {
+            // For Cloudflare Workers, we'll use chunked conversion which is more reliable
+            // even with nodejs_compat flag
+            return cloudflareWorkerBase64Conversion(uint8Array);
+        } catch (workerError) {
+            console.error('Error in Cloudflare Worker conversion:', workerError);
+            // Fall through to other methods
+        }
+    }
+    
+    // Node.js environment with Buffer - most reliable for Node.js
     if (hasBuffer) {
         try {
             // Create a Buffer from the Uint8Array
@@ -51,8 +72,8 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
         }
     }
     
-    // For browser/Cloudflare Workers where Buffer is not available
-    console.log('Using browser/Worker compatible base64 conversion approach');
+    // Browser compatible approach (also works in Workers with limitations)
+    console.log('Using browser-compatible base64 conversion approach');
     
     // Try the straightforward approach first
     try {
@@ -78,46 +99,94 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
         console.error('Error message:', err instanceof Error ? err.message : String(err));
         console.error('Stack trace:', err instanceof Error ? err.stack : 'No stack trace');
         
-        // Fallback to chunked approach for large files that might cause call stack issues
-        console.log('Using chunked approach for base64 conversion');
-        const startTime = Date.now();
-        const chunkSize = 8192; // 8KB chunks should be safe
+        // Last resort: try chunked approach
+        return chunkedBase64Conversion(uint8Array);
+    }
+}
+
+/**
+ * Cloudflare Worker specific base64 conversion
+ * Optimized for the Worker environment
+ */
+function cloudflareWorkerBase64Conversion(uint8Array: Uint8Array): string {
+    console.log('Using Cloudflare Worker specific base64 conversion strategy');
+    const startTime = Date.now();
+    
+    try {
+        // In Cloudflare Workers, we can use a more efficient approach with smaller chunks
+        // to avoid memory issues
+        const chunkSize = 4096; // Smaller chunks for Workers
         let base64 = '';
         
-        try {
-            // Log chunking strategy
-            const numChunks = Math.ceil(uint8Array.length / chunkSize);
-            console.debug(`Chunking strategy: ${numChunks} chunks of ${chunkSize} bytes each`);
+        // Log chunking strategy
+        const numChunks = Math.ceil(uint8Array.length / chunkSize);
+        console.debug(`Worker chunking strategy: ${numChunks} chunks of ${chunkSize} bytes each`);
+        
+        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            const end = Math.min(i + chunkSize, uint8Array.length);
+            const chunk = uint8Array.subarray(i, end);
             
-            for (let i = 0; i < uint8Array.length; i += chunkSize) {
-                const chunkStartTime = Date.now();
-                const end = Math.min(i + chunkSize, uint8Array.length);
-                const chunk = uint8Array.subarray(i, end);
-                
-                console.debug(`Processing chunk ${Math.floor(i/chunkSize) + 1}/${numChunks}: ${chunk.length} bytes (${i}-${end})`);
-                
-                let binary = '';
-                for (let j = 0; j < chunk.length; j++) {
-                    binary += String.fromCharCode(chunk[j]);
-                }
-                
-                const chunkBase64 = btoa(binary);
-                console.debug(`Chunk ${Math.floor(i/chunkSize) + 1} converted in ${Date.now() - chunkStartTime}ms, length: ${chunkBase64.length}`);
-                
-                base64 += chunkBase64;
+            // Use a typed array view to avoid extra copies
+            let binary = '';
+            for (let j = 0; j < chunk.length; j++) {
+                binary += String.fromCharCode(chunk[j]);
             }
             
-            console.log(`Chunked conversion complete: ${uint8Array.length} bytes to ${base64.length} base64 chars in ${Date.now() - startTime}ms`);
-            console.debug(`Base64 sample (first 50 chars): ${base64.substring(0, 50)}...`);
-            
-            return base64;
-        } catch (chunkError) {
-            console.error('Fatal error in chunked base64 conversion:', chunkError);
-            console.error('Error type:', chunkError instanceof Error ? chunkError.name : 'Unknown');
-            console.error('Error message:', chunkError instanceof Error ? chunkError.message : String(chunkError));
-            console.error('Stack trace:', chunkError instanceof Error ? chunkError.stack : 'No stack trace');
-            throw new Error(`All base64 conversion methods failed: ${String(chunkError)}`);
+            base64 += btoa(binary);
         }
+        
+        console.log(`Worker chunked conversion complete: ${uint8Array.length} bytes to ${base64.length} base64 chars in ${Date.now() - startTime}ms`);
+        return base64;
+        
+    } catch (workerError) {
+        console.error('Error in Cloudflare Worker specific conversion:', workerError);
+        throw workerError; // Re-throw to try other methods
+    }
+}
+
+/**
+ * Chunked base64 conversion - last resort for large files
+ * Works in all environments but less efficient
+ */
+function chunkedBase64Conversion(uint8Array: Uint8Array): string {
+    console.log('Using chunked approach for base64 conversion (last resort)');
+    const startTime = Date.now();
+    const chunkSize = 8192; // 8KB chunks should be safe
+    let base64 = '';
+    
+    try {
+        // Log chunking strategy
+        const numChunks = Math.ceil(uint8Array.length / chunkSize);
+        console.debug(`Chunking strategy: ${numChunks} chunks of ${chunkSize} bytes each`);
+        
+        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            const chunkStartTime = Date.now();
+            const end = Math.min(i + chunkSize, uint8Array.length);
+            const chunk = uint8Array.subarray(i, end);
+            
+            console.debug(`Processing chunk ${Math.floor(i/chunkSize) + 1}/${numChunks}: ${chunk.length} bytes (${i}-${end})`);
+            
+            let binary = '';
+            for (let j = 0; j < chunk.length; j++) {
+                binary += String.fromCharCode(chunk[j]);
+            }
+            
+            const chunkBase64 = btoa(binary);
+            console.debug(`Chunk ${Math.floor(i/chunkSize) + 1} converted in ${Date.now() - chunkStartTime}ms, length: ${chunkBase64.length}`);
+            
+            base64 += chunkBase64;
+        }
+        
+        console.log(`Chunked conversion complete: ${uint8Array.length} bytes to ${base64.length} base64 chars in ${Date.now() - startTime}ms`);
+        console.debug(`Base64 sample (first 50 chars): ${base64.substring(0, 50)}...`);
+        
+        return base64;
+    } catch (chunkError) {
+        console.error('Fatal error in chunked base64 conversion:', chunkError);
+        console.error('Error type:', chunkError instanceof Error ? chunkError.name : 'Unknown');
+        console.error('Error message:', chunkError instanceof Error ? chunkError.message : String(chunkError));
+        console.error('Stack trace:', chunkError instanceof Error ? chunkError.stack : 'No stack trace');
+        throw new Error(`All base64 conversion methods failed: ${String(chunkError)}`);
     }
 }
 
@@ -335,12 +404,25 @@ export class MistralOCRProvider implements OCRProvider {
                 console.log('- Error type:', apiError?.constructor?.name || 'Unknown');
                 console.log('- Error message:', String(apiError));
                 
+                // Detect environment for environment-specific error handling
+                const isNodeJS = typeof process !== 'undefined' && process.versions && process.versions.node;
+                const isCloudflareWorker = typeof caches !== 'undefined' && typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers';
+                const isBrowser = typeof window !== 'undefined';
+                const hasBuffer = typeof Buffer !== 'undefined';
+                
+                console.log('- Environment context:');
+                console.log(`  - Node.js: ${isNodeJS ? 'Yes' : 'No'}`);
+                console.log(`  - Cloudflare Worker: ${isCloudflareWorker ? 'Yes' : 'No'}`);
+                console.log(`  - Browser: ${isBrowser ? 'Yes' : 'No'}`);
+                console.log(`  - Buffer available: ${hasBuffer ? 'Yes' : 'No'}`);
+                
                 this.io.error('Mistral API error:', apiError);
                 
                 // Try to extract more detailed error information
                 const errorDetails: Record<string, unknown> = {
                     errorType: apiError?.constructor?.name || 'Unknown',
                     errorMessage: String(apiError),
+                    environment: isCloudflareWorker ? 'Cloudflare Worker' : (isNodeJS ? 'Node.js' : (isBrowser ? 'Browser' : 'Unknown')),
                 };
                 
                 // Define MistralAPIError interface to handle API error responses
@@ -417,6 +499,27 @@ export class MistralOCRProvider implements OCRProvider {
                     this.io.debug('Image URL format (first 100 chars):', document.imageUrl.substring(0, 100));
                 } else if (document.type === 'document_url' && typeof document.documentUrl === 'string') {
                     this.io.debug('Document URL format (first 100 chars):', document.documentUrl.substring(0, 100));
+                }
+                
+                // Add Cloudflare Worker specific diagnostics
+                if (isCloudflareWorker) {
+                    console.log('- Cloudflare Worker specific diagnostics:');
+                    try {
+                        // Check if we can access the Mistral API key without logging it
+                        // @ts-ignore - for debugging
+                        console.log('  - API key available:', this.client.apiKey ? 'Yes (length: ' + this.client.apiKey.length + ')' : 'No');
+                        
+                        // Log potential Worker-specific limits
+                        console.log('  - Worker CPU time limits may be exceeded for large images');
+                        console.log('  - Check if memory limits are sufficient for base64 encoding');
+                        console.log('  - Verify wrangler.toml configuration for CPU limits and compat flags');
+                        
+                        // Check network connectivity
+                        console.log('  - Network connectivity: Try to ping api.mistral.ai directly');
+                        console.log('  - If using Workers, ensure Workers can make outbound HTTPS connections');
+                    } catch (workerDiagError) {
+                        console.log('  - Error during Worker diagnostics:', workerDiagError);
+                    }
                 }
                 
                 // Log total processing time, even though it failed

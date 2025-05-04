@@ -623,9 +623,11 @@ export class MistralOCRProvider implements OCRProvider {
         }
         
         // Create the data URL with proper format
-        // Use the exact format that Mistral expects to avoid validation errors
-        // Ensure there's no whitespace or special characters that could cause issues
-        const dataUrl = `data:${mimeType};base64,${base64Content.trim()}`;
+        // Mistral API REQUIRES the data:<mime>;base64, prefix
+        // Make sure to clean the base64 content of any whitespace or special characters
+        const cleanedBase64 = base64Content.trim().replace(/\s/g, '');
+        const dataUrl = `data:${mimeType};base64,${cleanedBase64}`;
+        
         console.log(`Created data URL with MIME type ${mimeType}, total length: ${dataUrl.length}`);
         console.log(`Data URL prefix: ${dataUrl.substring(0, 50)}...`);
         
@@ -644,6 +646,13 @@ export class MistralOCRProvider implements OCRProvider {
         if (!base64Part || base64Part.length === 0) {
             this.io.error('Invalid data URL format: Empty base64 content');
             throw new Error('Invalid data URL format: Empty base64 content');
+        }
+        
+        // Test for invalid base64 characters to avoid API errors
+        const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+        if (!base64Regex.test(base64Part)) {
+            this.io.warn('Warning: Base64 content contains invalid characters that might cause API errors');
+            // We don't throw here, as we'll let the API validate the final format
         }
         
         // Return appropriate chunk based on document type

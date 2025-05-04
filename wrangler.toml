@@ -36,4 +36,4 @@ vars = { ENVIRONMENT = "production", MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5E
 [vars]
 # IMPORTANT: This is a placeholder API key. To use this application, replace this with your actual Mistral API key.
 # The API key can be obtained from the Mistral AI dashboard at https://console.mistral.ai/
-MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE" # Replace with your actual Mistral API key
+MISTRAL_API_KEY = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE"

@@ -41,8 +41,8 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
             console.log('- Schema provided:', request.schema ? 'Yes' : 'No');
             if (request.schema) {
                 console.log('- Schema type:', typeof request.schema);
-                if (typeof request.schema === 'object') {
-                    console.log('- Schema properties:', Object.keys(request.schema.properties || {}).join(', '));
+                if (typeof request.schema === 'object' && request.schema !== null) {
+                    console.log('- Schema properties:', Object.keys((request.schema as any).properties || {}).join(', '));
                 }
             }
             
@@ -109,7 +109,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                     console.log('- Token usage:', JSON.stringify(response.usage, null, 2));
                 }
                 
-                console.log('- Finish reason:', response.choices?.[0]?.finish_reason);
+                console.log('- Finish reason:', response.choices?.[0]?.finishReason);
                 
                 // Parse the response
                 let jsonContent: Record<string, unknown>;
@@ -242,12 +242,12 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
     private calculateConfidence(response: Record<string, unknown>, extractedJson: Record<string, unknown>): number {
         // Base confidence on multiple factors
         const factors = [
-            // 1. Model finish reason (1.0 if "stop", 0.5 if other)
+            // 1. Model finish reason (1.0 if "stop", 0.5 if other) - now uses finishReason
             Array.isArray(response.choices) && 
             response.choices.length > 0 && 
             typeof response.choices[0] === 'object' &&
             response.choices[0] !== null &&
-            response.choices[0].finish_reason === 'stop' ? 1.0 : 0.5,
+            response.choices[0].finishReason === 'stop' ? 1.0 : 0.5,
             
             // 2. JSON structure completeness (0.0-1.0)
             extractedJson && Object.keys(extractedJson).length > 0 ? 1.0 : 0.3,

@@ -1,6 +1,6 @@
 {
   "name": "ocr-checks-worker",
-  "version": "1.42.0",
+  "version": "1.43.0",
   "description": "A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks",
   "type": "module",
   "main": "src/index.ts",
@@ -11,6 +11,7 @@
     "deploy": "wrangler deploy",
     "deploy:with-secrets": "bash scripts/deploy-with-secrets.sh",
     "test": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-tests.js all",
+    "test:all": "bash scripts/run-all-tests.sh",
     "test:unit": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-unit-tests.js",
     "test:functional": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-functional-tests.js",
     "test:semi": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-semi-tests.js",

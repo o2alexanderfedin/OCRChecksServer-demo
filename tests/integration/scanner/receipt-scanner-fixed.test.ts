@@ -157,8 +157,8 @@ describe('ReceiptScanner Integration (Fixed Environment)', function() {
         result = await retry(
           async () => await scanner.processDocument(document),
           {
-            retries: 2, // Try up to 3 times total (initial + 2 retries)
-            initialDelay: 2000,
+            retries: 5, // Try up to 6 times total (initial + 5 retries)
+            initialDelay: 1000, // Start with 1 second delay between retries
             respectRateLimit: true, // Enforce Mistral's rate limit of 5 requests/second
             retryIf: (error) => {
               // Retry on rate limits or temporary API issues

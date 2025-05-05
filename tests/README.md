@@ -83,8 +83,8 @@ import { retry } from '../../helpers/retry';
 const result = await retry(
   async () => await someFunction(),
   {
-    retries: 2,
-    initialDelay: 2000,
+    retries: 5, // Retry up to 5 times (6 attempts total)
+    initialDelay: 1000, // Start with 1 second delay
     respectRateLimit: true, // This enables rate limiting
     // ... other options
   }

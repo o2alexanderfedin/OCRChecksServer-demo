@@ -32,6 +32,19 @@ public enum BankAccountType: String, Codable {
     case savings
     case moneyMarket = "money_market"
     case other
+    
+    // Add a fallback case for unknown values
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        if let knownValue = BankAccountType(rawValue: rawValue) {
+            self = knownValue
+        } else {
+            print("Warning: Unknown BankAccountType value: '\(rawValue)', defaulting to .other")
+            self = .other
+        }
+    }
 }
 
 /// Check metadata with confidence and source information

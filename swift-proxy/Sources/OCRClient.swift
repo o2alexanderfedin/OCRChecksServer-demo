@@ -98,7 +98,7 @@ public class OCRClient {
         /// Development server at dev-api.nolock.social
         case development
         
-        /// Local development server at http://localhost:8787
+        /// Local development server at http://localhost:8789
         case local
         
         /// Custom server URL
@@ -111,7 +111,7 @@ public class OCRClient {
             case .development:
                 return URL(string: "https://dev-api.nolock.social")!
             case .local:
-                return URL(string: "http://localhost:8787")!
+                return URL(string: "http://localhost:8789")!
             case .custom(let url):
                 return url
             }
@@ -230,10 +230,14 @@ public class OCRClient {
         }
         
         guard (200...299).contains(httpResponse.statusCode) else {
+            // Print the response body for debugging
+            let responseString = String(data: data, encoding: .utf8) ?? "Unable to decode response"
+            print("HTTP Error \(httpResponse.statusCode): \(responseString)")
+            
             if let errorResponse = try? JSONDecoder().decode(OCRError.self, from: data) {
                 throw errorResponse
             } else {
-                throw OCRError(error: "HTTP Error: \(httpResponse.statusCode)")
+                throw OCRError(error: "HTTP Error: \(httpResponse.statusCode) - \(responseString)")
             }
         }
         
@@ -333,24 +337,16 @@ public class OCRClient {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
-        // Generate boundary string for multipart/form-data
-        let boundary = UUID().uuidString
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        // Set the Content-Type to image/jpeg as expected by the server
+        request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
         
-        // Create multipart/form-data body
-        var body = Data()
+        // Set the raw image data as the body
+        request.httpBody = imageData
         
-        // Add image data
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-        body.append(imageData)
-        body.append("\r\n".data(using: .utf8)!)
-        
-        // End of multipart/form-data
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        
-        request.httpBody = body
+        // Print debug information
+        print("Sending request to URL: \(url.absoluteString)")
+        print("Content-Type: image/jpeg")
+        print("Image data size: \(imageData.count) bytes")
         
         let (data, response) = try await session.data(for: request, delegate: nil)
         
@@ -359,10 +355,14 @@ public class OCRClient {
         }
         
         guard (200...299).contains(httpResponse.statusCode) else {
+            // Print the response body for debugging
+            let responseString = String(data: data, encoding: .utf8) ?? "Unable to decode response"
+            print("HTTP Error \(httpResponse.statusCode): \(responseString)")
+            
             if let errorResponse = try? JSONDecoder().decode(OCRError.self, from: data) {
                 throw errorResponse
             } else {
-                throw OCRError(error: "HTTP Error: \(httpResponse.statusCode)")
+                throw OCRError(error: "HTTP Error: \(httpResponse.statusCode) - \(responseString)")
             }
         }
         

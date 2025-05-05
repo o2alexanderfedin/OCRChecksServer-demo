@@ -1,4 +1,11 @@
 // swift-tools-version:5.9
+//
+// NolockOCR Swift Package
+// https://github.com/nolock/ocr-swift-proxy
+//
+// Copyright (c) 2025 Nolock.social
+// Licensed under MIT License
+//
 
 import PackageDescription
 
@@ -36,5 +43,6 @@ let package = Package(
             dependencies: ["NolockOCR"],
             path: "Tests",
             exclude: ["README.md"]),
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )

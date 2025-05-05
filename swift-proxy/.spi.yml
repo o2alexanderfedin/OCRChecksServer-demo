@@ -1,0 +1,19 @@
+version: 1
+builder:
+  configs:
+    - platform: ios
+      scheme: NolockOCR
+    - platform: macos
+      scheme: NolockOCR
+  
+metadata:
+  authors: "Nolock.social"
+  languages:
+    - swift
+  license: MIT
+  tags:
+    - ocr
+    - check-processing
+    - receipt-processing
+    - document-scanning
+    - swift-client

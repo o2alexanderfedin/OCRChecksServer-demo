@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 - Comprehensive test case structures for different image formats and endpoints
 - Support for testing multiple image formats (JPEG, HEIC) across different endpoints
 - Improved test verification with expected value validation
+- Comprehensive test runner (run-all-tests.sh) and test report script
+- New 'test:all' npm script for running all test types with GitFlow compliance
 
 ### Fixed
 - Enhanced enum decoding robustness across all Swift models
@@ -21,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - Error isolation to prevent one test failure from stopping the entire suite
 - Test readability with clear test case definitions and verification methods
 - Overall Swift client robustness when handling server responses
+- Better GitFlow workflow integration in testing process
 
 ## [1.41.0] - 2025-05-05
 

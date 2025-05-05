@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.47.0] - 2025-05-06
+
+### Changed
+- Updated test image references across the entire codebase
+- Renamed test images with more descriptive filenames (e.g., fredmeyer-receipt.jpg instead of telegram-cloud-photo-size-1-4915775046379745522-y.jpg)
+- Improved test documentation with accurate image path references
+- Updated smoke test scripts with optimized size thresholds for faster testing
+
+### Fixed
+- Consistent image path references across all test files
+- Standardized test image naming conventions for better readability
+- TypeScript type assertions in receipt scanner tests
+- Swift proxy test references to image files
+
 ## [1.46.0] - 2025-05-06
 
 ### Added

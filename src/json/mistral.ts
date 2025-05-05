@@ -289,8 +289,6 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
      * @returns Confidence score between 0 and 1
      */
     private calculateConfidence(response: Record<string, unknown>, extractedJson: Record<string, unknown>): number {
-        // Weigh the finishReason more heavily in the confidence calculation
-        
         // Base confidence on multiple factors
         let finishReasonConfidence = 0.75; // Default value
         

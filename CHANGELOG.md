@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.43.2] - 2025-05-05
+
+### Improved
+- Optimized Mistral client retry policy for Cloudflare Workers environment
+- Reduced retry timeouts to stay within Cloudflare's 30-second execution limit
+- Added detailed documentation for retry policy configuration and rationale
+- Adjusted exponential backoff parameters for more efficient retry behavior
+- Enhanced overall performance in Cloudflare Workers environment
+
 ## [1.43.1] - 2025-05-05
 
 ### Added

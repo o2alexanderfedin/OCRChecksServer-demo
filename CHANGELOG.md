@@ -9,12 +9,16 @@ All notable changes to this project will be documented in this file.
 - Test report generation tool for code coverage visualization
 - New npm script `test:all` for executing the complete test suite
 - GitFlow-compliant test execution with automatic branch management
+- Mistral client retry policy with configurable settings in JSON
+- Configuration system for maintaining client settings separate from code
 
 ### Improved
 - Test execution workflow with better error handling and reporting
 - Development process with integrated testing tools
 - Consolidated test results with visual reporting
 - Better GitFlow integration in testing workflow
+- API reliability with automatic retry for transient failures
+- Service resilience with configurable timeouts and backoff strategy
 
 ## [1.42.0] - 2025-05-05
 

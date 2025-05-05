@@ -348,18 +348,18 @@ public class OCRClient {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
-        // Process the image data - convert HEIC to JPEG if needed
+        // Process the image data - convert HEIC to PNG if needed
         let processedData = try processImageData(imageData)
         
-        // Set the Content-Type to image/jpeg as expected by the server
-        request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
+        // Set the Content-Type to image/png for the converted image
+        request.setValue("image/png", forHTTPHeaderField: "Content-Type")
         
         // Set the processed image data as the body
         request.httpBody = processedData
         
         // Print debug information
         print("Sending request to URL: \(url.absoluteString)")
-        print("Content-Type: image/jpeg")
+        print("Content-Type: image/png")
         print("Image data size: \(processedData.count) bytes")
         
         let (data, response) = try await session.data(for: request, delegate: nil)

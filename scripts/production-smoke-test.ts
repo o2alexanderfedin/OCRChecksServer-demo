@@ -139,17 +139,18 @@ function findTestImage(): string {
   
   // First try to use existing test images
   const possibleImages = [
+    path.join(projectRoot, 'tiny-test.jpg'),  // Try the tiny test image first
+    path.join(projectRoot, 'micro-test.jpg'),  // Even smaller test image
     path.join(projectRoot, 'small-test.jpg'),
-    tinyTestPath,
-    path.join(projectRoot, 'tests', 'fixtures', 'images', 'telegram-cloud-photo-size-1-4915775046379745521-y.jpg'),
-    path.join(projectRoot, 'tests', 'fixtures', 'images', 'IMG_2388.jpg')
+    path.join(projectRoot, 'tests', 'fixtures', 'images', 'fredmeyer-receipt.jpg'),
+    path.join(projectRoot, 'tests', 'fixtures', 'images', 'rental-bill.jpg')
   ];
 
   for (const imagePath of possibleImages) {
     if (fs.existsSync(imagePath)) {
-      // If the file exists but is too large (over 100KB), skip it for faster testing
+      // If the file exists but is too large (over 1KB), skip it for faster testing
       const stats = fs.statSync(imagePath);
-      if (stats.size > 102400) { // 100KB
+      if (stats.size > 1024) { // 1KB
         log(`Skipping large image: ${path.basename(imagePath)} (${Math.round(stats.size / 1024)}KB)`, colors.dim);
         continue;
       }

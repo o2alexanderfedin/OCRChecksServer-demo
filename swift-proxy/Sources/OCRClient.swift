@@ -1,5 +1,16 @@
 import Foundation
 
+// Required for image processing
+#if canImport(UIKit) && !os(macOS)
+import UIKit
+#endif
+
+#if canImport(AppKit) && os(macOS)
+import AppKit
+import ImageIO
+import CoreFoundation
+#endif
+
 /// Format type for document processing
 public enum DocumentFormat: String {
     case image = "image"
@@ -337,16 +348,19 @@ public class OCRClient {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
+        // Process the image data - convert HEIC to JPEG if needed
+        let processedData = try processImageData(imageData)
+        
         // Set the Content-Type to image/jpeg as expected by the server
         request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
         
-        // Set the raw image data as the body
-        request.httpBody = imageData
+        // Set the processed image data as the body
+        request.httpBody = processedData
         
         // Print debug information
         print("Sending request to URL: \(url.absoluteString)")
         print("Content-Type: image/jpeg")
-        print("Image data size: \(imageData.count) bytes")
+        print("Image data size: \(processedData.count) bytes")
         
         let (data, response) = try await session.data(for: request, delegate: nil)
         
@@ -368,5 +382,84 @@ public class OCRClient {
         
         let decoder = JSONDecoder()
         return try decoder.decode(T.self, from: data)
+    }
+    
+    /// Process image data before sending to server
+    /// - Converts HEIC images to JPEG
+    /// - Returns original data for already supported formats
+    private func processImageData(_ imageData: Data) throws -> Data {
+        // Check if this is a HEIC image
+        let isHEIC = isHEICFormat(imageData)
+        
+        if isHEIC {
+            print("Converting HEIC image to JPEG format")
+            
+            #if canImport(UIKit) && !os(macOS)
+            // iOS approach - Use UIKit
+            if let image = UIImage(data: imageData) {
+                // Convert to JPEG with high quality
+                if let jpegData = image.jpegData(compressionQuality: 0.9) {
+                    print("HEIC conversion successful: \(imageData.count) bytes → \(jpegData.count) bytes")
+                    return jpegData
+                }
+                throw OCRError(error: "Failed to convert HEIC to JPEG")
+            }
+            throw OCRError(error: "Failed to create UIImage from HEIC data")
+            
+            #elseif canImport(AppKit) && os(macOS)
+            // macOS approach - Use AppKit and ImageIO
+            if let imageSource = CGImageSourceCreateWithData(imageData as CFData, nil),
+               let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) {
+                
+                let nsImage = NSImage(cgImage: cgImage, size: .zero)
+                if let tiffData = nsImage.tiffRepresentation,
+                   let bitmap = NSBitmapImageRep(data: tiffData),
+                   let jpegData = bitmap.representation(using: .jpeg, properties: [.compressionFactor: 0.9]) {
+                    print("HEIC conversion successful: \(imageData.count) bytes → \(jpegData.count) bytes")
+                    return jpegData
+                }
+                throw OCRError(error: "Failed to convert HEIC to JPEG")
+            }
+            throw OCRError(error: "Failed to create image from HEIC data")
+            
+            #else
+            // For other platforms, provide a warning
+            print("Warning: HEIC conversion is not supported on this platform. Image may not be processed correctly.")
+            return imageData
+            #endif
+        }
+        
+        // Return original data for already supported formats
+        return imageData
+    }
+    
+    /// Check if the provided data is in HEIC format
+    private func isHEICFormat(_ imageData: Data) -> Bool {
+        // HEIC files start with the 'ftyp' box followed by a brand like 'heic', 'heix', 'hevc', 'hevx'
+        // We'll check for the 'ftyp' marker followed by one of these brands
+        
+        // Need at least 12 bytes to check the format
+        guard imageData.count >= 12 else { return false }
+        
+        // HEIC format check
+        // The 'ftyp' box is at position 4, and the brand follows it
+        let ftypRange = 4..<8
+        let brandRange = 8..<12
+        
+        if let ftypString = String(data: imageData.subdata(in: ftypRange), encoding: .ascii),
+           ftypString == "ftyp" {
+            
+            if let brandString = String(data: imageData.subdata(in: brandRange), encoding: .ascii) {
+                // Check for HEIC related brands
+                let heicBrands = ["heic", "heix", "hevc", "hevx"]
+                for brand in heicBrands {
+                    if brandString.hasPrefix(brand) {
+                        return true
+                    }
+                }
+            }
+        }
+        
+        return false
     }
 }

@@ -62,21 +62,21 @@ class OCRClientIntegrationTests: XCTestCase {
     }
     
     // Helper function to load test image
-    private func loadTestImage() -> Data? {
-        // Construct path to the test image in the project
-        // The image path depends on where the tests are running
-        let possibleImagePaths = [
+    private func loadTestImage(filename: String = "IMG_2388.jpg") -> Data? {
+        // Base directories to search for test images
+        let baseDirectories = [
             // When running from swift-proxy directory
-            "../tests/fixtures/images/IMG_2388.jpg",
+            "../tests/fixtures/images",
             // When running from project root
-            "tests/fixtures/images/IMG_2388.jpg",
+            "tests/fixtures/images",
             // When running from Xcode
-            "../../tests/fixtures/images/IMG_2388.jpg",
+            "../../tests/fixtures/images",
             // Absolute path (for debugging)
-            "/Users/alexanderfedin/Projects/OCRChecksServer/tests/fixtures/images/IMG_2388.jpg"
+            "/Users/alexanderfedin/Projects/OCRChecksServer/tests/fixtures/images"
         ]
         
-        for path in possibleImagePaths {
+        for baseDir in baseDirectories {
+            let path = "\(baseDir)/\(filename)"
             if let imageData = try? Data(contentsOf: URL(fileURLWithPath: path)) {
                 print("Successfully loaded image from path: \(path)")
                 return imageData
@@ -85,7 +85,7 @@ class OCRClientIntegrationTests: XCTestCase {
             }
         }
         
-        print("ERROR: Could not find test image in any location")
+        print("ERROR: Could not find test image \(filename) in any location")
         return nil
     }
     
@@ -220,6 +220,43 @@ class OCRClientIntegrationTests: XCTestCase {
         
         // Log the response for debugging
         print("Document processing result: type=\(result.documentType.rawValue)")
+    }
+    
+    // Integration test for HEIC format images (will be automatically converted)
+    func testHEICImageProcessing() async throws {
+        // Skip if server is unavailable
+        try await skipIfServerUnavailable()
+        
+        // Load HEIC test image
+        guard let heicImageData = loadTestImage(filename: "IMG_2388.HEIC") else {
+            // If HEIC file is not available, skip the test
+            throw XCTSkip("HEIC test image not available")
+        }
+        
+        // Create client using the local environment
+        let client = OCRClient(environment: testEnvironment)
+        
+        // Process the HEIC image with timeout
+        // This tests the automatic HEIC to JPEG conversion
+        let result = try await runWithTimeout(seconds: testTimeoutInterval) {
+            return try await client.processCheck(
+                imageData: heicImageData,
+                format: .image,
+                filename: "test-image.HEIC"
+            )
+        }
+        
+        // Verify we got valid results
+        XCTAssertNotNil(result.data.checkNumber, "Check number should be present")
+        XCTAssertGreaterThan(result.data.amount, 0, "Amount should be positive")
+        
+        // Verify confidence scores
+        XCTAssertGreaterThan(result.confidence.ocr, 0, "OCR confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.extraction, 0, "Extraction confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.overall, 0, "Overall confidence should be positive")
+        
+        // Log the response for debugging
+        print("HEIC processing result: number=\(result.data.checkNumber), amount=\(result.data.amount)")
     }
     
     // Replacement for the previous withTimeout helper

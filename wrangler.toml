@@ -17,9 +17,9 @@ name = "ocr-checks-worker-dev"
 workers_dev = true
 vars = { ENVIRONMENT = "development", MISTRAL_DEBUG = true }
 
-# Increase timeout for development environment
-[env.dev.limits]
-cpu_ms = 100  # Increase CPU time limit to 100ms
+# Note: CPU limits require a paid plan
+# [env.dev.limits]
+# cpu_ms = 100  # Increase CPU time limit to 100ms
 
 # Staging environment
 [env.staging]

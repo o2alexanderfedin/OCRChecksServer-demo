@@ -34,6 +34,19 @@ public enum PaymentMethod: String, Codable {
     case storeCredit = "store_credit"
     case mobilePayment = "mobile_payment"
     case other
+    
+    // Add a fallback case for unknown values
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        if let knownValue = PaymentMethod(rawValue: rawValue) {
+            self = knownValue
+        } else {
+            print("Warning: Unknown PaymentMethod value: '\(rawValue)', defaulting to .other")
+            self = .other
+        }
+    }
 }
 
 /// Type of payment card
@@ -46,6 +59,19 @@ public enum CardType: String, Codable {
     case jcb
     case unionPay = "union_pay"
     case other
+    
+    // Add a fallback case for unknown values
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        if let knownValue = CardType(rawValue: rawValue) {
+            self = knownValue
+        } else {
+            print("Warning: Unknown CardType value: '\(rawValue)', defaulting to .other")
+            self = .other
+        }
+    }
 }
 
 /// Type of tax
@@ -58,6 +84,19 @@ public enum TaxType: String, Codable {
     case excise
     case service
     case other
+    
+    // Add a fallback case for unknown values
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        if let knownValue = TaxType(rawValue: rawValue) {
+            self = knownValue
+        } else {
+            print("Warning: Unknown TaxType value: '\(rawValue)', defaulting to .other")
+            self = .other
+        }
+    }
 }
 
 /// Format type of receipt
@@ -69,6 +108,19 @@ public enum ReceiptFormat: String, Codable {
     case transportation
     case accommodation
     case other
+    
+    // Add a fallback case for unknown values
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        if let knownValue = ReceiptFormat(rawValue: rawValue) {
+            self = knownValue
+        } else {
+            print("Warning: Unknown ReceiptFormat value: '\(rawValue)', defaulting to .other")
+            self = .other
+        }
+    }
 }
 
 /// Unit of measurement
@@ -86,6 +138,19 @@ public enum UnitOfMeasure: String, Codable {
     case pk
     case box
     case other
+    
+    // Add a fallback case for unknown values
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        if let knownValue = UnitOfMeasure(rawValue: rawValue) {
+            self = knownValue
+        } else {
+            print("Warning: Unknown UnitOfMeasure value: '\(rawValue)', defaulting to .other")
+            self = .other
+        }
+    }
 }
 
 /// Merchant information

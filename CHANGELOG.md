@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.42.0] - 2025-05-05
+
+### Added
+- Data-driven test architecture for Swift client integration tests
+- Comprehensive test case structures for different image formats and endpoints
+- Support for testing multiple image formats (JPEG, HEIC) across different endpoints
+- Improved test verification with expected value validation
+
+### Fixed
+- Enhanced enum decoding robustness across all Swift models
+- Added fallback handling for unknown enum values to improve client stability
+- Fixed test reliability with better error handling and timeout management
+- Improved cross-platform compatibility with enhanced test structure
+
+### Improved
+- Test maintainability with separation of test data from test logic
+- Error isolation to prevent one test failure from stopping the entire suite
+- Test readability with clear test case definitions and verification methods
+- Overall Swift client robustness when handling server responses
+
 ## [1.41.0] - 2025-05-05
 
 ### Added

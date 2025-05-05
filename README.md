@@ -50,7 +50,18 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and rece
 
 ## Setup
 
-1. Install dependencies:
+1. Clone the repository with submodules:
+   ```bash
+   git clone --recurse-submodules https://github.com/o2alexanderfedin/OCRChecksServer.git
+   ```
+   
+   Or if you've already cloned the repository:
+   ```bash
+   git submodule init
+   git submodule update
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
@@ -337,6 +348,7 @@ For complete development guidelines, refer to:
 - [Testing Framework Compatibility](./docs/test-framework-compatibility.md)
 - [Development Workflow](./docs/development-workflow.md) for detailed instructions
 - [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md) for step-by-step deployment instructions
+- [Git Submodule Guide](./docs/git-submodule-guide.md) for working with submodules
 
 ## License
 

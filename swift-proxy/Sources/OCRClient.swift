@@ -385,24 +385,24 @@ public class OCRClient {
     }
     
     /// Process image data before sending to server
-    /// - Converts HEIC images to JPEG
+    /// - Converts HEIC images to PNG
     /// - Returns original data for already supported formats
     private func processImageData(_ imageData: Data) throws -> Data {
         // Check if this is a HEIC image
         let isHEIC = isHEICFormat(imageData)
         
         if isHEIC {
-            print("Converting HEIC image to JPEG format")
+            print("Converting HEIC image to PNG format")
             
             #if canImport(UIKit) && !os(macOS)
             // iOS approach - Use UIKit
             if let image = UIImage(data: imageData) {
-                // Convert to JPEG with high quality
-                if let jpegData = image.jpegData(compressionQuality: 0.9) {
-                    print("HEIC conversion successful: \(imageData.count) bytes → \(jpegData.count) bytes")
-                    return jpegData
+                // Convert to PNG (lossless format)
+                if let pngData = image.pngData() {
+                    print("HEIC conversion successful: \(imageData.count) bytes → \(pngData.count) bytes")
+                    return pngData
                 }
-                throw OCRError(error: "Failed to convert HEIC to JPEG")
+                throw OCRError(error: "Failed to convert HEIC to PNG")
             }
             throw OCRError(error: "Failed to create UIImage from HEIC data")
             
@@ -414,11 +414,11 @@ public class OCRClient {
                 let nsImage = NSImage(cgImage: cgImage, size: .zero)
                 if let tiffData = nsImage.tiffRepresentation,
                    let bitmap = NSBitmapImageRep(data: tiffData),
-                   let jpegData = bitmap.representation(using: .jpeg, properties: [.compressionFactor: 0.9]) {
-                    print("HEIC conversion successful: \(imageData.count) bytes → \(jpegData.count) bytes")
-                    return jpegData
+                   let pngData = bitmap.representation(using: .png, properties: [:]) {
+                    print("HEIC conversion successful: \(imageData.count) bytes → \(pngData.count) bytes")
+                    return pngData
                 }
-                throw OCRError(error: "Failed to convert HEIC to JPEG")
+                throw OCRError(error: "Failed to convert HEIC to PNG")
             }
             throw OCRError(error: "Failed to create image from HEIC data")
             

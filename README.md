@@ -50,12 +50,23 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and rece
 
 ## Setup
 
-1. Install dependencies:
+1. Clone the repository with submodules:
+   ```bash
+   git clone --recurse-submodules https://github.com/o2alexanderfedin/OCRChecksServer.git
+   ```
+   
+   Or if you've already cloned the repository:
+   ```bash
+   git submodule init
+   git submodule update
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Configure your environment:
+3. Configure your environment:
    - Add your Mistral API key to `wrangler.toml` (required for the application to function)
      ```toml
      # In wrangler.toml
@@ -320,6 +331,20 @@ npm test
 
 > Note: The Swift proxy E2E tests require Swift to be installed on your system. These tests will automatically start a local server, run the tests, and shut down the server when complete.
 
+### Swift Client Library
+
+The Swift client library is now maintained as a separate Git submodule. This provides a clean Swift package that can be used independently in iOS and macOS applications.
+
+Key features of the Swift client:
+- Modern Swift concurrency with async/await support
+- Backward compatibility with completion handlers
+- Type-safe models for check and receipt data
+- Automatic HEIC image conversion to PNG
+- Comprehensive error handling
+- Environment configuration (development, staging, production)
+
+For more information on working with the Swift submodule, see the [Swift Submodule Guide](./docs/swift-submodule-guide.md).
+
 ### Test Server Management
 
 Starting from version 1.12.1, the test server is properly managed with improved process tracking:
@@ -337,6 +362,7 @@ For complete development guidelines, refer to:
 - [Testing Framework Compatibility](./docs/test-framework-compatibility.md)
 - [Development Workflow](./docs/development-workflow.md) for detailed instructions
 - [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md) for step-by-step deployment instructions
+- [Swift Submodule Guide](./docs/swift-submodule-guide.md) for working with the Swift proxy submodule
 
 ## License
 

@@ -42,12 +42,12 @@ You can test the `/process` endpoint using cURL or Postman:
 # Test with a receipt image
 curl -X POST http://localhost:8787/process \
   -H "Content-Type: image/jpeg" \
-  --data-binary @./Checks/telegram-cloud-photo-size-1-4915775046379745521-y.jpg
+  --data-binary @./tests/fixtures/images/fredmeyer-receipt.jpg
 
 # Test with a check image
 curl -X POST http://localhost:8787/process \
   -H "Content-Type: image/jpeg" \
-  --data-binary @./Checks/IMG_2388.jpg
+  --data-binary @./tests/fixtures/images/promo-check.HEIC
 ```
 
 ### Expected Response
@@ -96,7 +96,7 @@ NUM_REQUESTS=10
 URL="http://localhost:8787/process"
 
 # Path to test image
-IMAGE_PATH="./Checks/telegram-cloud-photo-size-1-4915775046379745521-y.jpg"
+IMAGE_PATH="./tests/fixtures/images/fredmeyer-receipt.jpg"
 
 echo "Starting performance test with $NUM_REQUESTS requests..."
 

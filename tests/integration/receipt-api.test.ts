@@ -23,7 +23,7 @@ describe('Receipt Processing API', function() {
     }
     
     // Load test image from fixtures directory
-    const imagePath = path.resolve(__dirname, './fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
+    const imagePath = path.resolve(__dirname, '../fixtures/images/fredmeyer-receipt.jpg');
     
     // Skip test if the image doesn't exist
     if (!fs.existsSync(imagePath)) {
@@ -89,7 +89,7 @@ describe('Receipt Processing API', function() {
     }
     
     // Load test image from fixtures directory
-    const imagePath = path.resolve(__dirname, './fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg');
+    const imagePath = path.resolve(__dirname, '../fixtures/images/fredmeyer-receipt.jpg');
     
     // Skip test if the image doesn't exist
     if (!fs.existsSync(imagePath)) {

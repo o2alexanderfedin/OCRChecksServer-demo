@@ -23,7 +23,7 @@ describe('Check Processing API', function() {
     }
     
     // Load test image from fixtures directory
-    const imagePath = path.resolve(__dirname, './fixtures/images/IMG_2388.jpg');
+    const imagePath = path.resolve(__dirname, '../fixtures/images/promo-check.HEIC');
     
     // Skip test if the image doesn't exist
     if (!fs.existsSync(imagePath)) {
@@ -86,7 +86,7 @@ describe('Check Processing API', function() {
     }
     
     // Load test image from fixtures directory
-    const imagePath = path.resolve(__dirname, './fixtures/images/IMG_2388.jpg');
+    const imagePath = path.resolve(__dirname, '../fixtures/images/promo-check.HEIC');
     
     // Skip test if the image doesn't exist
     if (!fs.existsSync(imagePath)) {

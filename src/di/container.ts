@@ -8,6 +8,7 @@ import { CheckExtractor } from '../json/extractors/check-extractor';
 import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
+import mistralClientConfig from '../config/mistral-client-config.json';
 
 /**
  * Symbols for dependency identifiers - used for type-safe dependency injection
@@ -62,18 +63,31 @@ export class DIContainer {
   protected registerMistralClient(): void {
     this.container.bind(TYPES.MistralClient).toDynamicValue((context) => {
       const apiKey = context.get<string>(TYPES.MistralApiKey);
+      const io = context.get<IoE>(TYPES.IoE);
       
       // Validate API key is present and valid
       this.validateApiKey(apiKey);
       
-      // Create Mistral client with validated API key
+      // Create Mistral client with validated API key and configuration from JSON
       try {
+        // Log client configuration (without sensitive values)
+        io.debug('Initializing Mistral client with configuration:', {
+          retryStrategy: mistralClientConfig.retryConfig.strategy,
+          retryBackoffSettings: mistralClientConfig.retryConfig.backoff,
+          retryConnectionErrors: mistralClientConfig.retryConfig.retryConnectionErrors,
+          timeoutMs: mistralClientConfig.timeoutMs
+        });
+        
         // Always use the real Mistral client - this ensures proper structure 
         // for validation in provider constructors, while being simple to test
-        return new Mistral({ apiKey });
+        return new Mistral({ 
+          apiKey,
+          retryConfig: mistralClientConfig.retryConfig,
+          timeoutMs: mistralClientConfig.timeoutMs
+        });
       } catch (error) {
         const errorMessage = `[DIContainer] CRITICAL ERROR: Failed to initialize Mistral client: ${error instanceof Error ? error.message : String(error)}`;
-        console.error(errorMessage);
+        io.error(errorMessage);
         throw new Error(errorMessage);
       }
     }).inSingletonScope();

@@ -1,0 +1,13 @@
+{
+  "retryConfig": {
+    "strategy": "backoff",
+    "backoff": {
+      "initialInterval": 1000,
+      "maxInterval": 10000,
+      "exponent": 1.5,
+      "maxElapsedTime": 60000
+    },
+    "retryConnectionErrors": true
+  },
+  "timeoutMs": 30000
+}

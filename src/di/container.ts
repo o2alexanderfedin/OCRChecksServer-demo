@@ -10,18 +10,19 @@ import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
 import { RetryConfig } from '@mistralai/mistralai/lib/retries.js';
 // Import config as a static file
+// Optimized for Cloudflare Worker environment which has a 30-second execution limit
 const mistralClientConfig = {
   retryConfig: {
     strategy: "backoff",
     backoff: {
-      initialInterval: 1000,
-      maxInterval: 10000,
-      exponent: 1.5,
-      maxElapsedTime: 60000
+      initialInterval: 500,     // Reduced to allow more retry attempts within the timeframe
+      maxInterval: 10000,       // Keep max interval the same
+      exponent: 1.8,            // Increased for more aggressive backoff
+      maxElapsedTime: 25000     // Reduced to ensure we stay under Cloudflare's 30s limit
     },
     retryConnectionErrors: true
   },
-  timeoutMs: 30000
+  timeoutMs: 15000              // Reduced timeout to prevent single request from consuming too much time
 };
 
 /**

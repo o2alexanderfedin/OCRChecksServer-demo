@@ -8,7 +8,21 @@ import { CheckExtractor } from '../json/extractors/check-extractor';
 import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
-import mistralClientConfig from '../config/mistral-client-config.json';
+import { RetryConfig } from '@mistralai/mistralai/lib/retries.js';
+// Import config as a static file
+const mistralClientConfig = {
+  retryConfig: {
+    strategy: "backoff",
+    backoff: {
+      initialInterval: 1000,
+      maxInterval: 10000,
+      exponent: 1.5,
+      maxElapsedTime: 60000
+    },
+    retryConnectionErrors: true
+  },
+  timeoutMs: 30000
+};
 
 /**
  * Symbols for dependency identifiers - used for type-safe dependency injection
@@ -80,9 +94,15 @@ export class DIContainer {
         
         // Always use the real Mistral client - this ensures proper structure 
         // for validation in provider constructors, while being simple to test
+        // Use type assertion to handle the string literal type expected by the SDK
+        const typedRetryConfig: RetryConfig = {
+          ...mistralClientConfig.retryConfig,
+          strategy: mistralClientConfig.retryConfig.strategy as 'backoff' | 'none'
+        };
+        
         return new Mistral({ 
           apiKey,
-          retryConfig: mistralClientConfig.retryConfig,
+          retryConfig: typedRetryConfig,
           timeoutMs: mistralClientConfig.timeoutMs
         });
       } catch (error) {

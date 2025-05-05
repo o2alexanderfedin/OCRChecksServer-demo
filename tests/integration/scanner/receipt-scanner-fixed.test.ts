@@ -5,6 +5,7 @@ import { Receipt } from '../../../src/json/schemas/receipt';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { retry, isRetryableError } from '../../helpers/retry';
 
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -150,17 +151,44 @@ describe('ReceiptScanner Integration (Fixed Environment)', function() {
         name: testImage.name
       };
       
-      // Process document
-      const result = await scanner.processDocument(document);
+      // Process document with retry logic and rate limiting
+      let result;
+      try {
+        result = await retry(
+          async () => await scanner.processDocument(document),
+          {
+            retries: 2, // Try up to 3 times total (initial + 2 retries)
+            initialDelay: 2000,
+            respectRateLimit: true, // Enforce Mistral's rate limit of 5 requests/second
+            retryIf: (error) => {
+              // Retry on rate limits or temporary API issues
+              if (error[0] === 'error' && 
+                  (error[1].includes('rate limit') || 
+                   error[1].includes('API error') || 
+                   isRetryableError(error[1]))) {
+                return true;
+              }
+              return false;
+            },
+            onRetry: (error, attempt) => {
+              console.log(`Retrying after error (attempt ${attempt}/2): ${error[1]}`);
+            }
+          }
+        );
+      } catch (error) {
+        // If retries failed, use the last error
+        result = error;
+      }
       
       // Log the result for debugging
       console.log('Process result:', result);
       
       // Skip test if we hit rate limits or other API errors
-      if (result[0] === 'error') {
-        if (result[1].includes('rate limit') || result[1].includes('API error')) {
+      if (Array.isArray(result) && result[0] === 'error') {
+        const errorMessage = result[1] as string;
+        if (errorMessage.includes('rate limit') || errorMessage.includes('API error')) {
           console.log('Skipping test due to API rate limit or error');
-          pending('API rate limited or unavailable: ' + result[1]);
+          pending('API rate limited or unavailable: ' + errorMessage);
           return;
         }
       }

@@ -133,6 +133,7 @@ describe('ReceiptScanner Integration', function() {
             {
               retries: 2, // Try up to 3 times total (initial + 2 retries)
               initialDelay: 2000,
+              respectRateLimit: true, // Enforce Mistral's rate limit of 5 requests/second
               retryIf: (error) => {
                 // Retry on rate limits or temporary API issues
                 if (error[0] === 'error' && 
@@ -259,6 +260,7 @@ describe('ReceiptScanner Integration', function() {
           {
             retries: 2, // Try up to 3 times total (initial + 2 retries)
             initialDelay: 2000,
+            respectRateLimit: true, // Enforce Mistral's rate limit of 5 requests/second
             retryIf: (error) => {
               // Retry on rate limits or temporary API issues
               if (error[0] === 'error' && 

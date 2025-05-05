@@ -1,6 +1,36 @@
 /**
  * Utility for retrying operations that might fail temporarily
+ * and handling rate limiting
  */
+
+// Rate limiting state
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 200; // 200ms = 5 requests per second
+
+/**
+ * Enforces rate limiting by delaying execution if needed to respect
+ * the rate limit of 5 requests per second
+ * 
+ * @param fn Function to execute with rate limiting
+ * @returns The result of the function
+ */
+export async function withRateLimit<T>(fn: () => Promise<T>): Promise<T> {
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  
+  // If we've made a request too recently, delay until we're under the rate limit
+  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+    const delayTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+    console.log(`Rate limiting: Waiting ${delayTime}ms before next request`);
+    await new Promise(resolve => setTimeout(resolve, delayTime));
+  }
+  
+  // Update the last request time
+  lastRequestTime = Date.now();
+  
+  // Execute the function
+  return await fn();
+}
 
 /**
  * Retry a function with exponential backoff
@@ -18,6 +48,7 @@ export async function retry<T>(
     factor?: number;
     retryIf?: (error: any) => boolean;
     onRetry?: (error: any, attempt: number) => void;
+    respectRateLimit?: boolean;
   } = {}
 ): Promise<T> {
   const {
@@ -27,6 +58,7 @@ export async function retry<T>(
     factor = 2,
     retryIf = () => true,
     onRetry = () => {},
+    respectRateLimit = true,
   } = options;
 
   let lastError: any;
@@ -34,7 +66,12 @@ export async function retry<T>(
 
   while (attempt <= retries) {
     try {
-      return await fn();
+      // Use rate limiting if specified
+      if (respectRateLimit) {
+        return await withRateLimit(() => fn());
+      } else {
+        return await fn();
+      }
     } catch (error) {
       lastError = error;
       

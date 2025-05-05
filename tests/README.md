@@ -64,3 +64,36 @@ As of version 1.12.2, the test server management system has been improved:
 - No more "zombie" server processes after tests
 
 For more details, see [/docs/test-server-management.md](/docs/test-server-management.md).
+
+## Rate Limiting
+
+As of version 1.43.2, the testing system includes rate limiting to respect Mistral API's limits:
+
+- Mistral API has a rate limit of 5 requests per second
+- Helper function `withRateLimit()` enforces this limit by adding delays between requests
+- Integration tests use rate limiting by default via the `respectRateLimit` option
+- This prevents test failures due to API rate limiting when running test suites
+
+To use rate limiting in your own tests:
+
+```typescript
+import { retry } from '../../helpers/retry';
+
+// Using rate limiting with retry mechanism
+const result = await retry(
+  async () => await someFunction(),
+  {
+    retries: 2,
+    initialDelay: 2000,
+    respectRateLimit: true, // This enables rate limiting
+    // ... other options
+  }
+);
+
+// Or directly with the withRateLimit helper
+import { withRateLimit } from '../../helpers/retry';
+
+const result = await withRateLimit(async () => {
+  return await someApiCall();
+});
+```

@@ -49,14 +49,14 @@ OCR_SKIP_INTEGRATION_TESTS=1 swift test
 
 ## Test Images
 
-Integration tests use check/receipt images from the `tests/fixtures/images` directory. The tests look for `IMG_2388.jpg` in several common locations relative to the test runner.
+Integration tests use check/receipt images from the `tests/fixtures/images` directory. The tests look for various test images like `rental-bill.jpg`, `fredmeyer-receipt.jpg`, and `promo-check.HEIC` in several common locations relative to the test runner.
 
 ## Troubleshooting
 
 If integration tests are failing:
 
 1. Ensure the server is running at http://localhost:8787
-2. Verify the test image exists at `tests/fixtures/images/IMG_2388.jpg`
+2. Verify the test images exist in `tests/fixtures/images/` directory
 3. Check server logs for any errors
 4. Try running with increased timeout if network latency is an issue
 

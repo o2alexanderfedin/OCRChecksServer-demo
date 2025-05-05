@@ -119,7 +119,7 @@ async function runTests() {
   console.log(`Using API key: ${MISTRAL_API_KEY.substring(0, 4)}...${MISTRAL_API_KEY.substring(MISTRAL_API_KEY.length - 4)}`);
   
   // Test images
-  const imagePath = path.join(projectRoot, 'tests', 'fixtures', 'images', 'IMG_2388.jpg');
+  const imagePath = path.join(projectRoot, 'tests', 'fixtures', 'images', 'rental-bill.jpg');
   
   // Known working image URL for comparison
   const knownWorkingUrl = 'https://docs.mistral.ai/images/logo.svg';

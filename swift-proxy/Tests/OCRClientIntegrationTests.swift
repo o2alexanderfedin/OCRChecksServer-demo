@@ -67,10 +67,11 @@ class OCRClientIntegrationTests: XCTestCase {
     
     /// Available test images for data-driven tests
     static let testImages: [String: TestImage] = [
-        "standardJPEG": TestImage(filename: "IMG_2388.jpg"),
-        "heicImage": TestImage(filename: "IMG_2388.HEIC", shouldConvert: true),
-        "telegramImage1": TestImage(filename: "telegram-cloud-photo-size-1-4915775046379745521-y.jpg"),
-        "telegramImage2": TestImage(filename: "telegram-cloud-photo-size-1-4915775046379745522-y.jpg")
+        "standardJPEG": TestImage(filename: "rental-bill.jpg"),
+        "heicImage": TestImage(filename: "pge-bill.HEIC", shouldConvert: true),
+        "telegramImage1": TestImage(filename: "fredmeyer-receipt.jpg"),
+        "telegramImage2": TestImage(filename: "fredmeyer-receipt-2.jpg"),
+        "promoCheck": TestImage(filename: "promo-check.HEIC", shouldConvert: true)
     ]
     
     // MARK: - Test Cases
@@ -180,7 +181,7 @@ class OCRClientIntegrationTests: XCTestCase {
     }
     
     // Helper function to load test image
-    private func loadTestImage(filename: String = "IMG_2388.jpg") -> Data? {
+    private func loadTestImage(filename: String = "rental-bill.jpg") -> Data? {
         // Base directories to search for test images
         let baseDirectories = [
             // When running from swift-proxy directory

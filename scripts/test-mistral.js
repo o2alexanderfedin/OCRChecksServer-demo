@@ -61,10 +61,12 @@ async function testMistralOcr(apiKey) {
     
     // Find test image
     const testImagePaths = [
-      path.join(projectRoot, 'small-test.jpg'),
       path.join(projectRoot, 'tiny-test.jpg'),
-      path.join(projectRoot, 'tests', 'fixtures', 'images', 'telegram-cloud-photo-size-1-4915775046379745521-y.jpg'),
-      path.join(projectRoot, 'tests', 'fixtures', 'images', 'IMG_2388.jpg')
+      path.join(projectRoot, 'micro-test.jpg'),
+      path.join(projectRoot, 'small-test.jpg'),
+      path.join(projectRoot, 'tests', 'fixtures', 'images', 'fredmeyer-receipt.jpg'),
+      path.join(projectRoot, 'tests', 'fixtures', 'images', 'rental-bill.jpg'),
+      path.join(projectRoot, 'tests', 'fixtures', 'images', 'promo-check.HEIC')
     ];
     
     let imagePath;

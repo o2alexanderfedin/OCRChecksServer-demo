@@ -357,6 +357,7 @@ This package is available under the MIT License. See the [LICENSE](LICENSE) file
 - **Website**: [https://nolock.social](https://nolock.social)
 - **Support**: [support@nolock.social](mailto:support@nolock.social)
 - **Documentation**: [https://docs.nolock.social/ocr-api](https://docs.nolock.social/ocr-api)
+- **Repository**: [https://github.com/o2alexanderfedin/OCRChecksServer](https://github.com/o2alexanderfedin/OCRChecksServer)
 
 ## Authors
 

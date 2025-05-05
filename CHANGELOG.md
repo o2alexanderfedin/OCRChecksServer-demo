@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.45.0] - 2025-05-06
+
+### Added
+- Swift client package with MIT license for better integration
+- Comprehensive examples for Swift client usage
+- SwiftUI integration examples for the Swift client
+- Modern Swift concurrency (async/await) support in client API
+- Type-safe models for check and receipt data in Swift
+- Swift Package Index metadata for better discoverability
+
+### Improved
+- Swift client documentation with detailed usage examples
+- Error handling in the Swift client
+- Swift client API with both modern and traditional patterns
+- Swift package structure for better distribution
+
 ## [1.44.0] - 2025-05-06
 
 ### Added

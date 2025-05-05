@@ -331,7 +331,9 @@ npm test
 
 > Note: The Swift proxy E2E tests require Swift to be installed on your system. These tests will automatically start a local server, run the tests, and shut down the server when complete.
 
-### Swift Client Library
+### Client Libraries
+
+#### Swift Client Library
 
 The Swift client library is now maintained as a separate Git submodule. This provides a clean Swift package that can be used independently in iOS and macOS applications.
 
@@ -344,6 +346,19 @@ Key features of the Swift client:
 - Environment configuration (development, staging, production)
 
 For more information on working with the Swift submodule, see the [Swift Submodule Guide](./docs/swift-submodule-guide.md).
+
+#### NolockCapture Package
+
+The NolockCapture package provides advanced document capture capabilities with depth sensing support to improve OCR accuracy by flattening curved documents.
+
+Key features of NolockCapture:
+- Depth-aware document capture using LiDAR or dual cameras
+- 3D point cloud processing for document plane detection
+- Automatic perspective correction for curved documents
+- Surface flattening to improve OCR accuracy
+- Progressive enhancement with fallbacks for non-LiDAR devices
+
+For more information on working with the NolockCapture submodule, see the [NolockCapture Guide](./docs/nolock-capture-guide.md).
 
 ### Test Server Management
 
@@ -363,6 +378,7 @@ For complete development guidelines, refer to:
 - [Development Workflow](./docs/development-workflow.md) for detailed instructions
 - [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md) for step-by-step deployment instructions
 - [Swift Submodule Guide](./docs/swift-submodule-guide.md) for working with the Swift proxy submodule
+- [NolockCapture Guide](./docs/nolock-capture-guide.md) for working with the NolockCapture package
 
 ## License
 

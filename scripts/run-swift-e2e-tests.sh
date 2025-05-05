@@ -44,40 +44,86 @@ function cleanup {
 # Register cleanup function to run on script exit
 trap cleanup EXIT
 
-# Start the server manually using wrangler directly
-echo -e "${YELLOW}Starting the server with wrangler...${NC}"
-cd "$PROJECT_ROOT" || { echo -e "${RED}Error: Could not find project root directory${NC}"; exit 1; }
-# Use port 8789 instead of 8787 to avoid conflicts
-npx wrangler dev --local --port 8789 &
-SERVER_PID=$!
-echo $SERVER_PID > "$SERVER_PID_FILE"
+# Environment selection with defaults to local server
+ENV=${1:-local}  # Use first argument or default to "local"
 
-echo "Server process started with PID: $SERVER_PID"
-echo "Waiting for server to be ready..."
+# Environment-specific configuration
+ENVIRONMENTS=(
+  "production:https://api.nolock.social"
+  "staging:https://staging-api.nolock.social"
+  "dev:https://ocr-checks-worker-dev.af-4a0.workers.dev"
+  "local:http://localhost:8789"
+)
 
-# Wait for server to start (ping health endpoint)
-MAX_RETRIES=60  # Increased timeout
-RETRY_COUNT=0
-SERVER_URL="http://localhost:8789"
+# Find the URL for the specified environment
+SERVER_URL=""
+for env_pair in "${ENVIRONMENTS[@]}"; do
+  key="${env_pair%%:*}"
+  value="${env_pair#*:}"
+  if [ "$key" = "$ENV" ]; then
+    SERVER_URL="$value"
+    break
+  fi
+done
 
-# Give the server a head start before pinging
-sleep 5
+# If no matching environment found, use local
+if [ -z "$SERVER_URL" ]; then
+  echo -e "${YELLOW}Unknown environment: $ENV, defaulting to local${NC}"
+  ENV="local"
+  SERVER_URL="http://localhost:8789"
+fi
 
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+# Start local server if needed
+if [ "$ENV" = "local" ]; then
+  echo -e "${YELLOW}Starting the local server with wrangler...${NC}"
+  cd "$PROJECT_ROOT" || { echo -e "${RED}Error: Could not find project root directory${NC}"; exit 1; }
+  # Use port 8789 instead of 8787 to avoid conflicts
+  npx wrangler dev --local --port 8789 &
+  SERVER_PID=$!
+  echo $SERVER_PID > "$SERVER_PID_FILE"
+
+  echo "Server process started with PID: $SERVER_PID"
+  echo "Waiting for server to be ready..."
+
+  # Wait for server to start (ping health endpoint)
+  MAX_RETRIES=60  # Increased timeout
+  RETRY_COUNT=0
+
+  # Give the server a head start before pinging
+  sleep 5
+
+  while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     if curl -s "$SERVER_URL/health" | grep -q "status"; then
-        echo -e "${GREEN}Server is ready!${NC}"
-        break
+      echo -e "${GREEN}Server is ready!${NC}"
+      break
     fi
     
     RETRY_COUNT=$((RETRY_COUNT+1))
     if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-        echo -e "${RED}Error: Server failed to start within timeout period${NC}"
-        exit 1
+      echo -e "${RED}Error: Server failed to start within timeout period${NC}"
+      exit 1
     fi
     
     echo "Waiting for server to start... ($RETRY_COUNT/$MAX_RETRIES)"
     sleep 1
-done
+  done
+else
+  # Test against remote environment
+  echo -e "${YELLOW}Testing against ${ENV} environment: ${SERVER_URL}${NC}"
+  echo "Checking if server is available..."
+
+  # Check if server is responding
+  if curl -s "$SERVER_URL/health" | grep -q "status"; then
+    echo -e "${GREEN}Server is available!${NC}"
+  else
+    echo -e "${RED}Error: Server is not responding${NC}"
+    exit 1
+  fi
+
+  # Add a delay to make sure we don't hit rate limits
+  echo -e "${YELLOW}Waiting for 3 seconds before running tests (to avoid rate limits)...${NC}"
+  sleep 3
+fi
 
 # Set environment variable for the Swift tests
 export OCR_API_URL="$SERVER_URL"

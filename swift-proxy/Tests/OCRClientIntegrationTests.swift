@@ -12,7 +12,15 @@ import Foundation
 class OCRClientIntegrationTests: XCTestCase {
     
     // The environment to test against
-    private let testEnvironment = OCRClient.Environment.local
+    // Get the environment from the OCR_API_URL environment variable
+    private var testEnvironment: OCRClient.Environment {
+        if let apiUrlString = ProcessInfo.processInfo.environment["OCR_API_URL"] {
+            if let apiUrl = URL(string: apiUrlString) {
+                return .custom(apiUrl)
+            }
+        }
+        return .local
+    }
     
     // Test timeout interval (allows for network latency)
     private let testTimeoutInterval: TimeInterval = 60.0 // 60 seconds
@@ -33,9 +41,14 @@ class OCRClientIntegrationTests: XCTestCase {
     
     // Check if the server is available
     private func isServerAvailable() async -> Bool {
-        guard let url = URL(string: "http://localhost:8789/health") else {
+        // Get the server URL from environment variable
+        let serverUrlString = ProcessInfo.processInfo.environment["OCR_API_URL"] ?? "http://localhost:8789"
+        guard let url = URL(string: "\(serverUrlString)/health") else {
+            print("Failed to create URL for health check: \(serverUrlString)/health")
             return false
         }
+        
+        print("Checking server availability at: \(url.absoluteString)")
         
         do {
             let (_, response) = try await URLSession.shared.data(from: url, delegate: nil)

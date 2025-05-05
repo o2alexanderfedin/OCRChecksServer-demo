@@ -7,29 +7,45 @@ workers_dev = true
 # Logging is enabled by default in Workers
 # Debug level is used for development
 
-# Note: CPU limits require a paid plan
-# [limits]
-# cpu_ms = 50
+# Global limits (paid plan required)
+[limits]
+cpu_ms = 50  # Default CPU time limit in milliseconds
+duration_ms = 30000  # Default maximum execution time (30 seconds)
 
 # Development environment
 [env.dev]
 name = "ocr-checks-worker-dev"
 workers_dev = true
-vars = { ENVIRONMENT = "development" }
+vars = { ENVIRONMENT = "development", MISTRAL_DEBUG = true }
+
+# With the paid plan, we can now set higher limits
+[env.dev.limits]
+cpu_ms = 50  # Default CPU time limit in milliseconds
+duration_ms = 30000  # Set maximum execution time to 30 seconds
 
 # Staging environment
 [env.staging]
 name = "ocr-checks-worker-staging"
 route = "staging-api.nolock.social/*"
 workers_dev = true
-vars = { ENVIRONMENT = "staging" }
+vars = { ENVIRONMENT = "staging", MISTRAL_DEBUG = true }
+
+# Staging environment limits
+[env.staging.limits]
+cpu_ms = 50  # Default CPU time limit in milliseconds
+duration_ms = 30000  # Set maximum execution time to 30 seconds
 
 # Production environment
 [env.production]
 name = "ocr-checks-worker"
 workers_dev = true
 # IMPORTANT: Do not store API keys here, use secrets instead
-vars = { ENVIRONMENT = "production" }
+vars = { ENVIRONMENT = "production", MISTRAL_DEBUG = false }
+
+# Production environment limits
+[env.production.limits]
+cpu_ms = 50  # Default CPU time limit in milliseconds
+duration_ms = 30000  # Set maximum execution time to 30 seconds
 
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]
@@ -39,5 +55,4 @@ enabled = true
 # IMPORTANT: DO NOT ADD API KEYS HERE!
 # Use Cloudflare Worker secrets instead: wrangler secret put MISTRAL_API_KEY
 # Example: echo "your-api-key" | wrangler secret put MISTRAL_API_KEY
-[vars]
-MISTRAL_DEBUG=true
+# Global variables that apply to all environments have been moved to the environment-specific sections

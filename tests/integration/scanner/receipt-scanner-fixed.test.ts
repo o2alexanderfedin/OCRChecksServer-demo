@@ -193,11 +193,14 @@ describe('ReceiptScanner Integration (Fixed Environment)', function() {
         }
       }
       
-      // Verify result
-      expect(result[0]).toBe('ok');
+      // Type assertion for result
+      const typedResult = result as readonly ['ok' | 'error', any];
       
-      if (result[0] === 'ok') {
-        const data = result[1];
+      // Verify result
+      expect(typedResult[0]).toBe('ok');
+      
+      if (typedResult[0] === 'ok') {
+        const data = typedResult[1];
         
         // Check that we have the expected properties
         expect(data.json).toBeDefined();

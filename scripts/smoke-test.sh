@@ -28,10 +28,13 @@ fi
 # Test image path - try different locations in order
 TEST_IMAGE=""
 POSSIBLE_IMAGES=(
-  "small-test.jpg"
   "tiny-test.jpg"
-  "tests/fixtures/images/telegram-cloud-photo-size-1-4915775046379745521-y.jpg"
-  "tests/fixtures/images/IMG_2388.jpg"
+  "micro-test.jpg"
+  "small-test.jpg"
+  "tests/fixtures/images/fredmeyer-receipt.jpg"
+  "tests/fixtures/images/fredmeyer-receipt-2.jpg"
+  "tests/fixtures/images/rental-bill.jpg"
+  "tests/fixtures/images/promo-check.HEIC"
 )
 
 # Find the first available test image

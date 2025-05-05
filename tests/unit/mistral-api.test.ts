@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../');
 
 // Get test image path
-const testImagePath = path.join(projectRoot, 'tests', 'fixtures', 'images', 'IMG_2388.jpg');
+const testImagePath = path.join(projectRoot, 'tests', 'fixtures', 'images', 'rental-bill.jpg');
 
 // Import types and create a proper IoE implementation
 import type { IoE } from '../../src/ocr/types';

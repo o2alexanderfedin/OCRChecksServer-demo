@@ -7,9 +7,10 @@ workers_dev = true
 # Logging is enabled by default in Workers
 # Debug level is used for development
 
-# Note: CPU limits require a paid plan
-# [limits]
-# cpu_ms = 50
+# Global limits (paid plan required)
+[limits]
+cpu_ms = 500  # Default CPU time limit in milliseconds
+duration_ms = 30000  # Default maximum execution time (30 seconds)
 
 # Development environment
 [env.dev]
@@ -17,23 +18,34 @@ name = "ocr-checks-worker-dev"
 workers_dev = true
 vars = { ENVIRONMENT = "development", MISTRAL_DEBUG = true }
 
-# Note: CPU limits require a paid plan
-# [env.dev.limits]
-# cpu_ms = 100  # Increase CPU time limit to 100ms
+# With the paid plan, we can now set higher limits
+[env.dev.limits]
+cpu_ms = 500  # Increase CPU time limit to 500ms
+duration_ms = 30000  # Set maximum execution time to 30 seconds
 
 # Staging environment
 [env.staging]
 name = "ocr-checks-worker-staging"
 route = "staging-api.nolock.social/*"
 workers_dev = true
-vars = { ENVIRONMENT = "staging" }
+vars = { ENVIRONMENT = "staging", MISTRAL_DEBUG = true }
+
+# Staging environment limits
+[env.staging.limits]
+cpu_ms = 500  # Increase CPU time limit to 500ms
+duration_ms = 30000  # Set maximum execution time to 30 seconds
 
 # Production environment
 [env.production]
 name = "ocr-checks-worker"
 workers_dev = true
 # IMPORTANT: Do not store API keys here, use secrets instead
-vars = { ENVIRONMENT = "production" }
+vars = { ENVIRONMENT = "production", MISTRAL_DEBUG = false }
+
+# Production environment limits - higher for production loads
+[env.production.limits]
+cpu_ms = 800  # Increase CPU time limit to 800ms for production
+duration_ms = 30000  # Set maximum execution time to 30 seconds
 
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]

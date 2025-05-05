@@ -16,17 +16,17 @@ const TEST_IMAGES = [
   {
     name: 'fredmeyer-receipt.jpg',
     description: 'Fred Meyer grocery store receipt',
-    type: 'receipt'
+    type: 'receipt' as const
   },
   {
     name: 'fredmeyer-receipt-2.jpg',
     description: 'Second Fred Meyer receipt with different items',
-    type: 'receipt'
+    type: 'receipt' as const
   },
   {
     name: 'rental-bill.jpg',
     description: 'Rental property bill receipt',
-    type: 'receipt'
+    type: 'receipt' as const
   }
 ];
 

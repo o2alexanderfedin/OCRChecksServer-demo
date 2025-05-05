@@ -16,7 +16,7 @@ const TEST_IMAGES = [
   {
     name: 'promo-check.HEIC',
     description: 'Promotional check in HEIC format',
-    type: 'check'
+    type: 'check' as const
   }
 ];
 

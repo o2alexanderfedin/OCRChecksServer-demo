@@ -1,3 +1,0 @@
-[submodule "swift-proxy"]
-	path = swift-proxy
-	url = https://github.com/o2alexanderfedin/nolock-ocr-swift.git

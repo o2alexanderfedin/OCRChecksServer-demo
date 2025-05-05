@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.41.0] - 2025-05-05
+
+### Added
+- Enhanced Swift client with automatic HEIC to JPEG conversion
+- Support for platform-specific image format conversion (iOS and macOS)
+- Integration test for HEIC image format processing
+- Environment selection support in Swift test script (local, dev, staging, production)
+
+### Fixed
+- Content-Type header in Swift client (now uses image/jpeg instead of multipart/form-data)
+- Robust enum decoding in Swift models to handle unknown values
+- Image processing pipeline with proper format detection and conversion
+- Swift test script reliability with better environment configuration
+
+### Improved 
+- Swift client robustness when handling various image formats
+- Cross-platform support with dedicated iOS and macOS implementations
+- Error handling and diagnostic information in Swift tests
+- Swift integration test environment configuration
+
 ## [1.40.3] - 2025-05-04
 
 ### Added

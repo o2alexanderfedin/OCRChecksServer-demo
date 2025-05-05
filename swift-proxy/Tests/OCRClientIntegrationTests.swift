@@ -12,7 +12,15 @@ import Foundation
 class OCRClientIntegrationTests: XCTestCase {
     
     // The environment to test against
-    private let testEnvironment = OCRClient.Environment.local
+    // Get the environment from the OCR_API_URL environment variable
+    private var testEnvironment: OCRClient.Environment {
+        if let apiUrlString = ProcessInfo.processInfo.environment["OCR_API_URL"] {
+            if let apiUrl = URL(string: apiUrlString) {
+                return .custom(apiUrl)
+            }
+        }
+        return .local
+    }
     
     // Test timeout interval (allows for network latency)
     private let testTimeoutInterval: TimeInterval = 60.0 // 60 seconds
@@ -33,9 +41,14 @@ class OCRClientIntegrationTests: XCTestCase {
     
     // Check if the server is available
     private func isServerAvailable() async -> Bool {
-        guard let url = URL(string: "http://localhost:8787/health") else {
+        // Get the server URL from environment variable
+        let serverUrlString = ProcessInfo.processInfo.environment["OCR_API_URL"] ?? "http://localhost:8789"
+        guard let url = URL(string: "\(serverUrlString)/health") else {
+            print("Failed to create URL for health check: \(serverUrlString)/health")
             return false
         }
+        
+        print("Checking server availability at: \(url.absoluteString)")
         
         do {
             let (_, response) = try await URLSession.shared.data(from: url, delegate: nil)
@@ -49,24 +62,30 @@ class OCRClientIntegrationTests: XCTestCase {
     }
     
     // Helper function to load test image
-    private func loadTestImage() -> Data? {
-        // Construct path to the test image in the project
-        // The image path depends on where the tests are running
-        let possibleImagePaths = [
+    private func loadTestImage(filename: String = "IMG_2388.jpg") -> Data? {
+        // Base directories to search for test images
+        let baseDirectories = [
             // When running from swift-proxy directory
-            "../tests/fixtures/images/IMG_2388.jpg",
+            "../tests/fixtures/images",
             // When running from project root
-            "tests/fixtures/images/IMG_2388.jpg",
+            "tests/fixtures/images",
             // When running from Xcode
-            "../../tests/fixtures/images/IMG_2388.jpg"
+            "../../tests/fixtures/images",
+            // Absolute path (for debugging)
+            "/Users/alexanderfedin/Projects/OCRChecksServer/tests/fixtures/images"
         ]
         
-        for path in possibleImagePaths {
+        for baseDir in baseDirectories {
+            let path = "\(baseDir)/\(filename)"
             if let imageData = try? Data(contentsOf: URL(fileURLWithPath: path)) {
+                print("Successfully loaded image from path: \(path)")
                 return imageData
+            } else {
+                print("Failed to load image from path: \(path)")
             }
         }
         
+        print("ERROR: Could not find test image \(filename) in any location")
         return nil
     }
     
@@ -203,16 +222,62 @@ class OCRClientIntegrationTests: XCTestCase {
         print("Document processing result: type=\(result.documentType.rawValue)")
     }
     
+    // Integration test for HEIC format images (will be automatically converted)
+    func testHEICImageProcessing() async throws {
+        // Skip if server is unavailable
+        try await skipIfServerUnavailable()
+        
+        // Load HEIC test image
+        guard let heicImageData = loadTestImage(filename: "IMG_2388.HEIC") else {
+            // If HEIC file is not available, skip the test
+            throw XCTSkip("HEIC test image not available")
+        }
+        
+        // Create client using the local environment
+        let client = OCRClient(environment: testEnvironment)
+        
+        // Process the HEIC image with timeout
+        // This tests the automatic HEIC to JPEG conversion
+        let result = try await runWithTimeout(seconds: testTimeoutInterval) {
+            return try await client.processCheck(
+                imageData: heicImageData,
+                format: .image,
+                filename: "test-image.HEIC"
+            )
+        }
+        
+        // Verify we got valid results
+        XCTAssertNotNil(result.data.checkNumber, "Check number should be present")
+        XCTAssertGreaterThan(result.data.amount, 0, "Amount should be positive")
+        
+        // Verify confidence scores
+        XCTAssertGreaterThan(result.confidence.ocr, 0, "OCR confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.extraction, 0, "Extraction confidence should be positive")
+        XCTAssertGreaterThan(result.confidence.overall, 0, "Overall confidence should be positive")
+        
+        // Log the response for debugging
+        print("HEIC processing result: number=\(result.data.checkNumber), amount=\(result.data.amount)")
+    }
+    
     // Replacement for the previous withTimeout helper
     private func runWithTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
         // Create a new task for the operation
         let operationTask = Task {
-            return try await operation()
+            do {
+                return try await operation()
+            } catch {
+                print("Original error: \(error)")
+                if let ocrError = error as? OCRError {
+                    print("OCR Error details: \(ocrError.error)")
+                }
+                throw error
+            }
         }
         
         // Create a timeout task
         let timeoutTask = Task {
             try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            print("TIMEOUT: Operation took longer than \(seconds) seconds")
             operationTask.cancel()
             throw TimeoutError(seconds: seconds)
         }
@@ -225,10 +290,12 @@ class OCRClientIntegrationTests: XCTestCase {
             return result
         } catch is CancellationError {
             // If the operation was cancelled, it was likely due to timeout
+            print("Operation was cancelled - likely due to timeout")
             throw TimeoutError(seconds: seconds)
         } catch {
             // Operation failed with some other error
             timeoutTask.cancel()
+            print("Operation failed with error: \(error)")
             throw error
         }
     }

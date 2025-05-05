@@ -7,7 +7,21 @@ public enum ReceiptType: String, Codable {
     case refund
     case estimate
     case proforma
+    case utility
     case other
+    
+    // Add a fallback case for unknown values
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        
+        if let knownValue = ReceiptType(rawValue: rawValue) {
+            self = knownValue
+        } else {
+            print("Warning: Unknown ReceiptType value: \(rawValue), defaulting to .other")
+            self = .other
+        }
+    }
 }
 
 /// Method of payment

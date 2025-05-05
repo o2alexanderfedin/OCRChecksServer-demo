@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.48.0] - 2025-05-07
+
+### Added
+- Created organized directory structure for Mistral API test scripts in scripts/mistral-tests/
+- Added test-mistral-now.js for direct Mistral API testing with images
+- Added test-mistral-ocr.js for receipt OCR and structured data extraction
+- Added test-mistral-text.js for document text extraction testing
+- Added comprehensive README.md with usage instructions for Mistral test scripts
+
+### Changed
+- Improved HEIC image conversion in Swift proxy to use PNG format instead of JPEG
+- Updated Content-Type headers in Swift proxy to use image/png
+- Removed compression quality parameters for PNG (lossless format)
+- Enhanced Swift proxy documentation with PNG format details
+- Updated CHANGELOG.md in Swift proxy with unreleased changes
+
 ## [1.47.0] - 2025-05-06
 
 ### Changed
@@ -918,4 +934,3 @@ All notable changes to this project will be documented in this file.
 - Mistral AI integration for OCR processing
 - API endpoint for check image processing
 - Unit tests for all components
-EOF < /dev/null

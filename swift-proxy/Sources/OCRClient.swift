@@ -397,7 +397,7 @@ public class OCRClient {
             #if canImport(UIKit) && !os(macOS)
             // iOS approach - Use UIKit
             if let image = UIImage(data: imageData) {
-                // Convert to PNG format
+                // Convert to PNG (lossless format)
                 if let pngData = image.pngData() {
                     print("HEIC conversion successful: \(imageData.count) bytes → \(pngData.count) bytes")
                     return pngData

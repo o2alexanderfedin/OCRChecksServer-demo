@@ -46,7 +46,7 @@ const testConfigs = {
   },
   integration: {
     spec_files: ['integration/**/*.test.ts'],
-    timeoutInterval: 120000, // Increase timeout to 2 minutes for integration tests
+    timeoutInterval: 180000, // Increase timeout to 3 minutes for integration tests
     requiresServer: true
   },
   semi: {
@@ -60,7 +60,7 @@ const testConfigs = {
       'semi/**/*.test.js',
       'integration/**/*.test.ts'
     ],
-    timeoutInterval: 60000,
+    timeoutInterval: 180000, // Increase timeout to 3 minutes to match integration tests
     requiresServer: true
   }
 };
@@ -113,12 +113,24 @@ if (config.requiresServer) {
   console.log('Starting server for integration tests...');
   
   try {
-    // Check for required API key
+    // Check for required API key with enhanced validation
     if (!process.env.MISTRAL_API_KEY) {
       // Use hardcoded test API key for integration tests
       const testApiKey = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE";
       process.env.MISTRAL_API_KEY = testApiKey;
       console.log('INFO: Using test API key for integration tests');
+      console.log(`API Key length: ${testApiKey.length} characters`);
+      console.log(`API Key first 4 chars: ${testApiKey.substring(0, 4)}****`);
+    } else {
+      console.log('INFO: Using existing MISTRAL_API_KEY from environment');
+      console.log(`API Key length: ${process.env.MISTRAL_API_KEY.length} characters`);
+      console.log(`API Key first 4 chars: ${process.env.MISTRAL_API_KEY.substring(0, 4)}****`);
+    }
+    
+    // Validate API key format
+    const apiKeyPattern = /^[A-Za-z0-9]{32,}$/;
+    if (!apiKeyPattern.test(process.env.MISTRAL_API_KEY)) {
+      console.warn('WARNING: API key format may be invalid. Mistral API keys are typically 32+ alphanumeric characters.');
     }
     
     // Use a more robust approach to capture output

@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.46.0] - 2025-05-06
+
+### Added
+- Scripts for consistent release branch naming with v-prefix
+- Improved test image file organization
+- Data-driven test approach for check and receipt processing
+- Compatibility with HEIC image formats for testing
+
+### Fixed
+- Consistent release branch naming across repository
+- Standardized test image references in scanner tests
+- Test image filenames to better represent their content
+- Missing test fixtures for comprehensive testing
+
 ## [1.45.0] - 2025-05-06
 
 ### Added

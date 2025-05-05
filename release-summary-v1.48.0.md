@@ -2,7 +2,7 @@
 
 ## Overview
 
-This release focuses on enhancing the Mistral API testing capabilities and improving image quality in the Swift proxy client through PNG format adoption.
+This release focuses on enhancing the Mistral API testing capabilities, improving image quality in the Swift proxy client through PNG format adoption, and fixing test timeouts in the integration tests.
 
 ## Key Features
 
@@ -22,6 +22,13 @@ This release focuses on enhancing the Mistral API testing capabilities and impro
 - **Compression Removal**: Removed unnecessary compression quality parameters for the lossless PNG format
 - **Documentation Updates**: Enhanced Swift proxy documentation with PNG format details and updated CHANGELOG.md
 
+### Test Reliability Improvements
+
+- **Increased Timeouts**: Extended integration test timeout from 120 seconds to 180 seconds
+- **Better Error Handling**: Enhanced error reporting in mistral-direct.test.ts with detailed diagnostics
+- **API Key Validation**: Improved API key validation and logging in run-tests.js
+- **Version Updates**: Fixed integration tests to use correct version number (1.48.0)
+
 ## Testing Recommendations
 
 To ensure proper functionality with these changes:
@@ -29,6 +36,7 @@ To ensure proper functionality with these changes:
 1. Test OCR processing with PNG images to verify server compatibility
 2. Run the new Mistral API test scripts to validate API connectivity
 3. Verify that HEIC images are correctly converted to PNG in the Swift client on both iOS and macOS platforms
+4. Run integration tests with the new timeout settings to verify stability
 
 ## Deployment Notes
 
@@ -41,3 +49,4 @@ To ensure proper functionality with these changes:
 - Consider adding support for WebP format as an alternative to PNG for smaller file sizes
 - Add automated tests that validate image quality preservation in format conversions
 - Explore additional opportunities for direct API testing with other formats
+- Implement more robust rate limiting for Mistral API tests

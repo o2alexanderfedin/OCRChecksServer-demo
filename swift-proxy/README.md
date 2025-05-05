@@ -1,14 +1,47 @@
 # NolockOCR Swift Package
 
-A Swift client for the Nolock OCR Checks Server API. This package provides a simple interface for processing check and receipt images, extracting structured data from them.
+[![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
+[![Platforms](https://img.shields.io/badge/Platforms-iOS%2015.0+%20|%20macOS%2012.0+-4BC51D.svg)](https://www.apple.com)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
+A Swift client library for the Nolock OCR API that extracts structured data from check and receipt images. This package provides an elegant, type-safe interface for OCR processing with support for modern Swift features.
+
+## Features
+
+- ✅ **Modern Swift Concurrency** with async/await support
+- ✅ **Backward Compatibility** with completion handler APIs
+- ✅ **Type-Safe Models** for check and receipt data
+- ✅ **SwiftUI Integration** ready
+- ✅ **Comprehensive Error Handling**
+- ✅ **Confidence Scoring** for OCR and extraction quality
+- ✅ **Environment Configuration** for development, staging, and production
+- ✅ **HEIC Image Support** with automatic conversion
+- ✅ **Lightweight** with zero external dependencies
 
 ## Installation
 
+### Swift Package Manager
+
 Add the package to your project using Swift Package Manager:
 
+#### In Xcode:
+1. Go to **File** > **Add Package Dependencies...**
+2. Enter the package URL: `https://github.com/nolock/ocr-swift-proxy.git`
+3. Select the version rule (Exact, Up to Next Major, etc.)
+4. Click **Add Package**
+
+#### In Package.swift:
 ```swift
 dependencies: [
     .package(url: "https://github.com/nolock/ocr-swift-proxy.git", from: "1.0.0"),
+],
+targets: [
+    .target(
+        name: "YourTarget",
+        dependencies: [
+            .product(name: "NolockOCR", package: "ocr-swift-proxy")
+        ]
+    )
 ]
 ```
 
@@ -16,6 +49,7 @@ dependencies: [
 
 - iOS 15.0+ / macOS 12.0+
 - Swift 5.9+
+- Xcode 15.0+
 
 ## Usage
 
@@ -316,4 +350,19 @@ struct CheckScannerView: View {
 
 ## License
 
-This package is available under the AGPL-3.0-or-later license.
+This package is available under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contact & Support
+
+- **Website**: [https://nolock.social](https://nolock.social)
+- **Support**: [support@nolock.social](mailto:support@nolock.social)
+- **Documentation**: [https://docs.nolock.social/ocr-api](https://docs.nolock.social/ocr-api)
+
+## Authors
+
+- [Nolock.social Team](https://nolock.social)
+- Development by [O2.services](https://o2.services)
+
+## Acknowledgments
+
+This library uses the Mistral AI OCR backend service for image processing.

@@ -12,6 +12,9 @@ let package = Package(
         .library(
             name: "NolockOCR",
             targets: ["NolockOCR"]),
+        .executable(
+            name: "OCRExamples",
+            targets: ["OCRExamples"])
     ],
     dependencies: [],
     targets: [
@@ -19,9 +22,19 @@ let package = Package(
             name: "NolockOCR",
             dependencies: [],
             path: "Sources"),
+        .executableTarget(
+            name: "OCRExamples",
+            dependencies: ["NolockOCR"],
+            path: "Examples",
+            exclude: [
+                "AsyncCheckProcessingExample.swift",
+                "CheckProcessingExample.swift"
+            ],
+            sources: ["Main.swift"]),
         .testTarget(
             name: "NolockOCRTests",
             dependencies: ["NolockOCR"],
-            path: "Tests"),
+            path: "Tests",
+            exclude: ["README.md"]),
     ]
 )

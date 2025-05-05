@@ -9,7 +9,7 @@ workers_dev = true
 
 # Global limits (paid plan required)
 [limits]
-cpu_ms = 500  # Default CPU time limit in milliseconds
+cpu_ms = 50  # Default CPU time limit in milliseconds
 duration_ms = 30000  # Default maximum execution time (30 seconds)
 
 # Development environment
@@ -20,7 +20,7 @@ vars = { ENVIRONMENT = "development", MISTRAL_DEBUG = true }
 
 # With the paid plan, we can now set higher limits
 [env.dev.limits]
-cpu_ms = 500  # Increase CPU time limit to 500ms
+cpu_ms = 50  # Default CPU time limit in milliseconds
 duration_ms = 30000  # Set maximum execution time to 30 seconds
 
 # Staging environment
@@ -32,7 +32,7 @@ vars = { ENVIRONMENT = "staging", MISTRAL_DEBUG = true }
 
 # Staging environment limits
 [env.staging.limits]
-cpu_ms = 500  # Increase CPU time limit to 500ms
+cpu_ms = 50  # Default CPU time limit in milliseconds
 duration_ms = 30000  # Set maximum execution time to 30 seconds
 
 # Production environment
@@ -42,9 +42,9 @@ workers_dev = true
 # IMPORTANT: Do not store API keys here, use secrets instead
 vars = { ENVIRONMENT = "production", MISTRAL_DEBUG = false }
 
-# Production environment limits - higher for production loads
+# Production environment limits
 [env.production.limits]
-cpu_ms = 800  # Increase CPU time limit to 800ms for production
+cpu_ms = 50  # Default CPU time limit in milliseconds
 duration_ms = 30000  # Set maximum execution time to 30 seconds
 
 # wrangler.toml (wrangler v3.88.0^)

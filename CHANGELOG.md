@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.44.0] - 2025-05-06
+
+### Added
+- Data-driven test architecture for scanner tests using available test images
+- Rate limiting for Mistral API calls to respect the 5 requests per second limit
+- Verification script for test image availability
+- Descriptively named test images for better test readability
+
+### Changed
+- Renamed test images with more descriptive filenames
+- Updated test structure to dynamically consume all available test images
+- Improved retry configuration with 5 retries and 1 second initial delay
+- Enhanced testing reliability with proper rate limiting
+
+### Improved
+- Documentation for test images and rate limiting functionality
+- Test resilience with better error handling for missing images
+- Overall testing efficiency with optimized retry parameters
+
 ## [1.43.2] - 2025-05-05
 
 ### Improved

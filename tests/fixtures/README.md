@@ -12,12 +12,18 @@ fixtures/
 
 ## Images
 
-The `images/` directory contains sample check images used by tests:
+The `images/` directory contains sample images used by tests:
 
-- `IMG_2388.jpg` - Sample check image for OCR testing
-- `IMG_2388.HEIC` - HEIC format version of the same image (for testing format conversion)
-- `telegram-cloud-photo-size-1-4915775046379745521-y.jpg` - Additional check sample
-- `telegram-cloud-photo-size-1-4915775046379745522-y.jpg` - Additional check sample
+### Check Images
+- `promo-check.HEIC` - Sample promotional check in HEIC format for testing check scanning
+
+### Receipt Images
+- `fredmeyer-receipt.jpg` - Fred Meyer grocery store receipt
+- `fredmeyer-receipt-2.jpg` - Second Fred Meyer receipt with different items
+- `rental-bill.jpg` - Rental property bill receipt
+
+### Bill/Invoice Images
+- `pge-bill.HEIC` - PG&E utility bill in HEIC format
 
 ## Expected Results
 

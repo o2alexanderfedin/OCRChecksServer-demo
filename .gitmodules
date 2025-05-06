@@ -1,6 +1,6 @@
 [submodule "swift-proxy"]
 	path = swift-proxy
 	url = https://github.com/o2alexanderfedin/nolock-ocr-swift.git
-[submodule "nolock-capture-lib"]
-	path = nolock-capture-lib
+[submodule "nolock-capture"]
+	path = nolock-capture
 	url = https://github.com/o2alexanderfedin/nolock-capture.git

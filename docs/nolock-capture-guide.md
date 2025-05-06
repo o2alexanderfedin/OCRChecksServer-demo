@@ -38,7 +38,7 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/o2alexanderfedin/nolock-capture-lib.git", .upToNextMajor(from: "1.0.0"))
+    .package(url: "https://github.com/o2alexanderfedin/nolock-capture.git", .upToNextMajor(from: "1.0.0"))
 ]
 ```
 
@@ -56,7 +56,7 @@ targets: [
 ### Xcode Project
 
 1. In Xcode, select File > Add Package Dependencies
-2. Enter the repository URL: `https://github.com/o2alexanderfedin/nolock-capture-lib.git`
+2. Enter the repository URL: `https://github.com/o2alexanderfedin/nolock-capture.git`
 3. Select the version rule (e.g., Up to Next Major)
 4. Click Add Package
 
@@ -159,7 +159,7 @@ Common issues:
 
 ## Development and Contributing
 
-For information on developing and contributing to NolockCapture, see the [README.md](https://github.com/o2alexanderfedin/nolock-capture-lib) in the repository.
+For information on developing and contributing to NolockCapture, see the [README.md](https://github.com/o2alexanderfedin/nolock-capture) in the repository.
 
 ## Related Resources
 

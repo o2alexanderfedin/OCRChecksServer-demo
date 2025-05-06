@@ -1,6 +1,6 @@
 # ✅ Git Submodule Workflow (Claude Verified)
 
-This markdown file describes the **recommended and tested procedure** for handling submodules when using `git flow` with submodules (e.g., `swift-proxy`, `nolock-capture-lib`).
+This markdown file describes the **recommended and tested procedure** for handling submodules when using `git flow` with submodules (e.g., `swift-proxy`, `nolock-capture`).
 
 ---
 
@@ -37,13 +37,13 @@ git submodule update --init --recursive
 
 ```bash
 cd swift-proxy && git checkout develop && cd -
-cd nolock-capture-lib && git checkout main && cd -
+cd nolock-capture && git checkout main && cd -
 ```
 
 ### 3. Commit Updated Submodule References in Parent
 
 ```bash
-git add swift-proxy nolock-capture-lib
+git add swift-proxy nolock-capture
 git commit -m "fix: sync submodules before finishing release"
 ```
 
@@ -92,7 +92,7 @@ git submodule update --init --recursive
 
 # Check if submodule directories contain expected files
 ls -la swift-proxy/
-ls -la nolock-capture-lib/
+ls -la nolock-capture/
 ```
 
 If the submodule directories are empty or missing files, this step will restore them.

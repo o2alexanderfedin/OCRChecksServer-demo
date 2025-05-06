@@ -26,8 +26,8 @@ The key innovation in this release is a special pattern in `.gitignore` that pre
 ```
 /swift-proxy/*
 !/swift-proxy/.git
-/nolock-capture-lib/*
-!/nolock-capture-lib/.git
+/nolock-capture/*
+!/nolock-capture/.git
 ```
 
 This pattern allows for conflict-free branch switching even when there are untracked files in the submodules.

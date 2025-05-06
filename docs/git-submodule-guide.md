@@ -7,7 +7,7 @@ This guide explains how to work with Git submodules in the OCRChecksServer proje
 Our project includes the following submodules:
 
 1. **swift-proxy** - The Swift client for the OCR API (NolockOCR)
-2. **nolock-capture-lib** - The Swift package for document capture (NolockCapture)
+2. **nolock-capture** - The Swift package for document capture (NolockCapture)
 
 ## Submodule Helper Script
 
@@ -48,7 +48,7 @@ When making changes to a submodule, you need to:
 
 1. **Enter the submodule directory**:
    ```bash
-   cd swift-proxy  # or nolock-capture-lib
+   cd swift-proxy  # or nolock-capture
    ```
 
 2. **Make sure you're on a branch** (submodules are often in detached HEAD state):

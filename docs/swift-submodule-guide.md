@@ -1,13 +1,13 @@
 # Swift Submodule Guide
 
-This guide provides specific instructions for working with the Swift submodules in our project: `swift-proxy` and `nolock-capture-lib`.
+This guide provides specific instructions for working with the Swift submodules in our project: `swift-proxy` and `nolock-capture`.
 
 ## Swift Submodules Overview
 
 Our project includes two Swift submodules:
 
 1. **swift-proxy**: Contains the NolockOCR Swift client for interacting with our OCR API
-2. **nolock-capture-lib**: Contains the NolockCapture package for advanced document capture
+2. **nolock-capture**: Contains the NolockCapture package for advanced document capture
 
 These submodules are maintained as separate repositories but included in the main OCRChecksServer project using Git submodules.
 
@@ -31,7 +31,7 @@ To open a Swift submodule in Xcode:
 
 1. Navigate to the submodule directory:
    ```bash
-   cd swift-proxy  # or cd nolock-capture-lib
+   cd swift-proxy  # or cd nolock-capture
    ```
 
 2. Open the package in Xcode:
@@ -78,7 +78,7 @@ When making changes to a Swift submodule:
 5. **Return to the main repository and update the reference**:
    ```bash
    cd ..
-   git add swift-proxy  # or nolock-capture-lib
+   git add swift-proxy  # or nolock-capture
    git commit -m "Update Swift submodule reference"
    ```
 
@@ -119,7 +119,7 @@ The `swift-proxy` (NolockOCR) package has the following dependencies:
 
 ### NolockCapture Package
 
-The `nolock-capture-lib` (NolockCapture) package has the following dependencies:
+The `nolock-capture` (NolockCapture) package has the following dependencies:
 
 - **Foundation**: Standard library functionality
 - **CoreImage**: Image processing
@@ -135,7 +135,7 @@ If you encounter build errors after updating submodules:
 
 ```bash
 # Clean build folder
-cd swift-proxy  # or nolock-capture-lib
+cd swift-proxy  # or nolock-capture
 rm -rf .build
 
 # Resolve package dependencies

@@ -19,8 +19,8 @@ We can use a special pattern in `.gitignore` to handle submodules differently:
 # Submodule directories - gitignore the content but keep the directories
 /swift-proxy/*
 !/swift-proxy/.git
-/nolock-capture-lib/*
-!/nolock-capture-lib/.git
+/nolock-capture/*
+!/nolock-capture/.git
 ```
 
 ### How It Works
@@ -80,8 +80,8 @@ To implement this approach:
 # Submodule directories - gitignore the content but keep the directories
 /swift-proxy/*
 !/swift-proxy/.git
-/nolock-capture-lib/*
-!/nolock-capture-lib/.git
+/nolock-capture/*
+!/nolock-capture/.git
 ```
 
 2. Commit this change to your repository.

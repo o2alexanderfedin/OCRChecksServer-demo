@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.52.0] - 2025-05-08
+
+### Changed
+- Renamed 'nolock-capture-lib' submodule to 'nolock-capture' for naming consistency
+- Updated all documentation references to use the new submodule name
+- Improved consistency across the codebase with standardized submodule naming
+
 ## [1.51.0] - 2025-05-07
 
 ### Added

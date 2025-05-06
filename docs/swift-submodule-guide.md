@@ -46,7 +46,7 @@ To open a Swift submodule in Xcode:
 For command line development:
 
 ```bash
-cd swift-proxy  # or cd nolock-capture-lib
+cd swift-proxy  # or cd nolock-capture
 swift build
 swift test
 ```

@@ -51,5 +51,5 @@ reconstructed*.jpg
 # This allows Git to track the submodule references without conflicts
 /swift-proxy/*
 !/swift-proxy/.git
-/nolock-capture-lib/*
-!/nolock-capture-lib/.git
+/nolock-capture/*
+!/nolock-capture/.git

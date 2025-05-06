@@ -349,6 +349,8 @@ For complete development guidelines, refer to:
 - [Development Workflow](./docs/development-workflow.md) for detailed instructions
 - [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md) for step-by-step deployment instructions
 - [Git Submodule Guide](./docs/git-submodule-guide.md) for working with submodules
+- [Swift Submodule Guide](./docs/swift-submodule-guide.md) for Swift-specific submodule instructions
+- [NolockCapture Guide](./docs/nolock-capture-guide.md) for details on the document capture package
 
 ## License
 

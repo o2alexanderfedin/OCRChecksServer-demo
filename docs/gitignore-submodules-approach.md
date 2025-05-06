@@ -21,6 +21,8 @@ We can use a special pattern in `.gitignore` to handle submodules differently:
 !/swift-proxy/.git
 /nolock-capture/*
 !/nolock-capture/.git
+/auth-service/*
+!/auth-service/.git
 ```
 
 ### How It Works
@@ -82,6 +84,8 @@ To implement this approach:
 !/swift-proxy/.git
 /nolock-capture/*
 !/nolock-capture/.git
+/auth-service/*
+!/auth-service/.git
 ```
 
 2. Commit this change to your repository.

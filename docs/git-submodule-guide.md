@@ -8,6 +8,7 @@ Our project includes the following submodules:
 
 1. **swift-proxy** - The Swift client for the OCR API (NolockOCR)
 2. **nolock-capture** - The Swift package for document capture (NolockCapture)
+3. **auth-service** - Experimental authentication and authorization for Cloudflare Workers
 
 ## Submodule Helper Script
 

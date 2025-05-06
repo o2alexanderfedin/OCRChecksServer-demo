@@ -53,3 +53,5 @@ reconstructed*.jpg
 !/swift-proxy/.git
 /nolock-capture/*
 !/nolock-capture/.git
+/auth-service/*
+!/auth-service/.git

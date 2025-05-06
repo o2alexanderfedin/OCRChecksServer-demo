@@ -4,10 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [1.52.0] - 2025-05-08
 
+### Added
+- Added experimental auth-service submodule for authentication and authorization development
+- Added guides for capturing and using HEIC images with depth maps in test apps
+- Added iOS Testing Guide with instructions for testing Swift packages
+
 ### Changed
 - Renamed 'nolock-capture-lib' submodule to 'nolock-capture' for naming consistency
 - Updated all documentation references to use the new submodule name
 - Improved consistency across the codebase with standardized submodule naming
+- Updated submodule documentation to include the new auth-service submodule
 
 ## [1.51.0] - 2025-05-07
 

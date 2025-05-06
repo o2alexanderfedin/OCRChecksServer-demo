@@ -46,3 +46,10 @@ integration-test-results.json
 mistral_sdk_sample.json
 sdk_json_test.json
 reconstructed*.jpg
+
+# Submodule directories - gitignore the content but keep the directories
+# This allows Git to track the submodule references without conflicts
+/swift-proxy/*
+!/swift-proxy/.git
+/nolock-capture-lib/*
+!/nolock-capture-lib/.git

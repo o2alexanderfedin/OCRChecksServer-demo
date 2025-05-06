@@ -25,6 +25,10 @@ Team members MUST:
    - Categorize the item appropriately (Architecture, Testing, Performance, etc.)
    - Assign a unique identifier (e.g., A001 for Architecture item #1)
    - Include a clear description, priority, status, and resolution approach
+   - Explicitly state that implementation MUST be done within a GitFlow feature branch
+   - Include reminder to create architectural design document if applicable
+   - Specify that Test-Driven Development (TDD) approach should be used if applicable
+   - Note the requirement to follow SOLID and KISS principles if applicable
 
 2. **Update Status Regularly**
    - When beginning work on a technical debt item, mark it as "In Progress"
@@ -45,6 +49,34 @@ Team members MUST:
    - Include specific approaches for resolving the debt
    - Document alternatives considered
    - Provide links to relevant documentation or research
+
+6. **Follow Development Process Requirements**
+   - Create a GitFlow feature branch before starting any work on technical debt items
+     ```bash
+     git flow feature start fix-issue-name
+     ```
+   - Create a detailed architectural design document before implementation (for non-trivial items)
+   - Use Test-Driven Development (TDD) approach:
+     - Write failing tests first
+     - Implement code to make tests pass
+     - Refactor while maintaining passing tests
+   - Follow SOLID principles:
+     - Single Responsibility Principle: Each class/module should have only one reason to change
+     - Open/Closed Principle: Open for extension, closed for modification
+     - Liskov Substitution Principle: Subtypes must be substitutable for their base types
+     - Interface Segregation: Prefer multiple specific interfaces over one general-purpose interface
+     - Dependency Inversion: Depend on abstractions, not concretions
+   - Apply KISS (Keep It Simple, Stupid) principle:
+     - Choose the simplest solution that meets the requirements
+     - Avoid unnecessary complexity
+     - Prioritize readability and maintainability
+
+7. **Include Process Requirements in Todo Items**
+   - When creating todo items, include reminders about:
+     - Using GitFlow feature branches
+     - Creating design documents first
+     - Following TDD approach
+     - Applying SOLID and KISS principles
 
 ## Violation Consequences
 

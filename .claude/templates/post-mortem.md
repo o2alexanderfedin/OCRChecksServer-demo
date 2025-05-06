@@ -32,3 +32,21 @@ Brief summary of the feature and its implementation status.
 - [Any remaining work or tech debt to address]
 - [Potential improvements for future iterations]
 - [Areas requiring additional exploration]
+
+## Process Requirements for Implementation
+- Implementation MUST be done within a GitFlow feature branch
+- Create architectural design document before implementation (if applicable)
+- Use Test-Driven Development (TDD) approach:
+  - Write failing tests first
+  - Implement code to make tests pass
+  - Refactor while maintaining tests
+- Follow SOLID principles:
+  - Single Responsibility Principle
+  - Open/Closed Principle
+  - Liskov Substitution Principle
+  - Interface Segregation
+  - Dependency Inversion
+- Apply KISS principle:
+  - Choose the simplest solution
+  - Avoid unnecessary complexity
+  - Prioritize readability and maintainability

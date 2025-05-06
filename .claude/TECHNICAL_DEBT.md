@@ -41,7 +41,16 @@ This document tracks technical debt items across the codebase. Each item include
 - **Description**: The nolock-capture-lib submodule has no unit tests for its components
 - **Priority**: High
 - **Status**: Open
-- **Resolution Approach**: Create comprehensive unit tests for CaptureController, ReceiptCaptureController, and DepthProcessor classes
+- **Resolution Approach**: 
+  1. Create a GitFlow feature branch (`git flow feature start implement-nolock-capture-tests`)
+  2. Create an architectural test design document outlining the test strategy
+  3. Following TDD principles, write failing tests first for:
+     - CaptureController
+     - ReceiptCaptureController
+     - DepthProcessor classes
+  4. Implement test fixtures and mocks following SOLID principles
+  5. Use the KISS principle to keep tests simple and maintainable
+  6. Finish the feature using proper GitFlow process
 
 ### [T002] Comprehensive Test Strategy for LiDAR-Based Document Capture
 - **Description**: Need testing approach for depth-aware document capture on devices with LiDAR

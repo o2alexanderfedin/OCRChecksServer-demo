@@ -30,9 +30,12 @@ Team members MUST:
    - Specify that Test-Driven Development (TDD) approach should be used if applicable
    - Note the requirement to follow SOLID and KISS principles if applicable
 
-2. **Update Status Regularly**
+2. **Update Status and Remove Completed Items**
    - When beginning work on a technical debt item, mark it as "In Progress"
-   - When completing work, mark it as "Resolved" with resolution details
+   - When completing work, mark it as "Resolved" with resolution details temporarily
+   - After validation that the item is fully resolved, remove it completely from the document
+   - Never leave resolved items in the TECHNICAL_DEBT.md document to avoid confusion
+   - If historical record is needed, reference should be made in commit messages
    - Review and update the technical debt tracker at least monthly
 
 3. **Reference in Code and Commit Messages**
@@ -86,6 +89,8 @@ Failure to follow this rule results in:
 - Increased bugs and system instability
 - Difficulty onboarding new team members
 - Challenges in planning and estimating future work
+- Confusion from unremoved resolved items causing redundant work
+- Cluttered technical debt documents with obsolete information
 
 ## Resolution Strategies
 

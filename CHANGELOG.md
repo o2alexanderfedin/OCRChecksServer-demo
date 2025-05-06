@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.49.0] - 2025-05-07
+
+### Added
+- Created `scripts/submodule-helper.sh` for interactive Git submodule management
+- Added comprehensive documentation for Git submodules in `docs/git-submodule-guide.md`
+- Added Swift-specific submodule guide in `docs/swift-submodule-guide.md`
+- Added NolockCapture library documentation in `docs/nolock-capture-guide.md`
+- Created submodule management rule in `.claude/rules/submodule-management.md`
+- Established continuous improvement process in `.claude/rules/continuous-improvement.md`
+- Implemented technical debt tracking system in `.claude/rules/technical-debt-tracking.md`
+- Added `.claude/TECHNICAL_DEBT.md` for systematic debt tracking
+- Created post-mortem analysis for submodule utilities feature
+
+### Changed
+- Enhanced post-mortem template with development process requirements
+- Updated development guidelines in CLAUDE.md with references to new rules
+- Improved submodule reference management in the main repository
+- Enhanced Swift proxy with HEIC to PNG conversion for better image quality
+
 ## [1.48.0] - 2025-05-07
 
 ### Added

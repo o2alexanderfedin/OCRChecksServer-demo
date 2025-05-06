@@ -37,7 +37,13 @@ This document tracks technical debt items across the codebase. Each item include
 
 ## Testing
 
-### [T001] Comprehensive Test Strategy for LiDAR-Based Document Capture
+### [T001] Implement NolockCapture Unit Tests
+- **Description**: The nolock-capture-lib submodule has no unit tests for its components
+- **Priority**: High
+- **Status**: Open
+- **Resolution Approach**: Create comprehensive unit tests for CaptureController, ReceiptCaptureController, and DepthProcessor classes
+
+### [T002] Comprehensive Test Strategy for LiDAR-Based Document Capture
 - **Description**: Need testing approach for depth-aware document capture on devices with LiDAR
 - **Priority**: Medium
 - **Status**: Open

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.51.0] - 2025-05-07
+
+### Added
+- Added experimental gitignore approach for submodules in `docs/gitignore-submodules-approach.md`
+- Documented alternative method for handling submodules in GitFlow workflows
+- Tested and documented submodule conflict prevention using .gitignore patterns
+
+### Fixed
+- Added post-release submodule verification steps to submodule guides
+- Improved documentation for submodule management during GitFlow operations
+- Enhanced post-mortem analysis with lessons learned from submodule handling
+
+## [1.50.0] - 2025-05-07
+
+### Added
+- Added git-submodule-release-post-mortem.md with comprehensive analysis
+- Enhanced submodule workflow documentation with post-release verification
+- Added specific guidance for handling submodules during GitFlow operations
+- Documented proper technique for reinitializing submodules after releases
+
 ## [1.49.0] - 2025-05-07
 
 ### Added

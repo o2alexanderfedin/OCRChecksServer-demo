@@ -49,7 +49,13 @@
    - If you notice unrelated issues, create separate tasks or tickets for them
    - When in doubt, follow the Single Responsibility Principle for commits
 
-8. **Document Problem-Solution Patterns**
+8. **Continuously Improve Tools and Documentation**
+   - When you discover that a tool, recommendation, or documented process doesn't work as expected, and you find a solution, you MUST update the corresponding tools and documentation
+   - Don't leave broken processes or misleading documentation in place
+   - Update both the code (scripts, tools) and the documentation to reflect the correct approach
+   - See [Continuous Improvement](./.claude/rules/continuous-improvement.md) for a detailed process
+
+9. **Document Problem-Solution Patterns**
    - When you solve a challenging problem that required multiple attempts, document the solution
    - Create a new rule file in the `.claude/rules/` directory with a descriptive name
    - Include the problem context, solution approach, and prevention strategies
@@ -60,7 +66,7 @@
    - Example: [Software Problem Solving](./.claude/rules/software-problem-solving.md) offers a comprehensive approach to tackling diverse technical challenges
    - Example: [Submodule Management](./.claude/rules/submodule-management.md) provides guidance on proper Git submodule operations and using the helper script
 
-9. **Perform Post-Mortem Analysis**
+10. **Perform Post-Mortem Analysis**
    - After each feature completion, conduct a post-mortem analysis using the [post-mortem template](./.claude/templates/post-mortem.md)
    - Document all issues encountered, root causes, and solutions applied
    - Extract reusable lessons and create or update rule files

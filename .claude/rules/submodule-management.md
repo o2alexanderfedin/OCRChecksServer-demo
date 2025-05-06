@@ -1,96 +1,65 @@
 # Git Submodule Management Rule
 
+This rule establishes best practices for working with Git submodules in our codebase.
+
 ## Problem Context
 
-Working with Git submodules introduces multiple steps and potential pitfalls that can lead to broken references, missed commits, and integration problems. Common issues include:
+Git submodules introduce complexity in repository management, particularly when:
+- Multiple team members work on both main and submodule repositories
+- Changes need to be coordinated across repositories
+- Merge conflicts arise involving submodule references
+- GitFlow processes need to integrate with submodule changes
 
-- Forgetting to push submodule changes before pushing the main repository
-- Working with detached HEAD state in submodules
-- Submodule references pointing to commits that don't exist in remote repositories
-- Accidental modification of submodule files without proper branching
-- Incorrect GitFlow process when dealing with submodules
+## Rule Statement
 
-## Solution Approach
+When working with submodules in this project, developers MUST:
 
-### Always Use the Submodule Helper Script
+1. **Use the Submodule Helper Script for Complex Operations**
+   - The script at `./scripts/submodule-helper.sh` automates common submodule tasks
+   - For quick tasks, manual git commands may be used, but the helper is preferred
 
-IMPORTANT: Whenever working with submodules in this repository, use the provided helper script:
+2. **Follow the Two-Step Commit Process**
+   - First commit changes within the submodule repository
+   - Then commit the reference changes in the main repository
 
-```bash
-./scripts/submodule-helper.sh
-```
-
-This interactive script automates and guides through the proper sequence of operations for various submodule tasks.
-
-### Key Principles
-
-1. **Two-Step Commit Process** 
-   - First commit changes within the submodule
-   - Then commit the updated submodule reference in the main repository
-
-2. **Push Sequence Matters**
+3. **Push in the Correct Sequence**
    - Always push submodule changes before pushing the main repository
-   - Use the "Complete workflow" option in the helper script to automate this sequence
+   - Failure to do this will cause reference errors for other developers
 
-3. **Proper Branch Management**
-   - Create dedicated branches for submodule changes
-   - When using GitFlow, create corresponding feature branches in both main repo and submodules
+4. **Update Submodules After Pulling**
+   - Run `git submodule update --recursive` after pulling changes
+   - Or use the helper script's update function
 
-4. **Regular Status Checks**
-   - Use the "Check submodule status" option regularly
-   - Review submodule status before finalizing PRs
+5. **Create Corresponding Feature Branches**
+   - When creating a feature branch in the main repo that requires submodule changes
+   - Create matching feature branches in affected submodules
 
-## Prevention Strategies
+6. **Resolve Conflicts Carefully**
+   - Submodule conflicts must be resolved with special attention
+   - Follow the conflict resolution steps in the git-submodule-guide.md documentation
+   - When in doubt, use the "fix broken submodule" procedure in the guide
 
-1. **Automate Where Possible**
-   - Use the helper script for all submodule operations
-   - Let the script handle the proper sequence of operations
+7. **Document New Submodules**
+   - Update the git-submodule-guide.md to include any new submodules
+   - Include details on purpose, branch structure, and special considerations
 
-2. **One Task at a Time**
-   - Complete one submodule task before starting another
-   - Avoid working on multiple submodules simultaneously
+## Violation Consequences
 
-3. **Clear Communication**
-   - Document submodule changes clearly in commit messages
-   - Alert team members when making significant submodule changes
+Failure to follow these rules may result in:
+- Broken builds when submodule references point to non-existent commits
+- Complex merge conflicts that are difficult to resolve
+- Loss of work if submodule changes aren't properly committed or pushed
+- Project-wide development delays
 
-4. **Regular Verification**
-   - Regularly check submodule status with the helper script
-   - Verify submodule references point to accessible commits
+## Resolution Strategies
 
-## Example Workflows
+If submodule issues occur:
+1. Use the cleanup procedures in git-submodule-guide.md
+2. In extreme cases, consider re-cloning the repository with fresh submodules
+3. Document the issue and resolution in a post-mortem
 
-### Adding a Feature That Spans Main Repository and Submodules
+## Related Resources
 
-```bash
-# 1. Create feature branch in main repository
-git flow feature start new-feature
-
-# 2. Use helper script to manage submodule operations
-./scripts/submodule-helper.sh
-# Select options for:
-# - Checking submodule status
-# - Making changes in submodules (which includes creating branches)
-# - Committing changes in correct sequence
-# - Pushing in correct sequence
-
-# 3. Finish the feature with GitFlow
-git flow feature finish new-feature
-```
-
-### Updating Submodules to Latest Commits
-
-```bash
-# Use helper script for a simplified process
-./scripts/submodule-helper.sh
-# Select "Update all submodules" option
-# Follow by "Push main repository" to update references
-```
-
-## Reference Documentation
-
-For more detailed information, refer to these project-specific resources:
-
-- [Git Submodule Guide](../docs/git-submodule-guide.md) - Comprehensive documentation
-- [Swift Submodule Guide](../docs/swift-submodule-guide.md) - Swift-specific guidance
-- [NolockCapture Guide](../docs/nolock-capture-guide.md) - NolockCapture package details
+- [Git Submodule Guide](../../docs/git-submodule-guide.md)
+- [Submodule Helper Script](../../scripts/submodule-helper.sh)
+- [Git Submodule Documentation](https://git-scm.com/book/en/v2/Git-Tools-Submodules)

@@ -1,116 +1,69 @@
-# Continuous Improvement of Tools and Processes
+# Continuous Improvement Rule
+
+This rule establishes guidelines for continuous improvement of our tools, documentation, and processes.
 
 ## Problem Context
 
-Development tools, scripts, and processes can have unforeseen issues or limitations when applied to real-world scenarios. Recommendations that look good in theory might fail in practice due to:
+Software development tools, scripts, and documentation naturally degrade over time if not regularly updated based on real-world experience. Issues we've encountered include:
 
-- Unexpected edge cases
-- Environment-specific behaviors
-- Changes in dependencies or APIs
-- Overlooked workflow interactions
-- Varying developer experience levels
+- Documentation becoming outdated as processes evolve
+- Helper scripts that don't address common pain points
+- Knowledge siloing when solutions to complex problems aren't shared
+- Repeating the same mistakes because lessons learned aren't documented
+- Inefficient workflows that could be automated
 
-When such issues are discovered and solved, this knowledge needs to be systematically captured and incorporated back into the tools and documentation. Without this feedback loop, teams repeatedly encounter and solve the same problems.
+## Rule Statement
 
-## Solution Approach
+To maintain high-quality tools and documentation, team members MUST:
 
-### Essential Rule: Update Tools and Documentation
+1. **Update Documentation When Facing Challenges**
+   - When you encounter difficulty understanding or following a documented process
+   - Immediately update the relevant documentation with clarifications
+   - Add common pitfalls and their solutions
 
-**IMPORTANT**: When you discover that a tool, recommendation, or documented process doesn't work as expected, and you find a solution, you MUST update the corresponding tools and documentation.
+2. **Enhance Helper Scripts Based on Experience**
+   - When you identify repetitive or error-prone tasks
+   - Extend existing helper scripts or create new ones to automate them
+   - Document the script's purpose and usage in both code comments and README files
 
-### Implementation Process
+3. **Create Rules for Recurring Problems**
+   - When team members repeatedly encounter the same issues
+   - Create a new rule file in .claude/rules/ with a descriptive name
+   - Include problem context, solution approach, and prevention strategies
 
-1. **Document the Issue**
-   - Clearly describe what didn't work as expected
-   - Note the specific context and circumstances
-   - Record any error messages or unexpected behaviors
+4. **Document Lessons in Post-Mortems**
+   - After resolving complex issues, create a post-mortem in .claude/post-mortems/
+   - Extract reusable lessons and update or create rule files accordingly
+   - Link relevant post-mortems in related documentation
 
-2. **Record Your Solution**
-   - Detail the solution approach
-   - Explain why it works
-   - Include any alternatives considered
+5. **Track Technical Debt Systematically**
+   - Record technical debt items in .claude/TECHNICAL_DEBT.md
+   - Include priority levels and potential resolution approaches
+   - Update the status of items as they're addressed
 
-3. **Implement Changes**
-   - Update relevant scripts or tools
-   - Add comments explaining the fix and its rationale
-   - Update documentation to reflect the new understanding
-   - Add examples covering the edge case you discovered
+6. **Cross-Reference Related Materials**
+   - When creating or updating documentation or rules
+   - Add references to related materials (other docs, scripts, etc.)
+   - Ensure a complete knowledge path is available for future developers
 
-4. **Validate the Fix**
-   - Test the updated tools/processes in similar scenarios
-   - Ensure the fix doesn't introduce new problems
-   - Verify documentation accurately reflects actual behavior
+## Violation Consequences
 
-## Application Areas
+Failure to follow this rule leads to:
+- Increased onboarding time for new team members
+- Repeated mistakes and inefficiencies
+- Knowledge loss when team members transition
+- Frustration with outdated or misleading documentation
+- Missed opportunities for process improvement
 
-This rule applies to all development artifacts:
+## Resolution Strategies
 
-1. **Helper Scripts**
-   - Update scripts like `submodule-helper.sh` when issues are found
-   - Add handling for edge cases
-   - Improve error messages and user feedback
+If you notice outdated or incomplete documentation/tools:
+1. Update it immediately as part of your current task
+2. Create a technical debt item if a more thorough update is needed
+3. Communicate the changes to the team
 
-2. **Documentation**
-   - Update guides like `git-submodule-guide.md` with new insights
-   - Add sections addressing discovered limitations
-   - Include real-world examples of problems and solutions
+## Related Resources
 
-3. **Process Rules**
-   - Refine development workflow rules with practical insights
-   - Modify GitFlow procedures based on team experience
-   - Adapt testing guidelines as requirements evolve
-
-4. **CI/CD Configuration**
-   - Update automation scripts when issues are discovered
-   - Adjust timeouts and retry mechanisms based on observed behavior
-   - Document environment-specific configurations
-
-## Prevention Strategies
-
-To prevent knowledge loss and ensure continuous improvement:
-
-1. **Immediate Updates**
-   - Don't delay updating documentation and tools
-   - Make changes while the problem and solution are fresh
-
-2. **Distribution of Changes**
-   - Communicate updates to the team
-   - Highlight significant changes in commit messages
-
-3. **Periodic Review**
-   - Regularly review tools and documentation for accuracy
-   - Test scripts in various environments to verify functionality
-
-4. **User Feedback**
-   - Actively solicit feedback from team members
-   - Create mechanisms for reporting issues with tools and processes
-
-## Example Workflow
-
-```
-1. Developer encounters issue with submodule-helper.sh when working with nested submodules
-2. After investigation, they discover and implement a solution
-3. The developer:
-   - Updates submodule-helper.sh with improved handling of nested submodules
-   - Adds comments explaining the change
-   - Updates git-submodule-guide.md with a new section on nested submodules
-   - Adds a note to CLAUDE.md if this represents a significant process change
-   - Commits changes with a descriptive message highlighting the improvement
-4. During the next team meeting, the developer mentions the improvement
-```
-
-## Benefits
-
-This continuous improvement cycle:
-
-- Prevents knowledge loss
-- Reduces repeated problem-solving
-- Improves team productivity
-- Creates more robust tools and processes
-- Builds a learning organization where experiences translate to improvements
-
-## Reference
-
-For specific examples of updating rules and tools, see:
-- [Submodule Management](./.claude/rules/submodule-management.md) - Example of a rule created from practical experience
-- [GitFlow Testing Workflow](./.claude/rules/gitflow-testing-workflow.md) - Process refined through practical application
+- [Technical Debt Tracking](./../TECHNICAL_DEBT.md)
+- [Post-Mortem Template](./../templates/post-mortem.md)
+- [Software Problem Solving](./software-problem-solving.md)

@@ -64,8 +64,9 @@
    - Example: [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md) documents the correct branch management practices, including why release branches must be preserved
    - Example: [Integration Problem Solving](./.claude/rules/integration-problem-solving.md) provides a framework for addressing cross-platform integration challenges
    - Example: [Software Problem Solving](./.claude/rules/software-problem-solving.md) offers a comprehensive approach to tackling diverse technical challenges
-   - Example: [Submodule Management](./.claude/rules/submodule-management.md) provides guidance on proper Git submodule operations and using the helper script
-   - Example: [Technical Debt Tracking](./.claude/rules/technical-debt-tracking.md) establishes a system for documenting and managing technical debt
+   - Example: [Submodule Management](./.claude/rules/submodule-management.md) establishes best practices for working with Git submodules
+   - Example: [Continuous Improvement](./.claude/rules/continuous-improvement.md) guides the evolution of tools and documentation based on experience
+   - Example: [Technical Debt Tracking](./.claude/rules/technical-debt-tracking.md) provides a framework for systematically managing technical debt
 
 10. **Perform Post-Mortem Analysis**
    - After each feature completion, conduct a post-mortem analysis using the [post-mortem template](./.claude/templates/post-mortem.md)

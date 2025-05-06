@@ -1,94 +1,167 @@
-# NolockCapture Package
+# NolockCapture Package Guide
+
+This document provides an overview of the NolockCapture Swift package, which offers advanced document capture capabilities with depth sensing support.
 
 ## Overview
 
-NolockCapture is a Swift package that provides advanced document capture capabilities with depth sensing support. It's designed to improve OCR accuracy by detecting and flattening curved or wrinkled documents using depth data from device cameras.
+NolockCapture is a Swift package designed to provide high-quality document capture functionality with the following features:
 
-The package is included as a Git submodule in this repository to maintain proper version management while allowing for independent development.
+- Automatic document edge detection
+- Perspective correction
+- Enhanced image quality
+- Depth-aware capture for devices with LiDAR sensors
+- Multi-platform support (iOS, macOS)
 
-## Key Features
+## Package Structure
 
-- Depth-aware document capture using device cameras (LiDAR or dual camera systems)
-- Automatic document plane detection and perspective correction
-- Surface flattening to improve OCR processing accuracy
-- Seamless integration with NolockOCR for end-to-end document processing
-
-## Directory Structure
+The package is organized as follows:
 
 ```
-nolock-capture-lib/
-├── Examples/          # Example code and demo applications
-├── Package.swift      # Swift Package Manager configuration
-├── README.md          # Package documentation
+NolockCapture/
 ├── Sources/
-│   ├── Core/          # Core public APIs and controllers
-│   ├── Processing/    # Image and depth processing algorithms
-│   └── Internal/      # Internal implementation details
-└── Tests/             # Unit and integration tests
+│   ├── Core/            # Core capture functionality
+│   ├── Processing/      # Image processing algorithms
+│   └── Internal/        # Internal utilities
+├── Examples/            # Example applications
+│   └── CaptureExamples  # Simple example app
+└── Tests/               # Unit and integration tests
+    └── NolockCaptureTests
 ```
 
-## Working with the Submodule
+## Integration
 
-### Cloning the Repository with Submodules
+To integrate NolockCapture into your Swift project:
 
-When cloning this repository, use the `--recurse-submodules` flag to automatically initialize and update the submodule:
+### Swift Package Manager
 
-```bash
-git clone --recurse-submodules https://github.com/your-username/OCRChecksServer.git
+Add the following to your `Package.swift` file:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/o2alexanderfedin/nolock-capture-lib.git", .upToNextMajor(from: "1.0.0"))
+]
 ```
 
-### Initializing Submodules (if already cloned)
+For your targets:
 
-If you've already cloned the repository without submodules, initialize and update them with:
-
-```bash
-git submodule update --init --recursive
+```swift
+targets: [
+    .target(
+        name: "YourApp",
+        dependencies: ["NolockCapture"]
+    )
+]
 ```
 
-### Updating the Submodule
+### Xcode Project
 
-To update the submodule to the latest version:
+1. In Xcode, select File > Add Package Dependencies
+2. Enter the repository URL: `https://github.com/o2alexanderfedin/nolock-capture-lib.git`
+3. Select the version rule (e.g., Up to Next Major)
+4. Click Add Package
 
-```bash
-git submodule update --remote nolock-capture-lib
+## Basic Usage
+
+Here's a simple example of using NolockCapture to capture a document:
+
+```swift
+import NolockCapture
+
+// Initialize the capture controller
+let captureController = DocumentCaptureController()
+
+// Set configuration
+captureController.config = CaptureConfig(
+    enableDepthCapture: true,
+    preferredResolution: .high,
+    autoCorrectPerspective: true
+)
+
+// Start capture session
+captureController.startSession()
+
+// Capture document
+captureController.captureDocument { result in
+    switch result {
+    case .success(let documentImage):
+        // Process the captured document image
+        processImage(documentImage)
+    case .failure(let error):
+        // Handle error
+        print("Capture error: \(error)")
+    }
+}
+
+// Clean up when done
+captureController.stopSession()
 ```
 
-### Making Changes to the Submodule
+## Advanced Features
 
-1. Navigate to the submodule directory:
-   ```bash
-   cd nolock-capture-lib
-   ```
+### Depth-Aware Capture
 
-2. Create a branch for your changes:
-   ```bash
-   git checkout -b your-feature-branch
-   ```
+For devices with LiDAR sensors (iPhone 12 Pro and newer, iPad Pro), you can enhance document capture with depth data:
 
-3. Make your changes, commit them, and push to the submodule repository:
-   ```bash
-   git add .
-   git commit -m "Your commit message"
-   git push origin your-feature-branch
-   ```
+```swift
+// Enable depth sensing
+captureController.config.enableDepthCapture = true
 
-4. Create a pull request in the submodule repository
+// Set depth quality (trade-off between accuracy and performance)
+captureController.config.depthQuality = .balanced
 
-5. After merging, update the main repository to point to the new commit:
-   ```bash
-   cd ..  # Back to main repository
-   git add nolock-capture-lib
-   git commit -m "Update NolockCapture submodule to latest version"
-   git push
-   ```
+// Access depth data from capture
+captureController.captureDocumentWithDepth { result in
+    switch result {
+    case .success(let captureResult):
+        let documentImage = captureResult.image
+        let depthData = captureResult.depthMap
+        
+        // Use both image and depth data
+        processImageWithDepth(documentImage, depthData)
+    case .failure(let error):
+        print("Depth capture error: \(error)")
+    }
+}
+```
 
-## Integration with OCR Processing
+### Custom Processing Pipelines
 
-The NolockCapture package is designed to work seamlessly with NolockOCR. Here's a simplified integration flow:
+You can customize the image processing pipeline:
 
-1. User captures document with depth-aware camera
-2. NolockCapture processes the image using depth data to flatten curved surfaces
-3. Processed image is passed to NolockOCR for text extraction
-4. Extracted data is returned as structured information
+```swift
+import NolockCapture.Processing
 
-See the [NolockCapture README](../nolock-capture-lib/README.md) for detailed API usage and examples.
+// Create custom processing pipeline
+let pipeline = ProcessingPipeline()
+    .add(EdgeDetectionProcessor())
+    .add(PerspectiveTransformProcessor())
+    .add(CustomProcessor()) // Your custom processor
+    .add(EnhancementProcessor(contrast: 1.2, brightness: 0.1))
+
+// Apply pipeline to an image
+let processedImage = try pipeline.process(inputImage)
+```
+
+## Performance Considerations
+
+- Depth sensing increases CPU and battery usage
+- For optimal performance on devices without LiDAR, disable depth features
+- Use `.medium` or `.low` resolution for real-time previews
+- Consider using `.high` resolution only for final capture
+
+## Troubleshooting
+
+Common issues:
+
+1. **Poor edge detection**: Ensure adequate lighting and contrast between document and background
+2. **Slow capture performance**: Lower the resolution or disable depth sensing
+3. **Memory warnings**: Dispose of capture sessions when not in use
+
+## Development and Contributing
+
+For information on developing and contributing to NolockCapture, see the [README.md](https://github.com/o2alexanderfedin/nolock-capture-lib) in the repository.
+
+## Related Resources
+
+- [Swift Proxy Documentation](./swift-submodule-guide.md)
+- [Git Submodule Guide](./git-submodule-guide.md)

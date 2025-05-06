@@ -377,8 +377,9 @@ For complete development guidelines, refer to:
 - [Testing Framework Compatibility](./docs/test-framework-compatibility.md)
 - [Development Workflow](./docs/development-workflow.md) for detailed instructions
 - [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md) for step-by-step deployment instructions
-- [Swift Submodule Guide](./docs/swift-submodule-guide.md) for working with the Swift proxy submodule
-- [NolockCapture Guide](./docs/nolock-capture-guide.md) for working with the NolockCapture package
+- [Git Submodule Guide](./docs/git-submodule-guide.md) for working with submodules
+- [Swift Submodule Guide](./docs/swift-submodule-guide.md) for Swift-specific submodule instructions
+- [NolockCapture Guide](./docs/nolock-capture-guide.md) for details on the document capture package
 
 ## License
 

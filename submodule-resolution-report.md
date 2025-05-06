@@ -12,7 +12,7 @@
 
 3. **Submodule status check**:
    ```
-   548ffc28cac1e5d2508441a6d7882e9102cbe2c7 nolock-capture-lib (heads/main)
+   548ffc28cac1e5d2508441a6d7882e9102cbe2c7 nolock-capture (heads/main)
    73c57f0e99f9082385393861be78dc7c9a691878 swift-proxy (heads/develop)
    ```
 
@@ -31,7 +31,7 @@
 1. **Fixed detached HEAD state in submodules**:
    - Put swift-proxy on develop branch: `cd swift-proxy && git checkout develop && cd -`
      - Successfully switched to develop branch
-   - Put nolock-capture-lib on main branch: `cd nolock-capture-lib && git checkout main && cd -`
+   - Put nolock-capture on main branch: `cd nolock-capture && git checkout main && cd -`
      - Successfully switched to main branch
 
 2. **Added untracked content to main repo**:
@@ -98,7 +98,7 @@ Based on the documentation and current state, I would recommend:
    # Enter each submodule and stash any changes
    cd swift-proxy
    git stash
-   cd ../nolock-capture-lib
+   cd ../nolock-capture
    git stash
    cd ..
    ```
@@ -106,7 +106,7 @@ Based on the documentation and current state, I would recommend:
 3. **Check if submodule references need updating in the parent repo**:
    ```bash
    # Add submodule references to ensure they're properly tracked
-   git add swift-proxy nolock-capture-lib
+   git add swift-proxy nolock-capture
    git commit -m "Update submodule references before finishing release"
    ```
 

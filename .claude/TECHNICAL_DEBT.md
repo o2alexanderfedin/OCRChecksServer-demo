@@ -37,7 +37,7 @@ This document tracks technical debt items across the codebase. Each item include
 ## Testing
 
 ### [T001] Implement NolockCapture Unit Tests
-- **Description**: The nolock-capture-lib submodule has no unit tests for its components
+- **Description**: The nolock-capture submodule has no unit tests for its components
 - **Priority**: High
 - **Status**: Open
 - **Resolution Approach**: 

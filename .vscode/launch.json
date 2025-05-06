@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:OCRChecksServer}/swift-proxy",
+            "name": "Debug OCRExamples (swift-proxy)",
+            "program": "${workspaceFolder:OCRChecksServer}/swift-proxy/.build/debug/OCRExamples",
+            "preLaunchTask": "swift: Build Debug OCRExamples (swift-proxy)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:OCRChecksServer}/swift-proxy",
+            "name": "Release OCRExamples (swift-proxy)",
+            "program": "${workspaceFolder:OCRChecksServer}/swift-proxy/.build/release/OCRExamples",
+            "preLaunchTask": "swift: Build Release OCRExamples (swift-proxy)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:OCRChecksServer}/nolock-capture",
+            "name": "Debug CaptureExamples (nolock-capture)",
+            "program": "${workspaceFolder:OCRChecksServer}/nolock-capture/.build/debug/CaptureExamples",
+            "preLaunchTask": "swift: Build Debug CaptureExamples (nolock-capture)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:OCRChecksServer}/nolock-capture",
+            "name": "Release CaptureExamples (nolock-capture)",
+            "program": "${workspaceFolder:OCRChecksServer}/nolock-capture/.build/release/CaptureExamples",
+            "preLaunchTask": "swift: Build Release CaptureExamples (nolock-capture)"
+        }
+    ]
+}

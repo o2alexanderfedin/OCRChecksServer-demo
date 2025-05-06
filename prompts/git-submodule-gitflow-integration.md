@@ -79,3 +79,20 @@ git submodule update --init swift-proxy
 > **Commit and push inside submodules first. Then update the parent repository with new submodule references.**
 
 This ensures a clean and conflict-free `git flow` experience.
+
+---
+
+## ⚠️ Important: Post-Release Verification
+
+After completing a release, always verify your submodules are properly initialized:
+
+```bash
+# Verify submodules are properly initialized after release
+git submodule update --init --recursive
+
+# Check if submodule directories contain expected files
+ls -la swift-proxy/
+ls -la nolock-capture-lib/
+```
+
+If the submodule directories are empty or missing files, this step will restore them.

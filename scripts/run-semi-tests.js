@@ -2,14 +2,14 @@
 import Jasmine from 'jasmine';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { loadDevVarsToEnv } from './load-dev-vars.js';
+import { addDevVarsToEnv } from './load-dev-vars.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables from .dev.vars
 console.log('Loading environment variables from .dev.vars file...');
-loadDevVarsToEnv();
+await addDevVarsToEnv();
 
 console.log('Running semi-integration tests...');
 const jasmine = new Jasmine();

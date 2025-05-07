@@ -4,12 +4,18 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
+import { addDevVarsToEnv } from './load-dev-vars.js';
+
+// Load variables from .dev.vars
+await addDevVarsToEnv();
 
 // Get API key from environment variable
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
 if (!MISTRAL_API_KEY) {
-  console.error('Error: Mistral API key not found in environment variables. Run with MISTRAL_API_KEY=xxx node direct-mistral-test.js');
+  console.error('Error: Mistral API key not found. Please add it to your .dev.vars file or set it as an environment variable.');
+  console.error('Example .dev.vars file:');
+  console.error('MISTRAL_API_KEY=your_api_key_here');
   process.exit(1);
 }
 

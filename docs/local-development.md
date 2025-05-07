@@ -1,130 +1,108 @@
 # Local Development Guide
 
-This document provides instructions for setting up and running the OCR Checks Server locally for development purposes.
+This document provides instructions for setting up the OCR Checks Server for local development.
 
-## Prerequisites
+## Environment Setup
 
-Before starting local development, ensure you have:
+### Setting up the .dev.vars File
 
-1. Node.js (version 18 or later)
-2. npm or yarn
-3. A Mistral AI API key (optional - a test key is provided for development)
+The OCR Checks Server uses Cloudflare Workers for deployment and requires a Mistral API key for OCR processing. When developing locally, you should store your API key in a `.dev.vars` file to avoid exposing sensitive credentials in your code.
 
-Don't worry if you don't have all prerequisites installed! Our startup script can help with the installation process.
-
-## Setting Up the Environment
-
-1. Clone the repository
-   ```bash
-   git clone https://github.com/your-org/OCRChecksServer.git
-   cd OCRChecksServer
-   ```
-
-2. (Optional) Set the Mistral API key as an environment variable
-   ```bash
-   export MISTRAL_API_KEY=your_api_key
-   ```
-   You can get an API key from [https://console.mistral.ai/](https://console.mistral.ai/)
-   
-   **Note:** If you don't set this variable, the script will use a fallback test API key.
-
-3. Run the start script with automatic dependency installation
-   ```bash
-   ./scripts/start-local.sh --install-deps
-   ```
-
-## Starting the Server Locally
-
-We provide a convenient script that handles checking prerequisites, installing dependencies, and starting the server:
+1. Create a `.dev.vars` file in the project root directory:
 
 ```bash
-./scripts/start-local.sh
+touch .dev.vars
 ```
 
-By default, the server will start on port 8787. You can access the API at `http://localhost:8787`.
+2. Add your Mistral API key to the `.dev.vars` file:
 
-### Options
+```
+MISTRAL_API_KEY=your_api_key_here
+```
 
-The start script supports the following options:
+3. Make sure `.dev.vars` is included in your `.gitignore` file to prevent accidentally committing sensitive information.
 
-- `--watch`: Start in watch mode, which automatically restarts the server when files change
-  ```bash
-  ./scripts/start-local.sh --watch
-  ```
+### Environment Variables Loading
 
-- `--port=XXXX`: Specify a custom port
-  ```bash
-  ./scripts/start-local.sh --port=3000
-  ```
+The OCR Checks Server is configured to automatically load environment variables from the `.dev.vars` file for both development and testing purposes. This happens through the following mechanisms:
 
-- `--install-deps`: Attempt to install missing dependencies automatically
-  ```bash
-  ./scripts/start-local.sh --install-deps
-  ```
+- During local development, Wrangler automatically loads variables from `.dev.vars`
+- For testing, a custom loader (`scripts/load-dev-vars.js`) loads variables from `.dev.vars` into the Node.js environment
+- Integration tests specifically look for the MISTRAL_API_KEY in the loaded environment variables
 
-- `--help`: Show usage information
-  ```bash
-  ./scripts/start-local.sh --help
-  ```
+This ensures consistency between your development and testing environments without requiring you to set environment variables manually. The `.dev.vars` file with a valid MISTRAL_API_KEY is required for running integration tests and connecting to the Mistral API.
 
-## Automatic Prerequisite Checking
+## Running the Server Locally
 
-Our script automatically checks for:
+To start the development server:
 
-1. Node.js (minimum version 18.0.0)
-2. npm
-3. Wrangler (Cloudflare Workers development tool)
-4. MISTRAL_API_KEY environment variable
+```bash
+npm run start-local
+```
 
-If any prerequisites are missing and you use the `--install-deps` flag, the script will:
+This will:
+1. Load environment variables from `.dev.vars`
+2. Start the Wrangler development server
+3. Make the server available at http://localhost:8787
 
-- Attempt to install Node.js using your system's package manager (homebrew, apt, dnf, or yum)
-- Install or update npm if necessary
-- Install wrangler locally if not found
-- Provide clear instructions if automatic installation isn't possible
+## Running Tests
 
-## Testing the API
+To run tests with the correct environment variables:
 
-Once the server is running, you can test it using:
+```bash
+# Run all tests
+npm test
 
-1. Health check:
-   ```bash
-   curl http://localhost:8787/health
-   ```
+# Run unit tests only
+npm run test:unit
 
-2. Process an image:
-   ```bash
-   curl -X POST \
-     -H "Content-Type: image/jpeg" \
-     --data-binary @path/to/your/image.jpg \
-     http://localhost:8787/process
-   ```
+# Run functional tests only
+npm run test:functional
 
-3. Process a check specifically:
-   ```bash
-   curl -X POST \
-     -H "Content-Type: image/jpeg" \
-     --data-binary @path/to/your/check.jpg \
-     http://localhost:8787/check
-   ```
+# Run integration tests only
+npm run test:integration
 
-4. Process a receipt specifically:
-   ```bash
-   curl -X POST \
-     -H "Content-Type: image/jpeg" \
-     --data-binary @path/to/your/receipt.jpg \
-     http://localhost:8787/receipt
-   ```
+# Run semi-integration tests only
+npm run test:semi
+```
 
-## Development Workflow
+All test runners will automatically load environment variables from `.dev.vars`, including the Mistral API key needed for OCR tests.
 
-1. Start the server in watch mode
-2. Make changes to the code
-3. The server will automatically restart with your changes
-4. Use the test commands above to verify your changes
+### Troubleshooting Integration Tests
 
-## Troubleshooting
+If integration tests fail with API connection issues, check the following:
 
-- **MISTRAL_API_KEY issues**: While a fallback key is provided, you may want to set your own key for production usage
-- **Port already in use**: Specify a different port using the `--port` option
-- **Dependencies issues**: Try removing `node_modules` and running `npm install` again
+1. **API Key Issues**
+   - Ensure there's a valid MISTRAL_API_KEY in your `.dev.vars` file
+   - Verify the API key isn't expired or has reached its rate limit
+   - The key should be 32+ characters long with only alphanumeric characters
+
+2. **Server Connectivity Issues**
+   - Check that a development server is running (started automatically by test scripts or manually)
+   - Default server URL is http://localhost:8787
+   - If manually starting the server, use `npm run dev` before running tests
+
+3. **Debugging Server Connection**
+   - Run a simple health check: `curl http://localhost:8787/health`
+   - If that fails, the server isn't running properly
+   - Check for server startup errors in console output
+
+## Testing Mistral API Directly
+
+For direct testing of the Mistral API integration:
+
+```bash
+npm run test:mistral
+```
+
+This runs a standalone script that tests the Mistral OCR API with images from the test fixtures, using the API key from your `.dev.vars` file.
+
+## Production Deployment
+
+For production deployment, use the `deploy:with-secrets` script which handles moving your API key from `.dev.vars` to Cloudflare Worker secrets:
+
+```bash
+npm run deploy:with-secrets
+```
+
+See [Cloudflare Deployment Guide](./cloudflare-deployment-guide.md) for more details on deployment.

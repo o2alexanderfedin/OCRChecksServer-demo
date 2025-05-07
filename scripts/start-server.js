@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve as pathResolve, join } from 'path';
 import { setTimeout } from 'timers/promises';
 import fs from 'fs/promises';
+import { addDevVarsToEnv } from './load-dev-vars.js';
 
 /**
  * This script starts the development server and waits until it's ready,
@@ -64,6 +65,10 @@ async function saveServerPid(pid) {
 
 // Clean up existing server if any
 await checkExistingServer();
+
+// Load environment variables from .dev.vars
+console.log('Loading environment variables from .dev.vars file...');
+await addDevVarsToEnv();
 
 // Start the server
 console.log('Starting development server...');

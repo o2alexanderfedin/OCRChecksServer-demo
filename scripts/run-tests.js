@@ -20,11 +20,15 @@ import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import { globSync } from 'glob';
 import { promisify } from 'util';
+import { addDevVarsToEnv } from './load-dev-vars.js';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, '..');
+
+// Load environment variables from .dev.vars before any other operations
+await addDevVarsToEnv();
 
 // Parse command line arguments
 const testType = process.argv[2]?.toLowerCase() || 'all';
@@ -113,16 +117,20 @@ if (config.requiresServer) {
   console.log('Starting server for integration tests...');
   
   try {
+    // Load environment variables from .dev.vars
+    console.log('Loading environment variables from .dev.vars file...');
+    await addDevVarsToEnv();
+    
     // Check for required API key with enhanced validation
+    // The API key should now be loaded from .dev.vars already
     if (!process.env.MISTRAL_API_KEY) {
-      // Use hardcoded test API key for integration tests
-      const testApiKey = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE";
-      process.env.MISTRAL_API_KEY = testApiKey;
-      console.log('INFO: Using test API key for integration tests');
-      console.log(`API Key length: ${testApiKey.length} characters`);
-      console.log(`API Key first 4 chars: ${testApiKey.substring(0, 4)}****`);
+      console.error('ERROR: No MISTRAL_API_KEY found in .dev.vars file or environment');
+      console.error('Please add a valid Mistral API key to your .dev.vars file:');
+      console.error('MISTRAL_API_KEY=your_api_key_here');
+      console.error('Integration tests cannot run without a valid API key.');
+      process.exit(1);
     } else {
-      console.log('INFO: Using existing MISTRAL_API_KEY from environment');
+      console.log('INFO: Using MISTRAL_API_KEY from .dev.vars');
       console.log(`API Key length: ${process.env.MISTRAL_API_KEY.length} characters`);
       console.log(`API Key first 4 chars: ${process.env.MISTRAL_API_KEY.substring(0, 4)}****`);
     }

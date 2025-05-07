@@ -224,13 +224,14 @@ export class MistralOCRProvider implements OCRProvider {
         this.io = io
         this.client = client
         
-        // Only verify that we have a Mistral instance
-        // Trust that the Mistral client will handle API key validation internally
+        // Verify that we have a Mistral instance
         if (!(client instanceof Mistral)) {
             const errorMessage = '[MistralOCRProvider:constructor] CRITICAL ERROR: Client must be an instance of Mistral';
             this.io.error(errorMessage);
             throw new Error(errorMessage);
         }
+        
+        // We'll check for API key during processing to allow tests to verify error handling
     }
 
     /**
@@ -245,6 +246,14 @@ export class MistralOCRProvider implements OCRProvider {
             docType: doc.type,
             docSize: doc.content.byteLength
         });
+        
+        // Check for API key before proceeding
+        // @ts-ignore - accessing private field for validation
+        if (!this.client.apiKey) {
+            const errorMessage = 'Mistral API authentication error. No API key was provided.';
+            this.io.error(errorMessage);
+            return ['error', new Error(errorMessage)];
+        }
         
         try {
             // ENHANCED LOGGING: Log everything about Mistral configuration
@@ -544,6 +553,12 @@ export class MistralOCRProvider implements OCRProvider {
                     errorMessage.includes('unauthorized') || errorMessage.includes('api key') ||
                     (errorDetails.status === 401 || errorDetails.status === 403)) {
                     return ['error', new Error(`Mistral API authentication error. Please check that your API key is valid and has the correct permissions.`)];
+                }
+                
+                // Check if API key is missing - this is a more specific case
+                // @ts-ignore - accessing private field for validation
+                if (!this.client.apiKey) {
+                    return ['error', new Error(`Mistral API authentication error. No API key was provided.`)];
                 }
                 
                 // More specific error message for API failures

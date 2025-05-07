@@ -249,9 +249,16 @@ export class MistralOCRProvider implements OCRProvider {
         
         // Enhanced API key validation - access the private field and log details
         try {
+            // Enhanced API key validation - access the private field and log details
             // @ts-ignore - accessing private field for validation
-            const apiKey = this.client.apiKey;
+            const apiKey = this.client.apiKey || (this.client as any).apiKey;
             if (!apiKey) {
+                // Log more debug information
+                console.error(`[MISTRAL DEBUG] API key validation failed - empty key detected`);
+                console.error(`[MISTRAL DEBUG] Client type: ${this.client.constructor.name}`);
+                console.error(`[MISTRAL DEBUG] Client toString: ${String(this.client)}`);
+                console.error(`[MISTRAL DEBUG] Client keys: ${Object.keys(this.client).join(', ')}`);
+                
                 const errorMessage = 'Mistral API authentication error. No API key was provided.';
                 this.io.error(errorMessage);
                 return ['error', new Error(errorMessage)];
@@ -260,6 +267,9 @@ export class MistralOCRProvider implements OCRProvider {
             // Log API key details for debugging (safely)
             console.log(`MistralOCRProvider using API key: ${apiKey.substring(0, 4)}**** (length: ${apiKey.length})`);
         } catch (keyError) {
+            console.error(`[MISTRAL DEBUG] Exception during API key validation: ${String(keyError)}`);
+            console.error(`[MISTRAL DEBUG] Client type: ${this.client ? this.client.constructor.name : 'no-client'}`);
+            
             this.io.error('Error accessing Mistral API key:', keyError);
             return ['error', new Error('Mistral API key validation error: ' + String(keyError))];
         }
@@ -566,7 +576,8 @@ export class MistralOCRProvider implements OCRProvider {
                 
                 // Check if API key is missing - this is a more specific case
                 // @ts-ignore - accessing private field for validation
-                if (!this.client.apiKey) {
+                const apiKey = this.client.apiKey || (this.client as any).apiKey;
+                if (!apiKey) {
                     return ['error', new Error(`Mistral API authentication error. No API key was provided.`)];
                 }
                 

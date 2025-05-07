@@ -107,8 +107,12 @@ describe('MistralOCR (Functional Style)', () => {
         // Reset spies
         (mockIo.fetch as jasmine.Spy).calls.reset()
         
-        // Create mock client
+        // Create mock client with API key explicitly set
         mockClient = new Mistral({ apiKey: 'test-key' })
+        
+        // Ensure API key is properly set on the client object for the provider to access
+        // @ts-ignore - direct property access for testing
+        mockClient.apiKey = 'test-key'
         
         // Create provider with mock client
         provider = new MistralOCRProvider(mockIo, mockClient)
@@ -177,6 +181,8 @@ describe('MistralOCR (Functional Style)', () => {
             return
         }
         
+        // We're now wrapping error messages, so check for specific format
+        expect(result[1].message).toContain('Mistral API error') 
         expect(result[1].message).toContain('Bad Request')
     })
 

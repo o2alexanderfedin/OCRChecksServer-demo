@@ -102,7 +102,7 @@ paths:
                       date: "2025-04-15"
                       payee: "John Doe"
                       payer: "ABC Company"
-                      amount: 250.00
+                      amount: "250.00"
                       bankName: "First National Bank"
                       routingNumber: "123456789"
                       accountNumber: "987654321"
@@ -123,19 +123,19 @@ paths:
                         phone: "555-123-4567"
                       timestamp: "2025-04-15T14:30:00Z"
                       totals:
-                        subtotal: 7.47
-                        tax: 0.65
-                        total: 8.12
+                        subtotal: "7.47"
+                        tax: "0.65"
+                        total: "8.12"
                       currency: "USD"
                       items:
                         - description: "Organic Apples"
                           quantity: 2
-                          unitPrice: 1.99
-                          totalPrice: 3.98
+                          unitPrice: "1.99"
+                          totalPrice: "3.98"
                         - description: "Whole Grain Bread"
                           quantity: 1
-                          unitPrice: 3.49
-                          totalPrice: 3.49
+                          unitPrice: "3.49"
+                          totalPrice: "3.49"
                       confidence: 0.89
                     documentType: "receipt"
                     confidence:
@@ -207,7 +207,7 @@ paths:
                   date: "2025-04-15"
                   payee: "John Doe"
                   payer: "ABC Company"
-                  amount: 250.00
+                  amount: "250.00"
                   bankName: "First National Bank"
                   routingNumber: "123456789"
                   accountNumber: "987654321"
@@ -284,19 +284,19 @@ paths:
                     phone: "555-123-4567"
                   timestamp: "2025-04-15T14:30:00Z"
                   totals:
-                    subtotal: 7.47
-                    tax: 0.65
-                    total: 8.12
+                    subtotal: "7.47"
+                    tax: "0.65"
+                    total: "8.12"
                   currency: "USD"
                   items:
                     - description: "Organic Apples"
                       quantity: 2
-                      unitPrice: 1.99
-                      totalPrice: 3.98
+                      unitPrice: "1.99"
+                      totalPrice: "3.98"
                     - description: "Whole Grain Bread"
                       quantity: 1
-                      unitPrice: 3.49
-                      totalPrice: 3.49
+                      unitPrice: "3.49"
+                      totalPrice: "3.49"
                   confidence: 0.89
                 confidence:
                   ocr: 0.89

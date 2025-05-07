@@ -72,29 +72,29 @@ export const receiptSchema = {
       "description": "Financial totals from the receipt",
       "properties": {
         "subtotal": {
-          "type": "number",
-          "description": "Pre-tax total amount",
-          "minimum": 0
+          "type": "string",
+          "description": "Pre-tax total amount as a string to preserve exact decimal representation",
+          "pattern": "^\\d+(\\.\\d{1,2})?$"
         },
         "tax": {
-          "type": "number",
-          "description": "Total tax amount",
-          "minimum": 0
+          "type": "string",
+          "description": "Total tax amount as a string to preserve exact decimal representation",
+          "pattern": "^\\d+(\\.\\d{1,2})?$"
         },
         "tip": {
-          "type": "number",
-          "description": "Tip/gratuity amount",
-          "minimum": 0
+          "type": "string",
+          "description": "Tip/gratuity amount as a string to preserve exact decimal representation",
+          "pattern": "^\\d+(\\.\\d{1,2})?$"
         },
         "discount": {
-          "type": "number",
-          "description": "Total discount amount",
-          "minimum": 0
+          "type": "string",
+          "description": "Total discount amount as a string to preserve exact decimal representation",
+          "pattern": "^\\d+(\\.\\d{1,2})?$"
         },
         "total": {
-          "type": "number",
-          "description": "Final total amount including tax, tip, and adjusting for discounts",
-          "minimum": 0
+          "type": "string",
+          "description": "Final total amount including tax, tip, and adjusting for discounts as a string to preserve exact decimal representation",
+          "pattern": "^\\d+(\\.\\d{1,2})?$"
         }
       }
     },
@@ -128,23 +128,23 @@ export const receiptSchema = {
             "description": "Unit of measurement (e.g., 'ea', 'kg')"
           },
           "unitPrice": {
-            "type": "number",
-            "description": "Price per unit",
-            "minimum": 0
+            "type": "string",
+            "description": "Price per unit as a string to preserve exact decimal representation",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
           },
           "totalPrice": {
-            "type": "number",
-            "description": "Total price for this line item",
-            "minimum": 0
+            "type": "string",
+            "description": "Total price for this line item as a string to preserve exact decimal representation",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
           },
           "discounted": {
             "type": "boolean",
             "description": "Whether the item was discounted"
           },
           "discountAmount": {
-            "type": "number",
-            "description": "Amount of discount applied",
-            "minimum": 0
+            "type": "string",
+            "description": "Amount of discount applied as a string to preserve exact decimal representation",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
           },
           "category": {
             "type": "string",
@@ -169,15 +169,14 @@ export const receiptSchema = {
             "description": "Type of tax"
           },
           "taxRate": {
-            "type": "number",
-            "description": "Tax rate as decimal (e.g., 0.1 for 10%)",
-            "minimum": 0,
-            "maximum": 1
+            "type": "string",
+            "description": "Tax rate as string representation of decimal (e.g., '0.1' for 10%)",
+            "pattern": "^0?\\.(\\d{1,2})$"
           },
           "taxAmount": {
-            "type": "number",
-            "description": "Tax amount",
-            "minimum": 0
+            "type": "string",
+            "description": "Tax amount as a string to preserve exact decimal representation",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
           }
         }
       }
@@ -204,9 +203,9 @@ export const receiptSchema = {
             "pattern": "^\\d{4}$"
           },
           "amount": {
-            "type": "number",
-            "description": "Amount paid with this method",
-            "minimum": 0
+            "type": "string",
+            "description": "Amount paid with this method as a string to preserve exact decimal representation",
+            "pattern": "^\\d+(\\.\\d{1,2})?$"
           },
           "transactionId": {
             "type": "string",
@@ -349,25 +348,55 @@ export interface ReceiptLineItem {
   sku?: string;
   quantity?: number;
   unit?: UnitOfMeasure | string;
-  unitPrice?: number;
-  totalPrice: number;
+  /**
+   * Price per unit
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   */
+  unitPrice?: string;
+  /**
+   * Total price for this line item
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   */
+  totalPrice: string;
   discounted?: boolean;
-  discountAmount?: number;
+  /**
+   * Amount of discount applied
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   */
+  discountAmount?: string;
   category?: string;
 }
 
 export interface ReceiptTaxItem {
   taxName: string;
   taxType?: TaxType | string;
-  taxRate?: number;
-  taxAmount: number;
+  /**
+   * Tax rate as a decimal
+   * 
+   * @type String representation of percentage (e.g., "0.07" for 7%)
+   */
+  taxRate?: string;
+  /**
+   * Tax amount
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   */
+  taxAmount?: string;
 }
 
 export interface ReceiptPaymentMethod {
   method: PaymentMethod;
   cardType?: CardType | string;
   lastDigits?: string;
-  amount: number;
+  /**
+   * Amount paid with this method
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   */
+  amount: string;
   transactionId?: string;
 }
 
@@ -392,23 +421,63 @@ export interface MerchantInfo {
 }
 
 export interface ReceiptTotals {
-  subtotal?: number;
-  tax?: number;
-  tip?: number;
-  discount?: number;
-  total: number;
+  /**
+   * Pre-tax total amount
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   * Format should be numerical with optional decimal point (e.g., "86.42")
+   */
+  subtotal?: string;
+  
+  /**
+   * Total tax amount
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   */
+  tax?: string;
+  
+  /**
+   * Tip/gratuity amount
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   */
+  tip?: string;
+  
+  /**
+   * Total discount amount
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   */
+  discount?: string;
+  
+  /**
+   * Final total amount including tax, tip, and adjusting for discounts
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   * Required field
+   */
+  total: string;
 }
 
 export interface ReceiptBase {
   merchant: MerchantInfo;
   receiptNumber?: string;
   receiptType?: ReceiptType;
-  timestamp: string;
+  /**
+   * Date and time of transaction
+   * 
+   * @type Date object representing the transaction timestamp
+   * Transmitted as ISO 8601 formatted string in the JSON schema
+   */
+  timestamp: Date;
   paymentMethod?: PaymentMethod | string;
 }
 
 export interface Receipt extends ReceiptBase {
   totals: ReceiptTotals;
+  /**
+   * ISO 4217 currency code (3-letter codes like USD, EUR, GBP)
+   */
   currency?: string;
   items?: ReceiptLineItem[];
   taxes?: ReceiptTaxItem[];

@@ -356,9 +356,10 @@ app.post('/receipt', async (c) => {
 
 // Health check endpoint for testing server availability
 app.get('/health', () => {
+  // Create health response with proper Date object as per HealthResponse interface
   return new Response(JSON.stringify({
     status: 'ok',
-    timestamp: new Date().toISOString(),
+    timestamp: new Date(),
     version: pkg.version
   }), {
     status: 200,

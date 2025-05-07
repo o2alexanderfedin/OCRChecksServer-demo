@@ -11,9 +11,9 @@ class MockJsonExtractor implements JsonExtractor {
         merchant: {
           name: 'Test Store'
         },
-        timestamp: '2023-01-01T12:00:00Z',
+        timestamp: new Date('2023-01-01T12:00:00Z'),
         totals: {
-          total: 42.99
+          total: '42.99'
         },
         currency: 'USD',
         confidence: 0.9
@@ -52,7 +52,7 @@ describe('ReceiptExtractor', () => {
       // Replace custom matcher with standard ones
       expect(result[1].json).not.toBeUndefined();
       expect(result[1].json.merchant.name).toBe('Test Store');
-      expect(result[1].json.totals.total).toBe(42.99);
+      expect(result[1].json.totals.total).toBe('42.99');
       expect(result[1].json.currency).toBe('USD');
       expect(result[1].confidence).toBe(0.9);
     }
@@ -83,9 +83,9 @@ describe('ReceiptExtractor', () => {
             merchant: {
               name: 'Test Store'
             },
-            timestamp: '2023-01-01',  // Not in ISO format
+            timestamp: '2023-01-01',  // String to be converted to Date
             totals: {
-              total: 42.99
+              total: '42.99'
             },
             currency: 'usd',  // Lowercase
             confidence: 0.9
@@ -107,8 +107,8 @@ describe('ReceiptExtractor', () => {
       // Check currency is uppercase
       expect(result[1].json.currency).toBe('USD');
       
-      // Check timestamp is normalized to ISO format
-      expect(result[1].json.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      // Check timestamp is a Date object
+      expect(result[1].json.timestamp).toBeInstanceOf(Date);
     }
   });
 });

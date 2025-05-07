@@ -232,13 +232,13 @@ Provide confidence levels for the extracted data where appropriate.
       normalized.currency = normalized.currency.toUpperCase();
     }
 
-    // Normalize timestamp if provided but not in ISO format
-    if (normalized.timestamp && !normalized.timestamp.includes('T')) {
+    // Ensure timestamp is a Date object
+    if (normalized.timestamp && !(normalized.timestamp instanceof Date)) {
       try {
-        // Simple attempt to convert to ISO format if it's a valid date
+        // Convert to Date object if it's not already
         const date = new Date(normalized.timestamp);
         if (!isNaN(date.getTime())) {
-          normalized.timestamp = date.toISOString();
+          normalized.timestamp = date;
         }
       } catch {
         // Keep original if conversion fails

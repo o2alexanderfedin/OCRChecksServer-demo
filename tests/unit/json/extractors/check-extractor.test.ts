@@ -10,10 +10,10 @@ class MockJsonExtractor implements JsonExtractor {
     return ['ok', {
       json: {
         checkNumber: 'A123456789',
-        date: '2025-05-01',
+        date: new Date('2025-05-01'),
         payee: 'John Smith',
         payer: 'Jane Doe',
-        amount: 1234.56,
+        amount: '1234.56',
         memo: 'Consulting services',
         bankName: 'First National Bank',
         routingNumber: '123456789',
@@ -55,8 +55,9 @@ describe('CheckExtractor', () => {
       expect(result[1].json).not.toBeUndefined();
       expect(result[1].json.checkNumber).toBe('A123456789');
       expect(result[1].json.payee).toBe('John Smith');
-      expect(result[1].json.amount).toBe(1234.56);
-      expect(result[1].json.date).toBe('2025-05-01');
+      expect(result[1].json.amount).toBe('1234.56');
+      expect(result[1].json.date).toBeInstanceOf(Date);
+      expect(result[1].json.date.toISOString().substring(0, 10)).toBe('2025-05-01');
       expect(result[1].json.bankName).toBe('First National Bank');
       expect(result[1].confidence).toBe(0.9);
     }
@@ -87,7 +88,7 @@ describe('CheckExtractor', () => {
             checkNumber: 'A123456789',
             date: '05/01/2025',  // Not in ISO format
             payee: 'John Smith',
-            amount: 1234.56,
+            amount: '1234.56',
             routingNumber: '00123456789',  // Needs normalization
             accountType: 'checking',  // Lowercase
             confidence: 0.9
@@ -106,8 +107,8 @@ describe('CheckExtractor', () => {
     // Assert
     expect(result[0]).toBe('ok');
     if (result[0] === 'ok') {
-      // Check date is normalized to ISO format
-      expect(result[1].json.date).toMatch(/^\d{4}-\d{2}-\d{2}/);
+      // Check date is normalized to Date object
+      expect(result[1].json.date).toBeInstanceOf(Date);
       
       // Check routing number is normalized to 9 digits
       expect(result[1].json.routingNumber).toBe('123456789');
@@ -124,9 +125,9 @@ describe('CheckExtractor', () => {
         return ['ok', {
           json: {
             checkNumber: '1234',
-            date: '2025-05-01',
+            date: new Date('2025-05-01'),
             payee: 'John Smith',
-            amount: 100,
+            amount: '100',
             micrLine: '⑆123456789⑆ ⑈9876543210⑈ ⑇1234⑇',
             confidence: 0.9
           },

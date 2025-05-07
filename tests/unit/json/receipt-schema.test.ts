@@ -13,6 +13,19 @@ describe('Receipt Schema Validation', () => {
   let ajv: Ajv;
   let validate: any;
 
+  // Helper function to convert Date objects to ISO strings for schema validation
+  function prepareForValidation(receipt: Receipt): any {
+    // Create a copy of the receipt object
+    const serializedReceipt = JSON.parse(JSON.stringify(receipt));
+    
+    // Convert Date objects to ISO strings for JSON schema validation
+    if (serializedReceipt.timestamp instanceof Date) {
+      serializedReceipt.timestamp = serializedReceipt.timestamp.toISOString();
+    }
+    
+    return serializedReceipt;
+  }
+
   beforeEach(() => {
     ajv = new Ajv({ allErrors: true });
     addFormats(ajv);
@@ -29,11 +42,11 @@ describe('Receipt Schema Validation', () => {
       },
       receiptNumber: "T-59385",
       receiptType: ReceiptType.Sale,
-      timestamp: "2025-04-28T15:30:45Z",
+      timestamp: new Date("2025-04-28T15:30:45Z"),
       totals: {
-        subtotal: 42.97,
-        tax: 3.44,
-        total: 46.41
+        subtotal: "42.97",
+        tax: "3.44",
+        total: "46.41"
       },
       currency: "USD",
       items: [
@@ -41,21 +54,21 @@ describe('Receipt Schema Validation', () => {
           description: "Organic Bananas",
           quantity: 1.20,
           unit: "kg",
-          unitPrice: 2.99,
-          totalPrice: 3.59
+          unitPrice: "2.99",
+          totalPrice: "3.59"
         },
         {
           description: "Whole Milk",
           quantity: 2,
-          unitPrice: 3.49,
-          totalPrice: 6.98
+          unitPrice: "3.49",
+          totalPrice: "6.98"
         }
       ],
       taxes: [
         {
           taxName: "CA State Tax",
-          taxRate: 0.08,
-          taxAmount: 3.44
+          taxRate: "0.08",
+          taxAmount: "3.44"
         }
       ],
       payments: [
@@ -63,7 +76,7 @@ describe('Receipt Schema Validation', () => {
           method: PaymentMethod.Credit,
           cardType: CardType.Visa,
           lastDigits: "1234",
-          amount: 46.41,
+          amount: "46.41",
           transactionId: "TX78965412"
         }
       ],
@@ -76,7 +89,8 @@ describe('Receipt Schema Validation', () => {
       confidence: 0.92
     };
 
-    const valid = validate(receipt);
+    const serializedReceipt = prepareForValidation(receipt);
+    const valid = validate(serializedReceipt);
     expect(valid).toBe(true);
     expect(validate.errors).toBeNull();
   });
@@ -86,15 +100,16 @@ describe('Receipt Schema Validation', () => {
       merchant: {
         name: "Corner Store"
       },
-      timestamp: "2025-04-28T10:15:30Z",
+      timestamp: new Date("2025-04-28T10:15:30Z"),
       totals: {
-        total: 25.99
+        total: "25.99"
       },
       // currency is now optional
       confidence: 0.85
     };
 
-    const valid = validate(minimalReceipt);
+    const serializedMinimalReceipt = prepareForValidation(minimalReceipt);
+    const valid = validate(serializedMinimalReceipt);
     expect(valid).toBe(true);
     expect(validate.errors).toBeNull();
   });
@@ -104,13 +119,14 @@ describe('Receipt Schema Validation', () => {
       merchant: {
         name: "ACME Store"
       },
-      timestamp: "2025-04-28T15:30:45Z",
+      timestamp: new Date("2025-04-28T15:30:45Z"),
       // Missing totals
       currency: "USD",
       confidence: 0.92
     };
 
-    const valid = validate(invalidReceipt);
+    const serializedInvalidReceipt = prepareForValidation(invalidReceipt as Receipt);
+    const valid = validate(serializedInvalidReceipt);
     expect(valid).toBe(false);
     expect(validate.errors).not.toBeNull();
     
@@ -124,15 +140,16 @@ describe('Receipt Schema Validation', () => {
       merchant: {
         name: "ACME Store"
       },
-      timestamp: "2025-04-28T15:30:45Z",
+      timestamp: new Date("2025-04-28T15:30:45Z"),
       totals: {
-        total: 45.99
+        total: "45.99"
       },
       // No currency provided
       confidence: 0.9
     };
 
-    const valid = validate(receiptWithoutCurrency);
+    const serializedReceipt = prepareForValidation(receiptWithoutCurrency);
+    const valid = validate(serializedReceipt);
     expect(valid).toBe(true);
     expect(validate.errors).toBeNull();
   });
@@ -142,15 +159,16 @@ describe('Receipt Schema Validation', () => {
       merchant: {
         name: "ACME Store"
       },
-      timestamp: "2025-04-28T15:30:45Z",
+      timestamp: new Date("2025-04-28T15:30:45Z"),
       totals: {
-        total: 45.99
+        total: "45.99"
       },
       currency: "us", // Should be uppercase 3-letter code
       confidence: 0.9
     };
 
-    const valid = validate(receiptWithInvalidCurrency);
+    const serializedReceipt = prepareForValidation(receiptWithInvalidCurrency);
+    const valid = validate(serializedReceipt);
     expect(valid).toBe(false);
     expect(validate.errors).not.toBeNull();
     
@@ -168,21 +186,22 @@ describe('Receipt Schema Validation', () => {
         merchant: {
           name: "Test Store"
         },
-        timestamp: "2025-04-28T15:30:45Z",
+        timestamp: new Date("2025-04-28T15:30:45Z"),
         totals: {
-          total: 100
+          total: "100"
         },
         currency: "USD",
         confidence: 0.9,
         payments: [
           {
             method: method,
-            amount: 100
+            amount: "100"
           }
         ]
       };
 
-      const valid = validate(receipt);
+      const serializedReceipt = prepareForValidation(receipt);
+      const valid = validate(serializedReceipt);
       expect(valid).toBe(true);
       expect(validate.errors).toBeNull();
     }
@@ -193,20 +212,22 @@ describe('Receipt Schema Validation', () => {
       merchant: {
         name: "ACME Store"
       },
-      timestamp: "2025-04-28T15:30:45Z",
+      timestamp: new Date("2025-04-28T15:30:45Z"),
       totals: {
-        total: -45.99 // Negative amount
+        total: "-45.99" // Negative amount
       },
       currency: "USD",
       confidence: 0.9
     };
 
-    const valid = validate(receiptWithNegativeAmount);
+    const serializedReceipt = prepareForValidation(receiptWithNegativeAmount);
+    const valid = validate(serializedReceipt);
     expect(valid).toBe(false);
     expect(validate.errors).not.toBeNull();
     
+    // Pattern validation will reject negative amounts, look for pattern error instead
     const amountError = validate.errors?.find((e: any) => 
-      e.instancePath === "/totals/total" && e.keyword === "minimum"
+      e.instancePath === "/totals/total" && e.keyword === "pattern"
     );
     expect(amountError).toBeDefined();
   });
@@ -217,44 +238,47 @@ describe('Receipt Schema Validation', () => {
       merchant: {
         name: "ACME Store"
       },
-      timestamp: "2025-04-28T15:30:45Z",
+      timestamp: new Date("2025-04-28T15:30:45Z"),
       totals: {
-        total: 45.99
+        total: "45.99"
       },
       currency: "USD",
       confidence: 0.75
     };
     
-    expect(validate(validReceipt)).toBe(true);
+    const serializedValidReceipt = prepareForValidation(validReceipt);
+    expect(validate(serializedValidReceipt)).toBe(true);
     
     // Invalid confidence - too high
     const tooHighConfidence: Receipt = {
       merchant: {
         name: "ACME Store"
       },
-      timestamp: "2025-04-28T15:30:45Z",
+      timestamp: new Date("2025-04-28T15:30:45Z"),
       totals: {
-        total: 45.99
+        total: "45.99"
       },
       currency: "USD",
       confidence: 1.5
     };
     
-    expect(validate(tooHighConfidence)).toBe(false);
+    const serializedTooHighConfidence = prepareForValidation(tooHighConfidence);
+    expect(validate(serializedTooHighConfidence)).toBe(false);
     
     // Invalid confidence - negative
     const negativeConfidence: Receipt = {
       merchant: {
         name: "ACME Store"
       },
-      timestamp: "2025-04-28T15:30:45Z",
+      timestamp: new Date("2025-04-28T15:30:45Z"),
       totals: {
-        total: 45.99
+        total: "45.99"
       },
       currency: "USD",
       confidence: -0.2
     };
     
-    expect(validate(negativeConfidence)).toBe(false);
+    const serializedNegativeConfidence = prepareForValidation(negativeConfidence);
+    expect(validate(serializedNegativeConfidence)).toBe(false);
   });
 });

@@ -24,9 +24,9 @@ class MockJsonExtractor implements JsonExtractor {
     return ['ok', {
       json: {
         checkNumber: 'A123456789',
-        date: '2025-05-01',
+        date: new Date('2025-05-01'),
         payee: 'John Smith',
-        amount: 1234.56,
+        amount: '1234.56',
         bankName: 'Test Bank',
         confidence: 0.9
       },
@@ -65,7 +65,7 @@ describe('CheckScanner', () => {
       const checkData = result[1].json as Check;
       expect(checkData.checkNumber).toBe('A123456789');
       expect(checkData.payee).toBe('John Smith');
-      expect(checkData.amount).toBe(1234.56);
+      expect(checkData.amount).toBe('1234.56');
       expect(result[1].ocrConfidence).not.toBeUndefined();
       expect(result[1].extractionConfidence).not.toBeUndefined();
       expect(result[1].overallConfidence).not.toBeUndefined();

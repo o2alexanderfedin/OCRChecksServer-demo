@@ -37,11 +37,11 @@ describe('Check Extractor Migration Tests', () => {
     // Create mock data that the extractor should return
     const mockExtractedCheck: Check = {
       checkNumber: '12345',
-      date: '2025-05-15',
+      date: new Date('2025-05-15'),
       payee: 'John Smith',
       payer: 'Jane Doe',
-      amount: 500.00,
-      amountText: 'Five hundred dollars and zero cents',
+      amount: '500.00',
+      // amountText is no longer part of the Check interface
       memo: 'Consulting services',
       bankName: 'First National Bank',
       routingNumber: '123456789',
@@ -73,9 +73,10 @@ describe('Check Extractor Migration Tests', () => {
 
       const check = result[1].json;
       expect(check.checkNumber).toBe('12345');
-      expect(check.date).toBe('2025-05-15');
+      expect(check.date).toBeInstanceOf(Date);
+      expect(check.date.toISOString().startsWith('2025-05-15')).toBeTruthy();
       expect(check.payee).toBe('John Smith');
-      expect(check.amount).toBe(500.00);
+      expect(check.amount).toBe('500.00');
       expect(check.bankName).toBe('First National Bank');
       expect(check.routingNumber).toBe('123456789');
       expect(check.accountNumber).toBe('9876543210');

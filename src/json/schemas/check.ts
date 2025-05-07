@@ -10,7 +10,7 @@ export const checkSchema = {
   "title": "Check",
   "description": "Schema for check data extracted from images",
   "type": "object",
-  "required": ["checkNumber", "date", "payee", "amount", "confidence"],
+  "required": ["checkNumber", "date", "payee", "confidence"],
   "properties": {
     "checkNumber": {
       "type": "string",
@@ -18,7 +18,8 @@ export const checkSchema = {
     },
     "date": {
       "type": "string",
-      "description": "Date on the check (preferably ISO 8601 format)"
+      "format": "date-time",
+      "description": "Date on the check (ISO 8601 format)"
     },
     "payee": {
       "type": "string",
@@ -29,13 +30,9 @@ export const checkSchema = {
       "description": "Person or entity who wrote/signed the check"
     },
     "amount": {
-      "type": "number",
-      "description": "Dollar amount of the check",
-      "minimum": 0
-    },
-    "amountText": {
       "type": "string",
-      "description": "Written text amount of the check"
+      "description": "Dollar amount of the check as a string to preserve exact decimal representation",
+      "pattern": "^\\d+(\\.\\d{1,2})?$"
     },
     "memo": {
       "type": "string",
@@ -146,11 +143,23 @@ export interface CheckMetadata {
 
 export interface Check {
   checkNumber: string;
-  date: string;
+  /**
+   * Date on the check
+   * 
+   * @type Date object representing the check date
+   * Transmitted as ISO 8601 formatted string in the JSON schema
+   */
+  date: Date;
   payee: string;
   payer?: string;
-  amount: number;
-  amountText?: string;
+  /**
+   * Dollar amount of the check
+   * 
+   * @type Monetary value as a string to preserve exact decimal representation
+   * Format should be numerical with optional decimal point (e.g., "1250.00")
+   * Default currency is USD unless specified otherwise
+   */
+  amount?: string;
   memo?: string;
   bankName?: string;
   routingNumber?: string;

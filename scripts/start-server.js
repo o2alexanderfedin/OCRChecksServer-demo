@@ -70,9 +70,21 @@ await checkExistingServer();
 console.log('Loading environment variables from .dev.vars file...');
 await addDevVarsToEnv();
 
-// Start the server
+// Check if we have the API key
+if (!process.env.MISTRAL_API_KEY) {
+  console.error('ERROR: MISTRAL_API_KEY environment variable is not set');
+  console.error('Please add it to your .dev.vars file or set it as an environment variable');
+  process.exit(1);
+}
+
+// Log the API key (partially masked)
+console.log('INFO: Using MISTRAL_API_KEY from .dev.vars');
+console.log(`API Key length: ${process.env.MISTRAL_API_KEY.length} characters`);
+console.log(`API Key first 4 chars: ${process.env.MISTRAL_API_KEY.substring(0, 4)}****`);
+
+// Start the server with the custom environment
 console.log('Starting development server...');
-const serverProcess = spawn('npm', ['run', 'dev'], {
+const serverProcess = spawn('wrangler', ['dev', '--var', `MISTRAL_API_KEY:${process.env.MISTRAL_API_KEY}`], {
   cwd: pathResolve(__dirname, '..'), // Point to project root instead of scripts directory
   shell: true,
   stdio: ['ignore', 'pipe', 'pipe'],

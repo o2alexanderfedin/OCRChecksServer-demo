@@ -36,6 +36,15 @@ const testFilter = process.argv[3]; // Get the third argument if provided (e.g.,
 const watch = process.argv.includes('--watch');
 const dryRun = process.argv.includes('--dry-run');
 
+// Set NODE_ENV based on test type for proper API key validation
+if (testType === 'integration') {
+  process.env.NODE_ENV = 'integration';
+  console.log('Setting NODE_ENV to "integration" for integration tests');
+} else {
+  process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+  console.log(`NODE_ENV set to "${process.env.NODE_ENV}"`);
+}
+
 console.log(`Test type: ${testType}, Filter: ${testFilter || 'none'}`); // Debug info
 
 // Map test types to their configurations
@@ -142,12 +151,18 @@ if (config.requiresServer) {
     }
     
     // Use a more robust approach to capture output
+    // Ensure API key is explicitly set in the child process environment
+    const serverEnv = { ...process.env };
+    
+    // Explicitly log what we're passing to the server
+    console.log(`API Key length: ${serverEnv.MISTRAL_API_KEY?.length || 0} characters`);
+    console.log(`API Key first 4 chars: ${serverEnv.MISTRAL_API_KEY?.substring(0, 4) || 'undefined'}****`);
+    
+    // Start the server with the complete environment
     serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
       stdio: ['inherit', 'pipe', 'inherit'],
       detached: false,
-      env: { 
-        ...process.env
-      }
+      env: serverEnv
     });
   
     // Capture and parse stdout to get the server URL

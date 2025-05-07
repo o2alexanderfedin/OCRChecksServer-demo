@@ -247,12 +247,21 @@ export class MistralOCRProvider implements OCRProvider {
             docSize: doc.content.byteLength
         });
         
-        // Check for API key before proceeding
-        // @ts-ignore - accessing private field for validation
-        if (!this.client.apiKey) {
-            const errorMessage = 'Mistral API authentication error. No API key was provided.';
-            this.io.error(errorMessage);
-            return ['error', new Error(errorMessage)];
+        // Enhanced API key validation - access the private field and log details
+        try {
+            // @ts-ignore - accessing private field for validation
+            const apiKey = this.client.apiKey;
+            if (!apiKey) {
+                const errorMessage = 'Mistral API authentication error. No API key was provided.';
+                this.io.error(errorMessage);
+                return ['error', new Error(errorMessage)];
+            }
+            
+            // Log API key details for debugging (safely)
+            console.log(`MistralOCRProvider using API key: ${apiKey.substring(0, 4)}**** (length: ${apiKey.length})`);
+        } catch (keyError) {
+            this.io.error('Error accessing Mistral API key:', keyError);
+            return ['error', new Error('Mistral API key validation error: ' + String(keyError))];
         }
         
         try {

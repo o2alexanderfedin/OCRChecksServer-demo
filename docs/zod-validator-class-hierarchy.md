@@ -180,43 +180,83 @@ export class MistralConfigValidator extends AbstractValidator<MistralConfig> imp
     // Create the schema using Zod and the component validators
     // Schema is readonly to prevent modification after initialization
     this.schema = z.object({
-      apiKey: z.string().refine(key => {
-        // Use the component validator but catch the error
+      apiKey: z.string().superRefine((key, ctx) => {
+        // Use the component validator but propagate any errors
         try {
           this.apiKeyValidator.assertValid(key);
-          return true;
         } catch (e) {
-          return false;
+          this.propagateValidationError(e, ctx, 'apiKey');
+          return z.NEVER; // Signal validation fail to Zod
         }
-      }, "Invalid API key format"),
-      baseUrl: z.string().url().optional().refine(url => {
-        if (!url) return true;
+      }),
+      baseUrl: z.string().url().optional().superRefine((url, ctx) => {
+        if (!url) return;
         try {
           this.urlValidator.assertValid(url);
-          return true;
         } catch (e) {
-          return false;
+          this.propagateValidationError(e, ctx, 'baseUrl');
+          return z.NEVER; // Signal validation fail to Zod
         }
-      }, "Invalid URL format"),
-      timeout: z.number().positive().optional().refine(timeout => {
-        if (!timeout) return true;
+      }),
+      timeout: z.number().positive().optional().superRefine((timeout, ctx) => {
+        if (timeout === undefined) return;
         try {
           this.timeoutValidator.assertValid(timeout);
-          return true;
         } catch (e) {
-          return false;
+          this.propagateValidationError(e, ctx, 'timeout');
+          return z.NEVER; // Signal validation fail to Zod
         }
-      }, "Invalid timeout value")
+      }),
+      retryConfig: z.object({
+        maxRetries: z.number().int().min(0),
+        initialDelay: z.number().positive(),
+        maxDelay: z.number().positive()
+      }).optional().superRefine((retryConfig, ctx) => {
+        if (!retryConfig) return;
+        
+        // Cross-field validation
+        if (retryConfig.maxDelay < retryConfig.initialDelay) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "maxDelay must be greater than or equal to initialDelay",
+            path: []
+          });
+          return z.NEVER;
+        }
+      })
     });
   }
   
   /**
-   * Validates a MistralConfig object and returns it if valid
-   * 
-   * @param config - The config to validate
-   * @returns The validated config
-   * @throws ValidationError<MistralConfig> if validation fails
+   * Helper method to propagate validation errors from nested validators
+   * Maintains detailed error context through the validation chain
    */
+  private propagateValidationError(error: unknown, ctx: z.RefinementCtx, fieldName: string): void {
+    if (error instanceof ValidationError) {
+      // Propagate each validation issue with proper path nesting
+      error.issues.forEach(issue => {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: issue.message,
+          path: [...(issue.path || [])], // Preserve the nested path
+          params: { 
+            originalCode: issue.code,
+            originalValue: issue.invalidValue,
+            nestedValidatorName: fieldName
+          }
+        });
+      });
+    } else {
+      // For unexpected errors, add a generic issue
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        path: [],
+        params: { unexpectedError: true }
+      });
+    }
+  }
+
   public override assertValid(config: MistralConfig): MistralConfig {
     // Use the parent's implementation that uses the schema
     const validConfig = super.assertValid(config);
@@ -266,8 +306,32 @@ export class ApiKeyValidator extends StringValidator implements IApiKeyValidator
     // Schema is readonly to prevent modification after initialization
     this.schema = z.string()
       .min(this.minLength, `API key must be at least ${this.minLength} characters long`)
-      .refine(key => !this.containsForbiddenPattern(key), {
-        message: "API key appears to be a placeholder value"
+      .superRefine((key, ctx) => {
+        if (this.containsForbiddenPattern(key)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "API key appears to be a placeholder value",
+            path: [],
+            params: { 
+              forbiddenPatterns: this.forbiddenPatterns.map(p => p.toString())
+            }
+          });
+          return z.NEVER;
+        }
+        
+        // Environment-specific validation
+        if (key.includes("test") && process.env.NODE_ENV === "production") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Test API keys cannot be used in production",
+            path: [],
+            params: { 
+              environment: process.env.NODE_ENV,
+              isTestKey: true
+            }
+          });
+          return z.NEVER;
+        }
       });
   }
   
@@ -287,18 +351,10 @@ export class ApiKeyValidator extends StringValidator implements IApiKeyValidator
    */
   public override assertValid(key: string): ApiKey {
     // Use the parent's implementation that uses the schema
+    // All validation logic is now in the schema with superRefine
     const validKey = super.assertValid(key);
     
-    // Additional custom validations or business rules
-    if (validKey.includes("test") && process.env.NODE_ENV === "production") {
-      throw this.createError([{
-        code: "custom",
-        message: "Test API keys cannot be used in production",
-        path: []
-      }], key);
-    }
-    
-    // Return as ApiKey type
+    // Return as ApiKey type (branded type for better type safety)
     return validKey as ApiKey;
   }
 }
@@ -360,9 +416,21 @@ export abstract class AbstractValidator<T> implements IDomainValidator<T> {
         message: issue.message,
         path: issue.path || [],
         code: issue.code || "custom",
-        invalidValue: issue.path ? get(value, issue.path) : undefined
+        invalidValue: issue.path ? this.getNestedProperty(value, issue.path) : undefined,
+        // Include any additional metadata from nested validators
+        metadata: issue.params
       })),
       value
+    );
+  }
+  
+  /**
+   * Safely retrieves a nested property from an object by path
+   */
+  private getNestedProperty(obj: any, path: (string | number)[]): any {
+    return path.reduce((acc, key) => 
+      acc && typeof acc === 'object' ? acc[key] : undefined, 
+      obj
     );
   }
 }
@@ -518,9 +586,21 @@ class ValidationMiddleware {
         next();
       } catch (error) {
         if (error instanceof ValidationError) {
+          // Format the validation error for the API response
+          // The error includes detailed information from nested validators
           res.status(400).json({
             error: "Validation failed",
-            details: error.issues
+            details: error.issues.map(issue => ({
+              path: issue.path.join('.'),
+              message: issue.message,
+              code: issue.code,
+              // Don't include invalid values in API responses for security reasons
+              metadata: issue.metadata ? {
+                ...issue.metadata,
+                // Remove sensitive metadata
+                originalValue: undefined 
+              } : undefined
+            }))
           });
         } else {
           next(error);
@@ -563,6 +643,8 @@ class MistralRoutes {
 8. **Testability**: Easy to create mocks and test validators in isolation
 9. **Immutability**: Schemas are readonly to prevent accidental modification
 10. **KISS Principle**: Simple, understandable interfaces without unnecessary complexity
+11. **Detailed Error Propagation**: Preserves error context through nested validation hierarchies
+12. **Self-Documenting Validation**: Error messages implicitly document the validation rules
 
 ## Testing Strategies
 
@@ -597,6 +679,33 @@ describe('ApiKeyValidator', () => {
   it('should reject keys containing forbidden patterns', () => {
     const key = 'this-is-a-test-api-key-123456789';
     expect(() => validator.assertValid(key)).toThrow(ValidationError);
+  });
+  
+  it('should provide detailed error information', () => {
+    // This test verifies that detailed error context is preserved
+    const key = 'short-placeholder-key';
+    try {
+      validator.assertValid(key);
+      fail('Should have thrown ValidationError');
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        // Verify that multiple validation issues are captured
+        expect(error.issues.length).toBeGreaterThan(1);
+        
+        // Check that we have both length and forbidden pattern errors
+        const lengthIssue = error.issues.find(i => i.message.includes('at least'));
+        const patternIssue = error.issues.find(i => i.message.includes('placeholder'));
+        
+        expect(lengthIssue).toBeDefined();
+        expect(patternIssue).toBeDefined();
+        
+        // Verify that metadata is preserved
+        expect(patternIssue?.metadata).toBeDefined();
+        expect(patternIssue?.metadata?.forbiddenPatterns).toBeDefined();
+      } else {
+        fail('Wrong error type thrown');
+      }
+    }
   });
 });
 ```
@@ -638,10 +747,25 @@ describe('MistralService', () => {
     expect(mockValidator.assertValid).toHaveBeenCalledWith(config);
   });
   
-  it('should log and rethrow validation errors', () => {
+  it('should log and rethrow validation errors with detailed context', () => {
     // Arrange
     const config = { apiKey: 'test-key', timeout: 5000 };
-    const error = new ValidationError('Validation failed', [], config);
+    const issues = [
+      {
+        message: "API key appears to be a placeholder value",
+        path: ["apiKey"],
+        code: "custom",
+        invalidValue: "test-key",
+        metadata: { forbiddenPatterns: ["test"] }
+      },
+      {
+        message: "Timeout exceeds maximum allowed value",
+        path: ["timeout"],
+        code: "custom",
+        invalidValue: 5000
+      }
+    ];
+    const error = new ValidationError('Validation failed', issues, config);
     mockValidator.assertValid = jest.fn().mockImplementation(() => {
       throw error;
     });
@@ -649,6 +773,11 @@ describe('MistralService', () => {
     // Act and Assert
     expect(() => service.configure(config)).toThrow(ValidationError);
     expect(mockLogger.error).toHaveBeenCalled();
+    
+    // Verify that error details are logged
+    const logArgs = mockLogger.error.mock.calls[0];
+    expect(logArgs[0]).toEqual("Invalid configuration");
+    expect(logArgs[1].issues).toEqual(issues);
   });
 });
 ```

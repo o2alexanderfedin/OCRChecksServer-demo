@@ -226,8 +226,16 @@ export type MistralConfig = z.infer<typeof MistralConfigSchema>;
 // Conceptual example - actual implementation in base.ts
 export const ApiKeySchema = z.string()
   .min(20, "API key must be at least 20 characters long")
-  .refine(key => !key.toLowerCase().includes("placeholder"), { 
-    message: "API key appears to be a placeholder value" 
+  .superRefine((key, ctx) => {
+    if (key.toLowerCase().includes("placeholder")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "API key appears to be a placeholder value",
+        path: [],
+        params: { containsPlaceholder: true }
+      });
+      return z.NEVER;
+    }
   });
 
 // Strongly-typed API key type derived from schema
@@ -426,6 +434,12 @@ export class ValidationError<T> extends Error {
    - Preserves the original value for debugging
    - Provides detailed formatted error messages
 
+5. **Nested Validator Error Propagation**:
+   - Use `superRefine` instead of `refine` for nested validator calls
+   - Propagate detailed error information from nested validators
+   - Maintain error context through validation chains
+   - Preserve path information for nested property errors
+
 ## 6. Implementation Strategy
 
 ### 6.1 Phase 1: Foundation
@@ -435,6 +449,7 @@ export class ValidationError<T> extends Error {
    - Create strongly-typed ValidationError<T> class with detailed formatting
 2. Define common schemas for shared types
 3. Implement API key validation schema with proper type inference
+4. Create error propagation utilities for nested validators
 
 ### 6.2 Phase 2: Mistral Integration
 
@@ -522,6 +537,45 @@ class MistralOCRProvider {
 }
 ```
 
+### Example 1.1: Nested Validator Error Propagation
+
+```typescript
+// Example schema with proper error propagation from nested validators
+const MistralConfigSchema = z.object({
+  apiKey: z.string().superRefine((key, ctx) => {
+    try {
+      apiKeyValidator.assertValid(key);
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        // Propagate each validation issue with proper path nesting
+        e.issues.forEach(issue => {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: issue.message,
+            path: [...(issue.path || [])],
+            params: { 
+              originalCode: issue.code,
+              originalValue: issue.invalidValue,
+              nestedValidatorName: 'apiKeyValidator'
+            }
+          });
+        });
+      } else {
+        // For unexpected errors, add a generic issue
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: e instanceof Error ? e.message : 'Unknown error',
+          path: [],
+          params: { unexpectedError: true }
+        });
+      }
+      return z.NEVER; // Signal validation fail to Zod
+    }
+  }),
+  // other fields...
+});
+```
+
 ### Example 2: Method Argument Validation with Type Inference
 
 ```typescript
@@ -606,3 +660,5 @@ try {
 The Zod validation system will provide a consistent, type-safe approach to validation throughout the application. By focusing on the Mistral API integration points first, we can address current failures while establishing patterns for broader adoption.
 
 This incremental approach allows us to improve reliability without major rewrites, while also enhancing developer experience through better error messages and stronger type safety. The `assertValid<T, I>` generic method provides a particularly powerful pattern for fail-fast validation that increases code quality by surfacing issues early in the execution flow, all while maintaining strong type information and enabling better compile-time checks.
+
+By using Zod's `superRefine` method instead of simple `refine` calls, we ensure proper error propagation through nested validators, maintaining detailed error context and providing users with precise information about validation failures. This approach significantly improves error messages and debugging experience, especially in complex validation scenarios with multiple nested validators.

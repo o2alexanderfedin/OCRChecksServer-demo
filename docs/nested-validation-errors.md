@@ -13,21 +13,33 @@ This document describes improved approaches to ensure that all validation contex
 ```typescript
 this.schema = z.object({
   apiKey: z.string().superRefine((key, ctx) => {
-    // Get detailed validation error from nested validator
-    const validationError = this.apiKeyValidator.validate(key);
-    if (validationError) {
-      // Add each issue from the nested validator with proper path
-      validationError.issues.forEach(issue => {
+    try {
+      // Try validating with the nested validator
+      this.apiKeyValidator.assertValid(key);
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        // Propagate each validation issue with proper path nesting
+        e.issues.forEach(issue => {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: issue.message,
+            path: [...(issue.path || [])], // Preserve the original path
+            params: { 
+              originalCode: issue.code,
+              originalValue: issue.invalidValue,
+              nestedValidatorName: 'apiKeyValidator'
+            }
+          });
+        });
+      } else {
+        // For unexpected errors, add a generic issue
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: issue.message,
-          path: ['apiKey', ...(issue.path || [])], // Ensure proper error path nesting
-          params: { 
-            originalCode: issue.code,
-            originalValue: issue.invalidValue
-          }
+          message: e instanceof Error ? e.message : 'Unknown error',
+          path: [],
+          params: { unexpectedError: true }
         });
-      });
+      }
       return z.NEVER; // Signal validation fail to Zod
     }
   })
@@ -174,4 +186,4 @@ UIs can map error paths to form fields and display contextual error messages:
 
 Proper handling of nested validation errors is crucial for creating a good developer and user experience. By propagating and preserving detailed error information from nested validators, we can provide clear, specific guidance on what needs to be fixed, improving the usability of the validation system.
 
-The implementation provided in `improved-nested-errors.ts` demonstrates both the Zod-based and manual approaches to properly handling nested validation errors.
+The recommended approach using `superRefine` with try/catch provides the most comprehensive solution for propagating error information from nested validators through the validation chain, preserving full error context and providing detailed feedback to users.

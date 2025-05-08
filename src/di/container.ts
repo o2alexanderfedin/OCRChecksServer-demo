@@ -9,6 +9,16 @@ import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
 import { RetryConfig } from '@mistralai/mistralai/lib/retries.js';
+import { 
+  registerValidators,
+  validateApiKey,
+  ApiKey,
+  MistralConfig,
+  MistralConfigValidator,
+  IMistralConfigValidator,
+  ValidationMiddleware,
+  TYPES as VALIDATOR_TYPES
+} from '../validators';
 // Import config as a static file
 // Optimized for Cloudflare Worker environment which has a 30-second execution limit
 const mistralClientConfig = {
@@ -37,7 +47,8 @@ export const TYPES = {
   ReceiptExtractor: Symbol.for('ReceiptExtractor'),
   CheckExtractor: Symbol.for('CheckExtractor'),
   ReceiptScanner: Symbol.for('ReceiptScanner'),
-  CheckScanner: Symbol.for('CheckScanner')
+  CheckScanner: Symbol.for('CheckScanner'),
+  ValidationMiddleware: Symbol.for('ValidationMiddleware')
 };
 
 /**
@@ -63,6 +74,10 @@ export class DIContainer {
     this.container.bind(TYPES.IoE).toConstantValue(io);
     this.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
 
+    // Register all validators
+    registerValidators(this.container);
+    this.registerValidationMiddleware();
+    
     this.registerMistralClient();
     this.registerProviders();
     this.registerExtractors();
@@ -75,13 +90,46 @@ export class DIContainer {
    * Register Mistral client with validation
    * @protected
    */
+  /**
+   * Register validation middleware
+   * @protected
+   */
+  protected registerValidationMiddleware(): void {
+    this.container.bind(TYPES.ValidationMiddleware).to(ValidationMiddleware).inSingletonScope();
+  }
+
   protected registerMistralClient(): void {
     this.container.bind(TYPES.MistralClient).toDynamicValue((context) => {
       const apiKey = context.get<string>(TYPES.MistralApiKey);
       const io = context.get<IoE>(TYPES.IoE);
       
-      // Validate API key is present and valid
-      this.validateApiKey(apiKey);
+      // Validate API key using the Zod validator
+      const validApiKey = this.validateApiKey(apiKey);
+      
+      // Get the config validator
+      const configValidator = this.container.isBound(VALIDATOR_TYPES.MistralConfigValidator) ? 
+        this.container.get<IMistralConfigValidator>(VALIDATOR_TYPES.MistralConfigValidator) : 
+        null;
+      
+      const fullConfig: MistralConfig = {
+        apiKey: validApiKey,
+        timeout: mistralClientConfig.timeoutMs,
+        retryConfig: {
+          maxRetries: 5,
+          initialDelay: mistralClientConfig.retryConfig.backoff.initialInterval,
+          maxDelay: mistralClientConfig.retryConfig.backoff.maxInterval
+        }
+      };
+      
+      // Validate the entire config if validator is available
+      if (configValidator) {
+        try {
+          configValidator.assertValid(fullConfig);
+        } catch (error) {
+          io.error('Invalid Mistral configuration', { error });
+          throw error;
+        }
+      }
       
       // Create Mistral client with validated API key and configuration from JSON
       try {
@@ -102,7 +150,7 @@ export class DIContainer {
         };
         
         return new Mistral({ 
-          apiKey,
+          apiKey: validApiKey,
           retryConfig: typedRetryConfig,
           timeoutMs: mistralClientConfig.timeoutMs
         });
@@ -174,43 +222,47 @@ export class DIContainer {
 
   /**
    * Validate that an API key is present and in the correct format
+   * Using the Zod validator for strong typing
    * 
    * @param apiKey - The API key to validate
+   * @returns The validated ApiKey (branded type)
    * @protected
    */
-  protected validateApiKey(apiKey: string): void {
+  protected validateApiKey(apiKey: string): ApiKey {
     // Log partial key for debugging (first 4 chars only)
     const maskedKey = apiKey ? `${apiKey.substring(0, 4)}...` : 'undefined';
     console.log(`Validating Mistral API key: ${maskedKey}`);
     
-    // In integration tests, we expect a valid API key to be present
+    // In integration tests, we may need to be less strict
     if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'integration') {
       console.log('API Key length:', apiKey ? apiKey.length : 0);
       console.log('API Key first 4 chars:', maskedKey);
       
-      // For integration tests, API key must be present but we'll be less strict about format
-      if (!apiKey) {
-        throw new Error('[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty');
+      // In tests, still validate but with more relaxed constraints
+      try {
+        return validateApiKey(apiKey, {
+          apiKeyMinLength: 10, // More lenient for test tokens
+          forbiddenPatterns: []
+        });
+      } catch (error) {
+        // Fall back to basic validation for tests
+        if (!apiKey) {
+          throw new Error('[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty');
+        }
+        // Force cast to ApiKey as a fallback for tests
+        return apiKey as ApiKey;
       }
-      
-      return; // Skip the rest of the validation for tests
     }
     
-    // Production validation - more stringent
-    // Ensure API key is present
-    if (!apiKey) {
-      throw new Error('[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty');
-    }
-
-    // Validate API key length
-    if (apiKey.length < 20) {
-      throw new Error(`[DIContainer] CRITICAL ERROR: Invalid Mistral API key format - too short (${apiKey.length} chars)`);
-    }
-    
-    // Check for obviously invalid placeholder keys
-    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
-    if (commonPlaceholders.some(placeholder => apiKey.toLowerCase().includes(placeholder))) {
-      throw new Error('[DIContainer] CRITICAL ERROR: Detected placeholder text in Mistral API key');
+    // Use the Zod validator for production validation
+    try {
+      return validateApiKey(apiKey);
+    } catch (error) {
+      // Enhance error with container context
+      if (error instanceof Error) {
+        throw new Error(`[DIContainer] CRITICAL ERROR: ${error.message}`);
+      }
+      throw new Error('[DIContainer] CRITICAL ERROR: Invalid Mistral API key');
     }
   }
 

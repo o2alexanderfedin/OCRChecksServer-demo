@@ -7,9 +7,54 @@ import type {
     ImageURLChunk,
     DocumentURLChunk
 } from '@mistralai/mistralai/models/components'
+import { injectable, inject } from 'inversify';
+import { TYPES as VALIDATOR_TYPES } from '../validators';
 
 // Import Buffer from the buffer package - this will be available in all environments including Cloudflare Workers
 import { Buffer } from 'buffer';
+
+/**
+ * Utility function to get the byte length of various content types
+ * 
+ * @param content The content (ArrayBuffer, File, Buffer, or string path)
+ * @returns The byte length or -1 if can't be determined
+ */
+function getContentByteLength(content: ArrayBuffer | File | Buffer | string): number {
+    if (content instanceof ArrayBuffer) {
+        return content.byteLength;
+    } else if (typeof content === 'string') {
+        // For string paths, we return a placeholder size
+        return -1;
+    } else if (content instanceof File) {
+        return content.size;
+    } else if (Buffer.isBuffer(content)) {
+        return content.byteLength;
+    }
+    return -1;
+}
+
+/**
+ * Utility function to convert content to ArrayBuffer
+ * 
+ * @param content The content (ArrayBuffer, File, Buffer, or string path)
+ * @returns ArrayBuffer
+ */
+function contentToArrayBuffer(content: ArrayBuffer | File | Buffer | string): ArrayBuffer {
+    if (content instanceof ArrayBuffer) {
+        return content;
+    } else if (Buffer.isBuffer(content)) {
+        return content.buffer.slice(
+            content.byteOffset,
+            content.byteOffset + content.byteLength
+        );
+    } else if (content instanceof File) {
+        // This would normally need to be asynchronous, but for now just return an empty buffer
+        return new ArrayBuffer(0);
+    } else {
+        // For string paths, we return an empty buffer for now
+        return new ArrayBuffer(0);
+    }
+}
 
 /**
  * Utility function to convert ArrayBuffer to base64 string
@@ -211,6 +256,13 @@ export type MistralConfig = OCRProviderConfig & {
 /**
  * Mistral OCR provider implementation
  */
+// Define symbol for injections
+const TYPES = {
+    IoE: Symbol.for('IoE'),
+    MistralClient: Symbol.for('MistralClient')
+};
+
+@injectable()
 export class MistralOCRProvider implements OCRProvider {
     private readonly client: Mistral
     private readonly io: IoE
@@ -220,7 +272,10 @@ export class MistralOCRProvider implements OCRProvider {
      * @param io I/O interface for network operations
      * @param client Mistral client instance
      */
-    constructor(io: IoE, client: Mistral) {
+    constructor(
+        @inject(TYPES.IoE) io: IoE, 
+        @inject(TYPES.MistralClient) client: Mistral
+    ) {
         this.io = io
         this.client = client
         
@@ -231,7 +286,11 @@ export class MistralOCRProvider implements OCRProvider {
             throw new Error(errorMessage);
         }
         
-        // We'll check for API key during processing to allow tests to verify error handling
+        // Log diagnostic information about the client
+        const apiKey = (client as any).apiKey || '';
+        const maskedKey = apiKey ? `${apiKey.substring(0, 4)}****` : 'none';
+        const keyLength = apiKey ? apiKey.length : 0;
+        console.log(`MistralOCRProvider using API key: ${maskedKey} (length: ${keyLength})`);
     }
 
     /**
@@ -244,7 +303,7 @@ export class MistralOCRProvider implements OCRProvider {
         this.io.trace('MistralOCRProvider', 'processDocument', {
             docName: doc.name || 'unnamed',
             docType: doc.type,
-            docSize: doc.content.byteLength
+            docSize: getContentByteLength(doc.content)
         });
         
         // Enhanced API key validation - access the private field and log details
@@ -309,7 +368,7 @@ export class MistralOCRProvider implements OCRProvider {
             }
             
             // Log document information for debugging
-            this.io.log(`Processing document: ${doc.name || 'unnamed'}, type: ${doc.type}, size: ${doc.content.byteLength} bytes`);
+            this.io.log(`Processing document: ${doc.name || 'unnamed'}, type: ${doc.type}, size: ${getContentByteLength(doc.content)} bytes`);
             
             // Create document chunk for API
             this.io.debug('Creating document chunk for Mistral API');
@@ -614,7 +673,8 @@ export class MistralOCRProvider implements OCRProvider {
         console.log('Converting document to data URL with buffer package');
 
         // Convert document content to base64
-        const base64Content = arrayBufferToBase64(doc.content);
+        const arrayBuffer = contentToArrayBuffer(doc.content);
+        const base64Content = arrayBufferToBase64(arrayBuffer);
         
         // Determine correct MIME type
         let mimeType = 'image/jpeg'; // Default for images

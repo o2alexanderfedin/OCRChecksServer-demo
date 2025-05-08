@@ -2,6 +2,9 @@ import { OCRProvider, Document } from '../ocr/types';
 import { DocumentScanner, ProcessingResult } from './types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { CheckExtractor as ICheckExtractor } from '../json/extractors/types';
+import { injectable, inject, named } from 'inversify';
+import { TYPES as VALIDATOR_TYPES, IScannerInputValidator, ScannerInput } from '../validators';
+import { TYPES } from '../types/di-types';
 
 /**
  * CheckScanner - Encapsulates OCR and JSON extraction in a single process for check documents
@@ -11,22 +14,27 @@ import { CheckExtractor as ICheckExtractor } from '../json/extractors/types';
  * Follows Interface Segregation by using minimal interfaces
  * Follows Dependency Inversion by depending on abstractions
  */
+@injectable()
 export class CheckScanner implements DocumentScanner {
   private ocrProvider: OCRProvider;
   private checkExtractor: ICheckExtractor;
+  private inputValidator: IScannerInputValidator;
 
   /**
    * Creates a new CheckScanner
    * 
    * @param ocrProvider - The OCR provider to use
    * @param checkExtractor - The check extractor to use
+   * @param inputValidator - Validator for scanner inputs
    */
   constructor(
-    ocrProvider: OCRProvider,
-    checkExtractor: ICheckExtractor
+    @inject(TYPES.OCRProvider) ocrProvider: OCRProvider,
+    @inject(TYPES.CheckExtractor) checkExtractor: ICheckExtractor,
+    @inject(VALIDATOR_TYPES.ScannerInputValidator) @named('check') inputValidator: IScannerInputValidator
   ) {
     this.ocrProvider = ocrProvider;
     this.checkExtractor = checkExtractor;
+    this.inputValidator = inputValidator;
   }
 
   /**
@@ -36,21 +44,43 @@ export class CheckScanner implements DocumentScanner {
    * @returns A Result tuple with either a processing result or error message
    */
   async processDocument(document: Document): Promise<Result<ProcessingResult, string>> {
-    // Step 1: Perform OCR on the document
-    const ocrResult = await this.ocrProvider.processDocuments([document]);
-    if (ocrResult[0] === 'error') {
-      return ['error', `OCR processing failed: ${ocrResult[1].message}`];
-    }
-
-    // The OCR result is an array of results for each page/image
-    // For simplicity, we'll use the first result if available
-    if (!ocrResult[1][0] || ocrResult[1][0].length === 0) {
-      return ['error', 'OCR processing returned empty results'];
-    }
+    let ocrText: string;
+    let ocrConfidence: number;
     
-    const ocrData = ocrResult[1][0][0]; // First document, first result
-    const ocrText = ocrData.text;
-    const ocrConfidence = ocrData.confidence;
+    try {
+      // Validate input document
+      const validatedInput: ScannerInput = this.inputValidator.assertValid({
+        file: document.content,
+        mimeType: document.mimeType,
+        options: document.options
+      });
+      
+      // Step 1: Perform OCR on the document
+      const ocrResult = await this.ocrProvider.processDocuments([{
+        ...document,
+        content: validatedInput.file,
+        mimeType: validatedInput.mimeType || document.mimeType,
+        options: validatedInput.options || document.options
+      }]);
+      
+      if (ocrResult[0] === 'error') {
+        return ['error', `OCR processing failed: ${ocrResult[1].message}`];
+      }
+
+      // The OCR result is an array of results for each page/image
+      // For simplicity, we'll use the first result if available
+      if (!ocrResult[1][0] || ocrResult[1][0].length === 0) {
+        return ['error', 'OCR processing returned empty results'];
+      }
+      
+      const ocrData = ocrResult[1][0][0]; // First document, first result
+      ocrText = ocrData.text;
+      ocrConfidence = ocrData.confidence;
+    } catch (error) {
+      // Handle validation errors
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return ['error', `Validation failed: ${errorMessage}`];
+    }
 
     // Step 2: Extract structured data from OCR text
     const extractionResult = await this.checkExtractor.extractFromText(ocrText);

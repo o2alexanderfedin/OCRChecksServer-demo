@@ -10,7 +10,7 @@ import { IScannerInputValidator, ScannerInput, ScannerOptions } from './types';
 /**
  * Interface for File validators
  */
-export interface IFileValidator extends z.ZodType<File | Buffer | string> {
+export interface IFileValidator extends z.ZodType<File | Buffer | ArrayBuffer | string> {
   // Any additional methods specific to file validation
 }
 

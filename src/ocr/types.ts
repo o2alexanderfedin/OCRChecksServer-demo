@@ -45,12 +45,21 @@ export type OCRResult = {
  * Represents a document to be processed by OCR
  */
 export type Document = {
-    /** Binary content of the document */
-    content: ArrayBuffer
+    /** Content of the document (ArrayBuffer, File, Buffer, or string path) */
+    content: ArrayBuffer | File | Buffer | string
     /** Type of the document */
     type: DocumentType
     /** Optional name of the document */
     name?: string
+    /** Optional MIME type of the document */
+    mimeType?: string
+    /** Optional processing options */
+    options?: {
+        enhanceImage?: boolean;
+        detectOrientation?: boolean;
+        timeout?: number;
+        forceOCR?: boolean;
+    }
 }
 
 /**

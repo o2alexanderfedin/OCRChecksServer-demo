@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import { DIContainer, TYPES } from '../../../src/di/container';
+import { DIContainer } from '../../../src/di/container';
+import { TYPES } from '../../../src/types/di-types';
 import { IoE } from '../../../src/ocr/types';
 import { Mistral } from '@mistralai/mistralai';
 import { MistralOCRProvider } from '../../../src/ocr/mistral';
@@ -8,6 +9,12 @@ import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
 import { ReceiptScanner } from '../../../src/scanner/receipt-scanner';
 import { CheckScanner } from '../../../src/scanner/check-scanner';
+import { 
+  IScannerInputValidator,
+  CheckScannerInputValidator,
+  ReceiptScannerInputValidator,
+  TYPES as VALIDATOR_TYPES
+} from '../../../src/validators';
 import 'jasmine';
 
 describe('DIContainer', () => {

@@ -59,7 +59,7 @@ describe('MistralConfigValidator', () => {
       timeout: 30000
     };
     
-    expect(() => validator.assertValid(config)).toThrow(ValidationError);
+    expect(() => validator.assertValid(config)).toThrow(jasmine.any(ValidationError));
   });
   
   it('should reject configurations with invalid URLs', () => {
@@ -69,7 +69,7 @@ describe('MistralConfigValidator', () => {
       timeout: 30000
     };
     
-    expect(() => validator.assertValid(config)).toThrow(ValidationError);
+    expect(() => validator.assertValid(config)).toThrow(jasmine.any(ValidationError));
   });
   
   it('should reject configurations with invalid timeout values', () => {
@@ -79,7 +79,7 @@ describe('MistralConfigValidator', () => {
       timeout: -1000
     };
     
-    expect(() => validator.assertValid(config)).toThrow(ValidationError);
+    expect(() => validator.assertValid(config)).toThrow(jasmine.any(ValidationError));
   });
   
   it('should reject configurations with invalid retry configs', () => {
@@ -92,7 +92,7 @@ describe('MistralConfigValidator', () => {
       }
     };
     
-    expect(() => validator.assertValid(config)).toThrow(ValidationError);
+    expect(() => validator.assertValid(config)).toThrow(jasmine.any(ValidationError));
   });
   
   it('should propagate nested validation errors with detailed messages', () => {

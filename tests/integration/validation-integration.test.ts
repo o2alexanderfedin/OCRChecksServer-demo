@@ -41,7 +41,7 @@ describe('Validation System Integration', () => {
     
     // Invalid key
     const invalidKey = 'short';
-    expect(() => apiKeyValidator.assertValid(invalidKey)).toThrow(ValidationError);
+    expect(() => apiKeyValidator.assertValid(invalidKey)).toThrow(jasmine.any(ValidationError));
   });
   
   it('should validate Mistral configurations using the validator from the container', () => {
@@ -61,7 +61,7 @@ describe('Validation System Integration', () => {
       timeout: -5000
     };
     
-    expect(() => mistralConfigValidator.assertValid(invalidConfig)).toThrow(ValidationError);
+    expect(() => mistralConfigValidator.assertValid(invalidConfig)).toThrow(jasmine.any(ValidationError));
   });
   
   it('should use validation middleware correctly', () => {
@@ -76,11 +76,12 @@ describe('Validation System Integration', () => {
     };
     
     const res: any = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      status: jasmine.createSpy('status').and.returnValue({
+        json: jasmine.createSpy('json')
+      })
     };
     
-    const next = jest.fn();
+    const next = jasmine.createSpy('next');
     
     // Create body validator middleware
     const bodyValidator = middleware.createBodyValidator(apiKeyValidator);
@@ -91,17 +92,18 @@ describe('Validation System Integration', () => {
     expect(res.status).not.toHaveBeenCalled();
     
     // Reset mocks
-    jest.clearAllMocks();
+    next.calls.reset();
+    res.status.calls.reset();
     
     // Invalid body
     req.body.apiKey = 'short';
     bodyValidator(req, res, next);
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalled();
+    expect(res.status().json).toHaveBeenCalled();
     
     // Check that the error response includes details
-    const errorResponse = res.json.mock.calls[0][0];
+    const errorResponse = res.status().json.calls.mostRecent().args[0];
     expect(errorResponse.error).toBe('Validation failed');
     expect(errorResponse.details.length).toBeGreaterThan(0);
   });

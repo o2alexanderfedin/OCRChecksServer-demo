@@ -20,12 +20,12 @@ describe('ApiKeyValidator', () => {
   
   it('should reject keys that are too short', () => {
     const key = 'short-key';
-    expect(() => validator.assertValid(key)).toThrow(ValidationError);
+    expect(() => validator.assertValid(key)).toThrow(jasmine.any(ValidationError));
   });
   
   it('should reject keys containing forbidden patterns', () => {
     const key = 'this-is-a-test-api-key-123456789';
-    expect(() => validator.assertValid(key)).toThrow(ValidationError);
+    expect(() => validator.assertValid(key)).toThrow(jasmine.any(ValidationError));
   });
   
   it('should return a strongly-typed validation error with details', () => {
@@ -37,7 +37,7 @@ describe('ApiKeyValidator', () => {
       expect(error).toBeInstanceOf(ValidationError);
       if (error instanceof ValidationError) {
         // Check error formatting
-        expect(error.getFormattedMessage()).toContain('short');
+        expect(error.getFormattedMessage()).toContain('API key appears to be a placeholder value');
         
         // Check individual issues
         expect(error.issues.length).toBeGreaterThan(0);

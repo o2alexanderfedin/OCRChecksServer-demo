@@ -2,6 +2,7 @@
  * Abstract base validator implementation
  */
 import { z } from 'zod';
+import { injectable, unmanaged } from 'inversify';
 import { IDomainValidator, ValidationError } from './types';
 
 /**
@@ -12,7 +13,7 @@ export abstract class AbstractValidator<T> implements IDomainValidator<T> {
    * The Zod schema for this validator
    * Readonly to prevent modification after initialization
    */
-  protected readonly schema: z.ZodSchema<T>;
+  protected schema!: z.ZodSchema<T>;
   
   /**
    * Validates a value of type T and returns it if valid
@@ -58,7 +59,7 @@ export abstract class AbstractValidator<T> implements IDomainValidator<T> {
         path: issue.path || [],
         code: issue.code,
         invalidValue: issue.path ? this.getNestedProperty(value, issue.path) : undefined,
-        metadata: issue.params
+        metadata: (issue as any).params
       })),
       value
     );
@@ -109,18 +110,20 @@ export abstract class AbstractValidator<T> implements IDomainValidator<T> {
 /**
  * String validator base class
  */
+@injectable()
 export class StringValidator extends AbstractValidator<string> {
   constructor() {
     super();
-    this.schema = z.string();
+    this.schema = z.string() as z.ZodSchema<string>;
   }
 }
 
 /**
  * Number validator base class
  */
+@injectable()
 export class NumberValidator extends AbstractValidator<number> {
-  constructor(min?: number, max?: number) {
+  constructor(@unmanaged() min?: number, @unmanaged() max?: number) {
     super();
     
     let schema = z.number();
@@ -133,6 +136,6 @@ export class NumberValidator extends AbstractValidator<number> {
       schema = schema.max(max);
     }
     
-    this.schema = schema;
+    this.schema = schema as z.ZodSchema<number>;
   }
 }

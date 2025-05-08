@@ -89,12 +89,12 @@ export interface IDomainValidator<T> {
 /**
  * Branded type for API Key to ensure type safety
  */
-export type ApiKey = string & { readonly __brand: unique symbol };
+export type ApiKey = string;
 
 /**
  * Branded type for URL to ensure type safety
  */
-export type Url = string & { readonly __brand: unique symbol };
+export type Url = string;
 
 /**
  * Result tuple type for validation results
@@ -116,7 +116,14 @@ export const TYPES = {
   ScannerInputValidator: Symbol("ScannerInputValidator"),
   
   // Configuration
-  ValidationConfig: Symbol("ValidationConfig")
+  ValidationConfig: Symbol("ValidationConfig"),
+  
+  // File and options validators
+  FileValidator: Symbol("FileValidator"),
+  ScannerOptionsValidator: Symbol("ScannerOptionsValidator"),
+  
+  // Middleware
+  ValidationMiddleware: Symbol("ValidationMiddleware")
 };
 
 /**

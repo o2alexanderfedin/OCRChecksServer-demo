@@ -86,20 +86,21 @@ export function registerValidators(container: Container): void {
     
   container.bind<IScannerInputValidator>(TYPES.ScannerInputValidator)
     .to(CheckScannerInputValidator)
-    .whenTargetNamed('check');
+    .whenParentNamed('check');
     
   container.bind<IScannerInputValidator>(TYPES.ScannerInputValidator)
     .to(ReceiptScannerInputValidator)
-    .whenTargetNamed('receipt');
+    .whenParentNamed('receipt');
 }
 
 // Export all validators
 export * from './base';
 export * from './mistral';
-export * from './scanner/check-scanner';
-export * from './scanner/receipt-scanner';
+export { CheckScannerInputValidator } from './scanner/check-scanner';
+export { ReceiptScannerInputValidator } from './scanner/receipt-scanner';
 export * from './scanner/types';
 export * from './types';
+export * from './api/index';
 
 // Factory functions for creating validators
 export function createApiKeyValidator(config: ValidationConfig): IApiKeyValidator {

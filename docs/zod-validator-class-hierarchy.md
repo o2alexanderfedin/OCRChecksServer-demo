@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines a more object-oriented approach to validation using Zod, with specialized validator classes and composition. Each validator is responsible for validating a specific type and can be composed together to build more complex validation hierarchies.
+This document outlines a more object-oriented approach to validation using Zod, with specialized validator classes and composition. Each validator is responsible for validating a specific type and can be composed together to build more complex validation hierarchies. The design strictly follows SOLID principles and KISS (Keep It Simple, Stupid) methodology, with a focus on dependency injection.
 
 ## Core Interface Design
 
@@ -12,7 +12,7 @@ This document outlines a more object-oriented approach to validation using Zod, 
  * 
  * @template T - The type this validator validates
  */
-export interface DomainValidator<T> {
+export interface IDomainValidator<T> {
   /**
    * Validates the given value and returns it if valid
    * 
@@ -32,11 +32,39 @@ export interface DomainValidator<T> {
 }
 ```
 
+## SOLID Principles Implementation
+
+### Single Responsibility Principle
+Each validator has exactly one responsibility: validating a specific type of data. Additional concerns like logging, error formatting, or business logic should be handled elsewhere.
+
+### Open/Closed Principle
+Validators are designed to be open for extension but closed for modification:
+- Base validators can be extended with new validation rules
+- New validators can be created without modifying existing ones
+- Validation schemas are readonly to prevent runtime modifications
+
+### Liskov Substitution Principle
+Child validators can be used anywhere their parent types are expected:
+- StringValidator can be used wherever IDomainValidator<string> is required
+- ApiKeyValidator can be used wherever IDomainValidator<ApiKey> is required
+
+### Interface Segregation Principle
+Interfaces are kept minimal and focused:
+- IDomainValidator<T> has only the methods clients need
+- No "fat interfaces" with rarely used methods
+- Specialized validators like IApiKeyValidator would only add methods specific to API keys
+
+### Dependency Inversion Principle
+High-level components depend on abstractions, not concrete implementations:
+- Services depend on IDomainValidator<T>, not specific validator classes
+- Validators receive dependencies through constructor injection
+- All dependencies are explicitly declared
+
 ## Class Hierarchy Diagram
 
 ```mermaid
 classDiagram
-    class DomainValidator~T~ {
+    class IDomainValidator~T~ {
         <<interface>>
         +assertValid(value: T): T
         +validate(value: T): ValidationError~T~ | undefined
@@ -55,9 +83,15 @@ classDiagram
         +validate(value: string): ValidationError~string~ | undefined
     }
     
+    class IApiKeyValidator {
+        <<interface>>
+        +assertValid(value: string): ApiKey
+        +validate(value: string): ValidationError~ApiKey~ | undefined
+    }
+    
     class ApiKeyValidator {
         -readonly minLength: number
-        -readonly forbiddenPatterns: string[]
+        -readonly forbiddenPatterns: RegExp[]
         +assertValid(value: string): ApiKey
         +validate(value: string): ValidationError~ApiKey~ | undefined
     }
@@ -74,55 +108,74 @@ classDiagram
         +validate(value: number): ValidationError~number~ | undefined
     }
     
-    class MistralConfigValidator {
-        -readonly apiKeyValidator: ApiKeyValidator
-        -readonly urlValidator: UrlValidator
-        -readonly timeoutValidator: NumberValidator
+    class IMistralConfigValidator {
+        <<interface>>
         +assertValid(value: MistralConfig): MistralConfig
         +validate(value: MistralConfig): ValidationError~MistralConfig~ | undefined
     }
     
-    class ScannerInputValidator {
-        -readonly fileValidator: FileValidator
-        -readonly optionsValidator: OptionsValidator
+    class MistralConfigValidator {
+        -readonly apiKeyValidator: IApiKeyValidator
+        -readonly urlValidator: IDomainValidator~Url~
+        -readonly timeoutValidator: IDomainValidator~number~
+        +assertValid(value: MistralConfig): MistralConfig
+        +validate(value: MistralConfig): ValidationError~MistralConfig~ | undefined
+    }
+    
+    class IScannerInputValidator {
+        <<interface>>
         +assertValid(value: ScannerInput): ScannerInput
         +validate(value: ScannerInput): ValidationError~ScannerInput~ | undefined
     }
     
-    DomainValidator <|.. AbstractValidator
-    AbstractValidator <|-- StringValidator
+    class ScannerInputValidator {
+        -readonly fileValidator: IDomainValidator~File~
+        -readonly optionsValidator: IDomainValidator~ScannerOptions~
+        +assertValid(value: ScannerInput): ScannerInput
+        +validate(value: ScannerInput): ValidationError~ScannerInput~ | undefined
+    }
+    
+    IDomainValidator <|.. AbstractValidator
+    IDomainValidator <|.. StringValidator
+    IApiKeyValidator --|> IDomainValidator
+    IMistralConfigValidator --|> IDomainValidator
+    IScannerInputValidator --|> IDomainValidator
+    
+    IApiKeyValidator <|.. ApiKeyValidator
     StringValidator <|-- ApiKeyValidator
     StringValidator <|-- UrlValidator
     AbstractValidator <|-- NumberValidator
-    AbstractValidator <|-- MistralConfigValidator
-    AbstractValidator <|-- ScannerInputValidator
-    MistralConfigValidator o-- ApiKeyValidator
-    MistralConfigValidator o-- UrlValidator
-    MistralConfigValidator o-- NumberValidator
+    IMistralConfigValidator <|.. MistralConfigValidator
+    IScannerInputValidator <|.. ScannerInputValidator
+    
+    MistralConfigValidator *-- IApiKeyValidator
+    MistralConfigValidator *-- IDomainValidator
 ```
 
-## Composition Pattern
+## Composition with Dependency Injection
 
 ### Example: MistralConfigValidator
 
 ```typescript
 /**
+ * Interface for Mistral configuration validator
+ */
+export interface IMistralConfigValidator extends IDomainValidator<MistralConfig> {
+  // Any additional methods specific to Mistral config validation
+}
+
+/**
  * Validator for MistralConfig objects
  */
-export class MistralConfigValidator extends AbstractValidator<MistralConfig> {
-  private readonly apiKeyValidator: ApiKeyValidator;
-  private readonly urlValidator: UrlValidator; 
-  private readonly timeoutValidator: NumberValidator;
-  
+@injectable()
+export class MistralConfigValidator extends AbstractValidator<MistralConfig> implements IMistralConfigValidator {
+  // Dependencies are injected through constructor
   constructor(
-    apiKeyValidator: ApiKeyValidator,
-    urlValidator: UrlValidator,
-    timeoutValidator: NumberValidator
+    @inject(TYPES.ApiKeyValidator) private readonly apiKeyValidator: IApiKeyValidator,
+    @inject(TYPES.UrlValidator) private readonly urlValidator: IDomainValidator<Url>,
+    @inject(TYPES.NumberValidator) private readonly timeoutValidator: IDomainValidator<number>
   ) {
     super();
-    this.apiKeyValidator = apiKeyValidator;
-    this.urlValidator = urlValidator;
-    this.timeoutValidator = timeoutValidator;
     
     // Create the schema using Zod and the component validators
     // Schema is readonly to prevent modification after initialization
@@ -186,16 +239,28 @@ export class MistralConfigValidator extends AbstractValidator<MistralConfig> {
 
 ```typescript
 /**
+ * Interface for API key validators
+ */
+export interface IApiKeyValidator extends IDomainValidator<ApiKey> {
+  // Any additional methods specific to API key validation
+}
+
+/**
  * Validator for API keys
  */
-export class ApiKeyValidator extends StringValidator {
+@injectable()
+export class ApiKeyValidator extends StringValidator implements IApiKeyValidator {
   private readonly minLength: number;
   private readonly forbiddenPatterns: RegExp[];
   
-  constructor(minLength = 20, forbiddenPatterns: string[] = ["placeholder", "api-key"]) {
+  // Dependencies can be injected via constructor
+  constructor(
+    @inject(TYPES.ValidationConfig) config: { apiKeyMinLength: number, forbiddenPatterns: string[] }
+  ) {
     super();
-    this.minLength = minLength;
-    this.forbiddenPatterns = forbiddenPatterns.map(p => new RegExp(p, "i"));
+    this.minLength = config.apiKeyMinLength || 20;
+    this.forbiddenPatterns = (config.forbiddenPatterns || ["placeholder", "api-key"])
+      .map(p => new RegExp(p, "i"));
     
     // Create the schema using Zod
     // Schema is readonly to prevent modification after initialization
@@ -245,7 +310,7 @@ export class ApiKeyValidator extends StringValidator {
 /**
  * Abstract base class for validators
  */
-export abstract class AbstractValidator<T> implements DomainValidator<T> {
+export abstract class AbstractValidator<T> implements IDomainValidator<T> {
   /**
    * The Zod schema for this validator
    * Readonly to prevent modification after initialization
@@ -303,174 +368,300 @@ export abstract class AbstractValidator<T> implements DomainValidator<T> {
 }
 ```
 
-## Factory for Validators
+## DI Container Integration
 
 ```typescript
 /**
- * Factory for creating validators
+ * Type identifiers for dependency injection
  */
-export class ValidatorFactory {
-  private static instance: ValidatorFactory;
+export const TYPES = {
+  // Core validators
+  StringValidator: Symbol("StringValidator"),
+  NumberValidator: Symbol("NumberValidator"),
   
-  // Singleton instances of validators
-  private readonly apiKeyValidator: ApiKeyValidator;
-  private readonly urlValidator: UrlValidator;
-  private readonly numberValidator: NumberValidator;
-  private readonly mistralConfigValidator: MistralConfigValidator;
+  // Domain-specific validators
+  ApiKeyValidator: Symbol("ApiKeyValidator"),
+  UrlValidator: Symbol("UrlValidator"),
+  MistralConfigValidator: Symbol("MistralConfigValidator"),
+  ScannerInputValidator: Symbol("ScannerInputValidator"),
   
-  private constructor() {
-    // Create base validators
-    this.apiKeyValidator = new ApiKeyValidator();
-    this.urlValidator = new UrlValidator();
-    this.numberValidator = new NumberValidator();
+  // Configuration
+  ValidationConfig: Symbol("ValidationConfig")
+};
+
+/**
+ * Register all validators in the DI container
+ */
+export function registerValidators(container: Container): void {
+  // Register configuration
+  container.bind<ValidationConfig>(TYPES.ValidationConfig).toConstantValue({
+    apiKeyMinLength: 20,
+    forbiddenPatterns: ["placeholder", "api-key", "test-key"]
+  });
+  
+  // Register base validators
+  container.bind<IDomainValidator<string>>(TYPES.StringValidator)
+    .to(StringValidator)
+    .inSingletonScope();
     
-    // Create composite validators
-    this.mistralConfigValidator = new MistralConfigValidator(
-      this.apiKeyValidator,
-      this.urlValidator,
-      this.numberValidator
-    );
-  }
-  
-  /**
-   * Gets the singleton instance
-   */
-  public static getInstance(): ValidatorFactory {
-    if (!ValidatorFactory.instance) {
-      ValidatorFactory.instance = new ValidatorFactory();
-    }
-    return ValidatorFactory.instance;
-  }
-  
-  /**
-   * Gets the API key validator
-   */
-  public getApiKeyValidator(): ApiKeyValidator {
-    return this.apiKeyValidator;
-  }
-  
-  /**
-   * Gets the Mistral config validator
-   */
-  public getMistralConfigValidator(): MistralConfigValidator {
-    return this.mistralConfigValidator;
-  }
-  
-  // Add more getters for other validators...
+  container.bind<IDomainValidator<number>>(TYPES.NumberValidator)
+    .to(NumberValidator)
+    .inSingletonScope();
+    
+  // Register domain-specific validators
+  container.bind<IApiKeyValidator>(TYPES.ApiKeyValidator)
+    .to(ApiKeyValidator)
+    .inSingletonScope();
+    
+  container.bind<IDomainValidator<Url>>(TYPES.UrlValidator)
+    .to(UrlValidator)
+    .inSingletonScope();
+    
+  container.bind<IMistralConfigValidator>(TYPES.MistralConfigValidator)
+    .to(MistralConfigValidator)
+    .inSingletonScope();
+    
+  container.bind<IScannerInputValidator>(TYPES.ScannerInputValidator)
+    .to(ScannerInputValidator)
+    .inSingletonScope();
 }
 ```
 
 ## Usage Examples
 
-### Example 1: Validating an API Key
+### Example 1: Service with Injected Validator
 
 ```typescript
-// Get the validator
-const apiKeyValidator = ValidatorFactory.getInstance().getApiKeyValidator();
-
-try {
-  // Validate the key
-  const validKey = apiKeyValidator.assertValid("my-api-key-12345678901234567890");
+/**
+ * Example service with injected validator
+ */
+@injectable()
+class MistralService {
+  constructor(
+    @inject(TYPES.MistralConfigValidator) private readonly configValidator: IMistralConfigValidator,
+    @inject(TYPES.Logger) private readonly logger: ILogger
+  ) {}
   
-  // Use the validated key (now typed as ApiKey, not just string)
-  createClient(validKey);
-} catch (error) {
-  if (error instanceof ValidationError) {
-    console.error(error.getFormattedMessage());
+  /**
+   * Configures the service with validated configuration
+   */
+  public configure(config: MistralConfig): void {
+    try {
+      // Validate configuration
+      const validConfig = this.configValidator.assertValid(config);
+      
+      // Use validated config
+      this.setupClient(validConfig);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        this.logger.error("Invalid configuration", { 
+          error: error.getFormattedMessage(),
+          issues: error.issues
+        });
+      }
+      throw error;
+    }
+  }
+  
+  private setupClient(config: MistralConfig): void {
+    // Implementation...
   }
 }
 ```
 
-### Example 2: Validating a Mistral Config
+### Example 2: Factory Method Pattern
 
 ```typescript
-// Get the validator
-const configValidator = ValidatorFactory.getInstance().getMistralConfigValidator();
-
-// Config to validate
-const config: MistralConfig = {
-  apiKey: "mistral-key-12345678901234567890",
-  baseUrl: "https://api.mistral.ai",
-  timeout: 5000
-};
-
-// Using the validation result approach
-const validationError = configValidator.validate(config);
-if (validationError) {
-  console.error(validationError.getFormattedMessage());
-  return;
-}
-
-// Config is valid, proceed with it
-createMistralClient(config);
-```
-
-### Example 3: Using in a Constructor
-
-```typescript
-class MistralOCRProvider {
-  private readonly config: MistralConfig;
-  private readonly client: MistralClient;
-  
+/**
+ * Factory for creating clients with validated configs
+ */
+@injectable()
+class MistralClientFactory {
   constructor(
-    config: MistralConfig,
-    private readonly configValidator: MistralConfigValidator
-  ) {
+    @inject(TYPES.MistralConfigValidator) private readonly configValidator: IMistralConfigValidator
+  ) {}
+  
+  /**
+   * Creates a client with validated configuration
+   */
+  public createClient(config: MistralConfig): MistralClient {
     // Validate configuration
-    this.config = this.configValidator.assertValid(config);
+    const validConfig = this.configValidator.assertValid(config);
     
     // Create client with validated config
-    this.client = new MistralClient(this.config);
+    return new MistralClient(validConfig);
   }
+}
+```
+
+### Example 3: Middleware with Validation
+
+```typescript
+/**
+ * Middleware that validates request bodies
+ */
+@injectable()
+class ValidationMiddleware {
+  /**
+   * Create middleware for validating a specific request type
+   */
+  public createBodyValidator<T>(validator: IDomainValidator<T>) {
+    return (req: Request, res: Response, next: NextFunction) => {
+      try {
+        // Validate request body
+        const validBody = validator.assertValid(req.body as T);
+        
+        // Replace body with validated version
+        req.body = validBody;
+        
+        // Continue to next middleware
+        next();
+      } catch (error) {
+        if (error instanceof ValidationError) {
+          res.status(400).json({
+            error: "Validation failed",
+            details: error.issues
+          });
+        } else {
+          next(error);
+        }
+      }
+    };
+  }
+}
+
+// Usage in routes
+@injectable()
+class MistralRoutes {
+  constructor(
+    @inject(TYPES.MistralConfigValidator) private configValidator: IMistralConfigValidator,
+    @inject(TYPES.ValidationMiddleware) private validationMiddleware: ValidationMiddleware
+  ) {}
   
-  // Methods that use the validated config...
+  public register(app: Express): void {
+    app.post('/api/mistral/configure', 
+      this.validationMiddleware.createBodyValidator(this.configValidator),
+      (req, res) => {
+        // Body is already validated
+        const config = req.body as MistralConfig;
+        // Handle request...
+      }
+    );
+  }
 }
 ```
 
 ## Benefits of This Approach
 
-1. **Clear Responsibility Separation**: Each validator is responsible for a specific type
-2. **Composition**: Complex validators are built by composing simpler ones
-3. **Reusability**: Base validators can be reused across different contexts
-4. **Strong Typing**: All methods work with strongly-typed inputs and outputs
-5. **Extensibility**: Easy to add custom validation rules to each validator
-6. **Testability**: Each validator can be tested in isolation
-7. **Dependency Injection**: Validators can be injected into services
-8. **Inheritance**: Common validation logic can be shared through inheritance
+1. **Single Responsibility**: Each validator has exactly one job
+2. **Open/Closed**: System is open for extension, closed for modification
+3. **Liskov Substitution**: Validators are interchangeable when used through interfaces
+4. **Interface Segregation**: Slim interfaces with just what clients need
+5. **Dependency Inversion**: High-level components depend on abstractions
+6. **Composition Over Inheritance**: Complex validators are built by composing simpler ones
+7. **Dependency Injection**: All dependencies are explicitly declared and injected
+8. **Testability**: Easy to create mocks and test validators in isolation
 9. **Immutability**: Schemas are readonly to prevent accidental modification
+10. **KISS Principle**: Simple, understandable interfaces without unnecessary complexity
 
-## Integration with Dependency Injection
+## Testing Strategies
+
+### Unit Testing Validators
 
 ```typescript
-// Register validators in DI container
-container.bind<ApiKeyValidator>(TYPES.ApiKeyValidator)
-  .to(ApiKeyValidator)
-  .inSingletonScope();
-
-container.bind<UrlValidator>(TYPES.UrlValidator)
-  .to(UrlValidator)
-  .inSingletonScope();
-
-container.bind<MistralConfigValidator>(TYPES.MistralConfigValidator)
-  .to(MistralConfigValidator)
-  .inSingletonScope();
-
-// Use validators in services
-@injectable()
-class MistralService {
-  constructor(
-    @inject(TYPES.MistralConfigValidator) private configValidator: MistralConfigValidator
-  ) {}
+describe('ApiKeyValidator', () => {
+  let validator: IApiKeyValidator;
+  let mockConfig: ValidationConfig;
   
-  public configure(config: MistralConfig): void {
-    const validConfig = this.configValidator.assertValid(config);
-    // Use valid config...
-  }
-}
+  beforeEach(() => {
+    // Setup test configuration
+    mockConfig = {
+      apiKeyMinLength: 20,
+      forbiddenPatterns: ['test', 'placeholder']
+    };
+    
+    // Create validator with mock config
+    validator = new ApiKeyValidator(mockConfig);
+  });
+  
+  it('should accept valid API keys', () => {
+    const key = 'valid-api-key-12345678901234';
+    expect(() => validator.assertValid(key)).not.toThrow();
+  });
+  
+  it('should reject keys that are too short', () => {
+    const key = 'short-key';
+    expect(() => validator.assertValid(key)).toThrow(ValidationError);
+  });
+  
+  it('should reject keys containing forbidden patterns', () => {
+    const key = 'this-is-a-test-api-key-123456789';
+    expect(() => validator.assertValid(key)).toThrow(ValidationError);
+  });
+});
+```
+
+### Mocking Validators for Service Tests
+
+```typescript
+describe('MistralService', () => {
+  let service: MistralService;
+  let mockValidator: IMistralConfigValidator;
+  let mockLogger: ILogger;
+  
+  beforeEach(() => {
+    // Create mock validator
+    mockValidator = {
+      assertValid: jest.fn(config => config),
+      validate: jest.fn(config => undefined)
+    };
+    
+    // Create mock logger
+    mockLogger = {
+      error: jest.fn(),
+      info: jest.fn(),
+      debug: jest.fn()
+    };
+    
+    // Create service with mocks
+    service = new MistralService(mockValidator, mockLogger);
+  });
+  
+  it('should validate configuration when configuring', () => {
+    // Arrange
+    const config = { apiKey: 'test-key', timeout: 5000 };
+    
+    // Act
+    service.configure(config);
+    
+    // Assert
+    expect(mockValidator.assertValid).toHaveBeenCalledWith(config);
+  });
+  
+  it('should log and rethrow validation errors', () => {
+    // Arrange
+    const config = { apiKey: 'test-key', timeout: 5000 };
+    const error = new ValidationError('Validation failed', [], config);
+    mockValidator.assertValid = jest.fn().mockImplementation(() => {
+      throw error;
+    });
+    
+    // Act and Assert
+    expect(() => service.configure(config)).toThrow(ValidationError);
+    expect(mockLogger.error).toHaveBeenCalled();
+  });
+});
 ```
 
 ## Conclusion
 
-This object-oriented approach to validation provides a clean, modular, and extensible system for validating data in the application. By using composition and inheritance, we can build complex validation rules from simple ones while maintaining strong typing throughout the system.
+This validation system follows SOLID principles and the KISS methodology to create a clean, maintainable architecture:
 
-The approach leverages Zod's schema validation under the hood but provides a more OOP-friendly API that fits well with dependency injection frameworks and promotes reuse of validation logic. The use of readonly schemas ensures immutability of validation rules after initialization, making validators more predictable and thread-safe.
+1. **Object-Oriented Approach**: Uses interfaces and classes to model different validation concerns
+2. **Dependency Injection**: All dependencies are explicitly declared and injected via constructors
+3. **Interface-Based Design**: System depends on abstractions, not concrete implementations
+4. **SOLID Compliance**: Each principle is carefully followed throughout the design
+5. **Simplicity**: Avoids unnecessary complexity while providing powerful validation capabilities
+6. **Composability**: Complex validators are built from simple ones through composition
+
+By adhering to these principles, the system achieves high maintainability, testability, and extensibility while remaining easy to understand and use.

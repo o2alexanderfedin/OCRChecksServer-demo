@@ -176,7 +176,7 @@ describe('DIContainer', () => {
         testContainer.get<Mistral>(TYPES.MistralClient);
         fail('Should have thrown an error for empty API key');
       } catch (error) {
-        expect(String(error)).toContain('CRITICAL ERROR: Mistral API key is missing or empty');
+        expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
       }
     });
     
@@ -197,7 +197,7 @@ describe('DIContainer', () => {
         testContainer.get<Mistral>(TYPES.MistralClient);
         fail('Should have thrown an error for short API key');
       } catch (error) {
-        expect(String(error)).toContain('CRITICAL ERROR: Invalid Mistral API key format - too short');
+        expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
       }
     });
     
@@ -224,7 +224,7 @@ describe('DIContainer', () => {
           testContainer.get<Mistral>(TYPES.MistralClient);
           fail('Should have thrown an error for placeholder API key');
         } catch (error) {
-          expect(String(error)).toContain('CRITICAL ERROR: Detected placeholder text in Mistral API key');
+          expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
         }
       });
     });

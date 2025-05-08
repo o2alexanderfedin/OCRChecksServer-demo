@@ -13,6 +13,40 @@ import { TYPES as VALIDATOR_TYPES } from '../validators';
 // Import Buffer from the buffer package - this will be available in all environments including Cloudflare Workers
 import { Buffer } from 'buffer';
 
+// Simple Buffer polyfill for environments that don't have Buffer available (like Cloudflare Workers)
+// This will only be used if Buffer is not already defined
+if (typeof Buffer === 'undefined') {
+  // @ts-ignore
+  globalThis.Buffer = {
+    from: (data: any): { toString: (encoding: string) => string } => {
+      if (typeof data === 'string') {
+        return {
+          toString: (encoding: string) => {
+            if (encoding === 'base64') {
+              return btoa(data);
+            }
+            return data;
+          }
+        };
+      }
+      if (data instanceof Uint8Array) {
+        return {
+          toString: (encoding: string) => {
+            if (encoding === 'base64') {
+              return btoa(Array.from(data)
+                .map(b => String.fromCharCode(b))
+                .join(''));
+            }
+            return '';
+          }
+        };
+      }
+      return { toString: () => '' };
+    },
+    isBuffer: () => false
+  };
+}
+
 /**
  * Utility function to get the byte length of various content types
  * 

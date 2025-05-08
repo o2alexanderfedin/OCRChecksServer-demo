@@ -1,7 +1,8 @@
 // Import required modules
 import fs from 'fs';
 import path from 'path';
-import { TestDIContainer, TYPES } from '../../../src/di/index.js';
+import { TestDIContainer } from '../../../src/di/index.js';
+import { TYPES } from '../../../src/types/di-types.js';
 import { workerIoE } from '../../../src/io.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';

@@ -27,7 +27,7 @@ function getContentByteLength(content: ArrayBuffer | File | Buffer | string): nu
         return -1;
     } else if (content instanceof File) {
         return content.size;
-    } else if (Buffer.isBuffer(content)) {
+    } else if (typeof Buffer !== 'undefined' && Buffer.isBuffer && Buffer.isBuffer(content)) {
         return content.byteLength;
     }
     return -1;
@@ -42,7 +42,7 @@ function getContentByteLength(content: ArrayBuffer | File | Buffer | string): nu
 function contentToArrayBuffer(content: ArrayBuffer | File | Buffer | string): ArrayBuffer {
     if (content instanceof ArrayBuffer) {
         return content;
-    } else if (Buffer.isBuffer(content)) {
+    } else if (typeof Buffer !== 'undefined' && Buffer.isBuffer && Buffer.isBuffer(content)) {
         return content.buffer.slice(
             content.byteOffset,
             content.byteOffset + content.byteLength

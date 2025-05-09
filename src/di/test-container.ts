@@ -21,6 +21,9 @@ export function createMockMistral(options: {
   // Create a real Mistral instance that will pass instanceof checks
   const mistralInstance = new Mistral({ apiKey });
   
+  // Explicitly set the apiKey property for access in MistralOCRProvider
+  (mistralInstance as any).apiKey = apiKey;
+  
   // Default OCR process implementation
   const defaultOcrProcess = async () => ({
     model: 'mistral-ocr-latest',

@@ -110,7 +110,7 @@ export class MistralOCRProvider implements OCRProvider {
                     console.error('[MISTRAL DEBUG] Error getting client details:', debugError);
                 }
                 
-                return ['error', new Error('Mistral API authentication error: API key is missing or empty')] as const;
+                return ['error', new Error('Mistral API authentication error')] as const;
             }
             
             // Check for Mistral client features

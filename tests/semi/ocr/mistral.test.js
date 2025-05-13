@@ -34,7 +34,7 @@ describe('MistralOCR Semi-Integration', () => {
     console.log('Initializing TestDIContainer with mock Mistral client');
     
     // Create a test container with mock Mistral client
-    container = new TestDIContainer().registerMistralDependencies(
+    container = TestDIContainer.createForTests(
       testIo, 
       'test_valid_api_key_123456789012345678901234567890'
     );

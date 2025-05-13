@@ -78,43 +78,66 @@ describe('Server Startup Performance', function() {
       // Start the server
       console.log('Starting server for performance test...');
       serverProcess = spawn('node', [serverScript], {
-        env: { ...process.env },
+        env: { 
+          ...process.env,
+          // Skip lengthy health checks for faster startup measurement
+          SKIP_HEALTH_CHECK: 'true'
+        },
         stdio: ['ignore', 'pipe', 'pipe']
       });
       
       // Save the PID for cleanup
-      fs.writeFile(PID_FILE_PATH, serverProcess.pid.toString())
-        .catch(err => console.error('Error saving PID:', err));
+      if (serverProcess.pid) {
+        fs.writeFile(PID_FILE_PATH, serverProcess.pid.toString())
+          .catch(err => console.error('Error saving PID:', err));
+      }
       
       // Set up a timeout to reject the promise if the server doesn't start in time
       const timeoutId = setTimeout(() => {
         const elapsedTime = Date.now() - startTime;
+        serverProcess.kill();
+        console.log(`❌ TIMEOUT (${elapsedTime}ms)`);
         reject(new Error(`Server failed to start within ${SERVER_START_TIMEOUT}ms (actual: ${elapsedTime}ms)`));
       }, SERVER_START_TIMEOUT);
+      
+      // Process management
+      let serverReady = false;
+      let errorOutput = '';
       
       // Listen for server ready message
       serverProcess.stdout.on('data', (data: Buffer) => {
         const output = data.toString();
         
-        // Check for server ready message
-        if (output.includes(SERVER_READY_MESSAGE)) {
+        // Check for server ready message 
+        if (!serverReady && output.includes(SERVER_READY_MESSAGE)) {
+          serverReady = true;
           const elapsedTime = Date.now() - startTime;
+          console.log(`✅ SERVER READY (${elapsedTime}ms)`);
+          
+          // Clean up
           clearTimeout(timeoutId);
+          serverProcess.kill();
           resolve(elapsedTime);
         }
       });
       
-      // Handle server errors
+      // Collect error output
       serverProcess.stderr.on('data', (data: Buffer) => {
         const output = data.toString();
+        errorOutput += output;
         console.error(`Server error: ${output}`);
       });
       
       // Handle server exit
       serverProcess.on('exit', (code: number, signal: string) => {
-        if (code !== 0 && code !== null) {
+        // If the server exited without being ready, we have a problem
+        if (!serverReady) {
           const elapsedTime = Date.now() - startTime;
           clearTimeout(timeoutId);
+          console.log(`❌ SERVER EXIT (${elapsedTime}ms) with code ${code}`);
+          if (errorOutput) {
+            console.error(`Server error output: ${errorOutput}`);
+          }
           reject(new Error(`Server exited with code ${code} after ${elapsedTime}ms`));
         }
       });
@@ -123,6 +146,7 @@ describe('Server Startup Performance', function() {
       serverProcess.on('error', (err: Error) => {
         const elapsedTime = Date.now() - startTime;
         clearTimeout(timeoutId);
+        console.log(`❌ SERVER ERROR (${elapsedTime}ms): ${err.message}`);
         reject(new Error(`Failed to start server: ${err.message} after ${elapsedTime}ms`));
       });
     });

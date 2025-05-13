@@ -10,6 +10,33 @@ const getBufferImpl = () => {
     return globalThis.Buffer;
   }
   
+  // Define polyfill for environments without Buffer
+  if (typeof globalThis !== 'undefined' && !globalThis.Buffer) {
+    // Simple polyfill for environments without Buffer
+    // We need to cast to any because we're not implementing the full Buffer interface
+    (globalThis.Buffer as any) = {
+      from: (data: Uint8Array | string) => {
+        return {
+          toString: (encoding: string) => {
+            if (encoding === 'base64' && typeof data === 'string') {
+              return btoa(data);
+            }
+            if (encoding === 'base64' && data instanceof Uint8Array) {
+              const binary = Array.from(data)
+                .map(b => String.fromCharCode(b))
+                .join('');
+              return btoa(binary);
+            }
+            return '';
+          },
+          byteLength: data.length || 0
+        };
+      },
+      isBuffer: (obj: any): boolean => false
+    };
+    return globalThis.Buffer;
+  }
+  
   // Try to require buffer module (Node.js)
   try {
     const bufferModule = require('buffer');
@@ -27,7 +54,7 @@ const BufferImpl = getBufferImpl();
  * @param obj Object to check
  * @returns True if the object is a Buffer
  */
-export function isBuffer(obj: any): boolean {
+export function isBuffer(obj: any): obj is Buffer {
   // Use Buffer.isBuffer if available
   if (BufferImpl && typeof BufferImpl.isBuffer === 'function') {
     return BufferImpl.isBuffer(obj);

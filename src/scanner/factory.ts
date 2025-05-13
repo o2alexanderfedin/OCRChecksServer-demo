@@ -22,7 +22,7 @@ export class ScannerFactory {
     console.log(`[ScannerFactory::${caller ?? "createDIContainer"}] Mistral API key: ${apiKey ? apiKey.substring(0, 4) + '...' : 'undefined'}`);
 
     // Create DI container with all dependencies registered
-    const container = new DIContainer().registerMistralDependencies(io, apiKey, caller ?? 'createDIContainer');
+    const container = new DIContainer().registerDependencies(io, apiKey, caller ?? 'createDIContainer');
     
     // Get and return a fully configured DIContainer
     return container;

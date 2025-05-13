@@ -354,13 +354,46 @@ app.post('/receipt', async (c) => {
   }
 });
 
-// Health check endpoint for testing server availability
-app.get('/health', () => {
+// Health check endpoint for testing server availability and API key configuration
+app.get('/health', (c) => {
+  // Check Mistral API key status
+  let apiKeyStatus = {
+    configured: false,
+    message: 'Mistral API key not configured'
+  };
+  
+  if (c.env.MISTRAL_API_KEY) {
+    // Basic validation of the key
+    const keyLength = c.env.MISTRAL_API_KEY.length;
+    
+    if (keyLength < 20) {
+      apiKeyStatus = {
+        configured: false,
+        message: `Invalid API key format - too short (${keyLength} chars)`
+      };
+    } else {
+      // Check for obviously invalid placeholder keys
+      const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
+      if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
+        apiKeyStatus = {
+          configured: false,
+          message: 'Detected placeholder text in Mistral API key'
+        };
+      } else {
+        apiKeyStatus = {
+          configured: true, 
+          message: `API key configured (first 4 chars: ${c.env.MISTRAL_API_KEY.substring(0, 4)}...)`
+        };
+      }
+    }
+  }
+  
   // Create health response with proper Date object as per HealthResponse interface
   return new Response(JSON.stringify({
     status: 'ok',
     timestamp: new Date(),
-    version: pkg.version
+    version: pkg.version,
+    mistralApiKeyStatus: apiKeyStatus
   }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' }

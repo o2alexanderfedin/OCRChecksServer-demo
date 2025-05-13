@@ -73,6 +73,21 @@ if [ $HEALTH_STATUS -eq 0 ]; then
         echo -e "  ${RED}✗ Version is incorrect. Expected 1.27.0, got ${VERSION}${NC}"
     fi
     
+    # Check for Mistral API key status in health response
+    if echo "$HEALTH_RESPONSE" | grep -q '"mistralApiKeyStatus"'; then
+        API_KEY_CONFIGURED=$(echo $HEALTH_RESPONSE | grep -o '"configured":[^,}]*' | cut -d':' -f2)
+        API_KEY_MESSAGE=$(echo $HEALTH_RESPONSE | grep -o '"message":"[^"]*"' | cut -d'"' -f4)
+        
+        if [ "$API_KEY_CONFIGURED" == "true" ]; then
+            echo -e "  ${GREEN}✓ Mistral API key is properly configured${NC}"
+        else
+            echo -e "  ${RED}✗ Mistral API key issue: ${API_KEY_MESSAGE}${NC}"
+        fi
+    else
+        echo -e "  ${YELLOW}⚠ Health endpoint doesn't report Mistral API key status${NC}"
+        echo -e "    This may indicate an older server version without API key status checking."
+    fi
+    
     # Display full health response
     echo -e "\n  Health response:"
     echo $HEALTH_RESPONSE | python3 -m json.tool
@@ -245,7 +260,15 @@ echo "=============================================="
 echo -e "\n${YELLOW}Test Summary:${NC}"
 
 if [ $HEALTH_STATUS -eq 0 ]; then
-    echo -e "Health Check: ${GREEN}PASSED${NC}"
+    API_KEY_TEXT=""
+    if [ -n "$API_KEY_CONFIGURED" ]; then
+        if [ "$API_KEY_CONFIGURED" == "true" ]; then
+            API_KEY_TEXT=" (API Key: ${GREEN}OK${NC})"
+        else
+            API_KEY_TEXT=" (API Key: ${RED}MISSING${NC})"
+        fi
+    fi
+    echo -e "Health Check: ${GREEN}PASSED${NC}${API_KEY_TEXT}"
 else
     echo -e "Health Check: ${RED}FAILED${NC}"
 fi
@@ -295,6 +318,8 @@ if [ "$1" == "--save" ]; then
   \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\",
   \"baseUrl\": \"${BASE_URL}\",
   \"version\": \"${VERSION}\",
+  $([ -n "$API_KEY_CONFIGURED" ] && echo "  \"apiKeyConfigured\": $API_KEY_CONFIGURED,
+  \"apiKeyMessage\": \"$API_KEY_MESSAGE\",")
   \"tests\": {
     \"health\": {
       \"status\": $HEALTH_STATUS,
@@ -315,11 +340,24 @@ fi
 
 # Print details about deployment issues based on test results
 echo -e "\n${YELLOW}Deployment Analysis:${NC}"
+
+# Check version match
 if [ "$VERSION" != "1.27.0" ]; then
     echo -e "${RED}• The deployed version (${VERSION}) doesn't match the expected version (1.27.0)${NC}"
     echo -e "  This indicates that the latest code hasn't been deployed to Cloudflare Workers."
 fi
 
+# Check API key status if reported by health endpoint
+if [ -n "$API_KEY_CONFIGURED" ]; then
+    if [ "$API_KEY_CONFIGURED" == "true" ]; then
+        echo -e "${GREEN}• Mistral API key is properly configured in the worker.${NC}"
+    else
+        echo -e "${RED}• Mistral API key issue: ${API_KEY_MESSAGE}${NC}"
+        echo -e "  This will prevent OCR and document processing from working correctly."
+    fi
+fi
+
+# Check direct Mistral API test vs worker behavior
 if [ "$RUN_MISTRAL_TEST" = true ] && [ $MISTRAL_STATUS -eq 0 ] && ! echo "$MISTRAL_RESPONSE" | grep -q '"error"'; then
     if [ $CHECK_STATUS -eq 0 ] && echo "$CHECK_RESPONSE" | grep -q '"error"'; then
         echo -e "${YELLOW}• Mistral API is working directly, but fails through the worker${NC}"

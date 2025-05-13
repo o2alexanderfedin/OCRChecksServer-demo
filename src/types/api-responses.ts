@@ -88,4 +88,11 @@ export interface HealthResponse {
   timestamp: Date;
   /** Version of the API */
   version: string;
+  /** Mistral API key status */
+  mistralApiKeyStatus?: {
+    /** Whether the Mistral API key is configured */
+    configured: boolean;
+    /** Brief message about the API key status */
+    message: string;
+  };
 }

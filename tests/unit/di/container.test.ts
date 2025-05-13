@@ -183,7 +183,7 @@ describe('DIContainer', () => {
         testContainer.get<Mistral>(TYPES.MistralClient);
         fail('Should have thrown an error for empty API key');
       } catch (error) {
-        expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
+        expect(String(error)).toContain('CRITICAL ERROR: Mistral API key is missing or empty');
       }
     });
     
@@ -204,7 +204,7 @@ describe('DIContainer', () => {
         testContainer.get<Mistral>(TYPES.MistralClient);
         fail('Should have thrown an error for short API key');
       } catch (error) {
-        expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
+        expect(String(error)).toContain('CRITICAL ERROR: Mistral API key is too short');
       }
     });
     

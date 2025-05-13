@@ -11,17 +11,33 @@ import { DocumentScanner } from './types';
  */
 export class ScannerFactory {
   /**
+   * Create a DI container populated with IO and Mistral API key
+   * 
+   * @param io - The IO interface for network operations
+   * @param apiKey - Mistral API key
+   * @param caller - caller of the method
+   * @returns A DIContainer instance
+   */
+  public static createDIContainer(io: IoE, apiKey: string, caller?: string): DIContainer {
+    console.log(`[ScannerFactory::${caller ?? "createDIContainer"}] Mistral API key: ${apiKey ? apiKey.substring(0, 4) + '...' : 'undefined'}`);
+
+    // Create DI container with all dependencies registered
+    const container = new DIContainer().registerMistralDependencies(io, apiKey, caller ?? 'createDIContainer');
+    
+    // Get and return a fully configured DIContainer
+    return container;
+  }
+
+  /**
    * Create a receipt scanner using Mistral for both OCR and JSON extraction
    * 
    * @param io - The IO interface for network operations
    * @param apiKey - Mistral API key
    * @returns A ReceiptScanner instance
    */
-  static createMistralReceiptScanner(io: IoE, apiKey: string): ReceiptScanner {
-    console.log(`[ScannerFactory::createMistralReceiptScanner] Mistral API key: ${apiKey ? apiKey.substring(0, 4) + '...' : 'undefined'}`);
-
+  public static createMistralReceiptScanner(io: IoE, apiKey: string): ReceiptScanner {
     // Create DI container with all dependencies registered
-    const container = new DIContainer().registerMistralDependencies(io, apiKey);
+    const container = this.createDIContainer(io, apiKey, "createMistralReceiptScanner");
     
     // Get and return a fully configured ReceiptScanner
     return container.get<ReceiptScanner>(TYPES.ReceiptScanner);
@@ -34,11 +50,9 @@ export class ScannerFactory {
    * @param apiKey - Mistral API key
    * @returns A CheckScanner instance
    */
-  static createMistralCheckScanner(io: IoE, apiKey: string): CheckScanner {
-    console.log(`[ScannerFactory::createMistralCheckScanner] Mistral API key: ${apiKey ? apiKey.substring(0, 4) + '...' : 'undefined'}`);
-
+  public static createMistralCheckScanner(io: IoE, apiKey: string): CheckScanner {
     // Create DI container with all dependencies registered
-    const container = new DIContainer().registerMistralDependencies(io, apiKey);
+    const container = this.createDIContainer(io, apiKey, "createMistralCheckScanner");
     
     // Get and return a fully configured CheckScanner
     return container.get<CheckScanner>(TYPES.CheckScanner);
@@ -52,7 +66,7 @@ export class ScannerFactory {
    * @param documentType - The type of document to process ('check' or 'receipt')
    * @returns A DocumentScanner instance
    */
-  static createScannerByType(io: IoE, apiKey: string, documentType: 'check' | 'receipt'): DocumentScanner {
+  public static createScannerByType(io: IoE, apiKey: string, documentType: 'check' | 'receipt'): DocumentScanner {
     if (documentType === 'check') {
       return this.createMistralCheckScanner(io, apiKey);
     } else {

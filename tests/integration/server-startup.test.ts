@@ -30,8 +30,9 @@ const serverScript = pathResolve(projectRoot, 'scripts', 'start-server.js');
 const PID_FILE_PATH = pathResolve(projectRoot, '.server-startup-test-pid');
 
 describe('Server Startup Performance', function() {
-  // Set a timeout slightly longer than our expected startup time
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = SERVER_START_TIMEOUT + 5000;
+  // Set a timeout just slightly longer than our maximum allowed startup time
+  // Add just 1 second for test overhead (process spawning, cleanup, etc)
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = SERVER_START_TIMEOUT + 1000;
   
   let serverProcess: any = null;
   let startTime: number;

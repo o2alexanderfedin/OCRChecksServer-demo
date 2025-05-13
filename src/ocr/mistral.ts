@@ -36,12 +36,9 @@ export class MistralOCRProvider implements OCRProvider {
         this.client = client;
         this.io = io;
         
-        // Log diagnostic information about the client
-        // @ts-ignore - accessing private field for validation
-        const apiKey = client.apiKey || (client as any).apiKey || '';
-        const maskedKey = apiKey ? `${apiKey.substring(0, 4)}****` : 'none';
-        const keyLength = apiKey ? apiKey.length : 0;
-        console.log(`MistralOCRProvider using API key: ${maskedKey} (length: ${keyLength})`);
+        // Log that the provider has been initialized with the client
+        // The client already has the API key configured properly through its constructor
+        console.log(`MistralOCRProvider initialized with Mistral client`);
     }
 
     /**
@@ -94,25 +91,8 @@ export class MistralOCRProvider implements OCRProvider {
             docSize: getContentByteLength(doc.content)
         });
         
-        // Enhanced API key validation - access the private field and log details
+        // Validate Mistral client has required methods
         try {
-            // Enhanced API key validation - access the private field and log details
-            // @ts-ignore - accessing private field for validation
-            const apiKey = this.client.apiKey || (this.client as any).apiKey;
-            if (!apiKey) {
-                // Log more debug information
-                console.error(`[MISTRAL DEBUG] API key validation failed - empty key detected`);
-                console.error(`[MISTRAL DEBUG] Client type: ${this.client.constructor.name}`);
-                try {
-                    console.error(`[MISTRAL DEBUG] Client toString: ${this.client.toString()}`);
-                    console.error(`[MISTRAL DEBUG] Client keys: ${Object.keys(this.client).join(', ')}`);
-                } catch (debugError) {
-                    console.error('[MISTRAL DEBUG] Error getting client details:', debugError);
-                }
-                
-                return ['error', new Error('Mistral API authentication error')] as const;
-            }
-            
             // Check for Mistral client features
             if (!this.client.ocr || typeof this.client.ocr.process !== 'function') {
                 this.io.error(`Mistral client missing OCR method: ${JSON.stringify({
@@ -125,19 +105,9 @@ export class MistralOCRProvider implements OCRProvider {
                 return ['error', new Error('Mistral client does not support OCR processing')] as const;
             }
 
-            // Log detailed client information
+            // Log detailed client information (without accessing private fields)
             this.io.debug('Mistral Client Info:', {
                 clientType: this.client.constructor.name,
-                // @ts-ignore - accessing private fields for debugging
-                apiBaseUrl: this.client._baseURL || 'default (https://api.mistral.ai/v1)',
-                apiKeyFirstChars: apiKey.substring(0, 4) + '...',
-                apiKeyLength: apiKey.length,
-                // @ts-ignore - accessing private fields for debugging
-                apiHost: this.client._options?.baseURL || 'default (api.mistral.ai)',
-                // @ts-ignore - accessing private fields for debugging
-                apiVersion: this.client._options?.apiVersion || 'default (v1)',
-                // @ts-ignore - accessing private fields for debugging
-                withCredentials: !!this.client._options?.withCredentials || false,
                 ocrProcessEndpoint: 'https://api.mistral.ai/v1/ocr/process',
                 // Environment information for debugging
                 nodeJsEnvironment: typeof process !== 'undefined' ? 'Yes' : 'No',

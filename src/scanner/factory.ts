@@ -1,7 +1,8 @@
 import { IoE } from '../ocr/types';
 import { ReceiptScanner } from './receipt-scanner';
 import { CheckScanner } from './check-scanner';
-import { DIContainer, TYPES } from '../di/container';
+import { DIContainer } from '../di/container';
+import { TYPES } from '../types/di-types';
 import { DocumentScanner } from './types';
 
 /**

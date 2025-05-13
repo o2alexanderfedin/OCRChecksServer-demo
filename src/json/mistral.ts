@@ -2,10 +2,15 @@ import type { Result } from 'functionalscript/types/result/module.f.js'
 import { Mistral } from '@mistralai/mistralai'
 import type { IoE } from '../ocr/types'
 import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './types'
+import { injectable, inject } from 'inversify';
+import { TYPES as VALIDATOR_TYPES } from '../validators';
+import { TYPES } from '../types/di-types';
 
 /**
  * Mistral JSON extractor implementation
  */
+
+@injectable()
 export class MistralJsonExtractorProvider implements JsonExtractor {
     private readonly client: Mistral
     private readonly io: IoE
@@ -15,7 +20,10 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
      * @param io I/O interface for network operations
      * @param client Mistral client instance
      */
-    constructor(io: IoE, client: Mistral) {
+    constructor(
+        @inject(TYPES.IoE) io: IoE, 
+        @inject(TYPES.MistralClient) client: Mistral
+    ) {
         this.io = io
         this.client = client
         

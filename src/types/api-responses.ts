@@ -79,8 +79,13 @@ export interface ErrorResponse {
 export interface HealthResponse {
   /** Status of the service */
   status: 'ok' | 'error';
-  /** Timestamp when the health check was performed */
-  timestamp: string;
+  /** 
+   * Timestamp when the health check was performed
+   * 
+   * @type ISO 8601 formatted date-time string stored as JavaScript Date object
+   * Serialized using toISOString() when sent in responses
+   */
+  timestamp: Date;
   /** Version of the API */
   version: string;
 }

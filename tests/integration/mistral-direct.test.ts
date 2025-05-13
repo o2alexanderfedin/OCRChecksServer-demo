@@ -8,11 +8,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../');
 
-// Get API key from environment variables or wrangler.toml
-const wranglerPath = path.join(projectRoot, 'wrangler.toml');
-const wranglerContent = fs.readFileSync(wranglerPath, 'utf-8');
-const match = wranglerContent.match(/MISTRAL_API_KEY\s*=\s*"([^"]+)"/);
-const MISTRAL_API_KEY = match ? match[1] : process.env.MISTRAL_API_KEY;
+// Get API key from environment variables
+// Note: .dev.vars should already be loaded by run-tests.js or start-server.js
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
 describe('Mistral Direct API Test', function() {
   // Set timeout for API calls

@@ -8,11 +8,14 @@ import { Check, BankAccountType, CheckType } from '../schemas/check';
 import { JsonExtractor, JsonSchema } from '../types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { CheckExtractor as ICheckExtractor } from './types';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../../types/di-types';
 
 /**
  * Class for extracting check data from OCR text
  * Implements the CheckExtractor interface
  */
+@injectable()
 export class CheckExtractor implements ICheckExtractor {
   private jsonExtractor: JsonExtractor;
 
@@ -21,7 +24,9 @@ export class CheckExtractor implements ICheckExtractor {
    * 
    * @param jsonExtractor - The JSON extractor to use
    */
-  constructor(jsonExtractor: JsonExtractor) {
+  constructor(
+    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor
+  ) {
     this.jsonExtractor = jsonExtractor;
   }
 
@@ -153,13 +158,13 @@ Provide confidence levels for the extracted data where appropriate.
     // Make a copy to avoid modifying the original
     const normalized = { ...check };
 
-    // Normalize date if provided but not in ISO format
-    if (normalized.date && !normalized.date.includes('-')) {
+    // Ensure date is a Date object
+    if (normalized.date && !(normalized.date instanceof Date)) {
       try {
-        // Simple attempt to convert to ISO format if it's a valid date
+        // Convert to Date object if it's not already
         const date = new Date(normalized.date);
         if (!isNaN(date.getTime())) {
-          normalized.date = date.toISOString().substring(0, 10);
+          normalized.date = date;
         }
       } catch {
         // Keep original if conversion fails

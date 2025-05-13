@@ -70,11 +70,11 @@ describe('Modern Extractors Direct Usage Tests', () => {
         },
         receiptNumber: "T-59385",
         receiptType: ReceiptType.Sale,
-        timestamp: "2025-04-28T15:30:45Z",
+        timestamp: new Date("2025-04-28T15:30:45Z"),
         totals: {
-          subtotal: 42.97,
-          tax: 3.44,
-          total: 46.41
+          subtotal: "42.97",
+          tax: "3.44",
+          total: "46.41"
         },
         currency: "USD",
         items: [
@@ -82,21 +82,21 @@ describe('Modern Extractors Direct Usage Tests', () => {
             description: "Organic Bananas",
             quantity: 1.20,
             unit: "kg",
-            unitPrice: 2.99,
-            totalPrice: 3.59
+            unitPrice: "2.99",
+            totalPrice: "3.59"
           },
           {
             description: "Whole Milk",
             quantity: 2,
-            unitPrice: 3.49,
-            totalPrice: 6.98
+            unitPrice: "3.49",
+            totalPrice: "6.98"
           }
         ],
         taxes: [
           {
             taxName: "CA State Tax",
-            taxRate: 0.08,
-            taxAmount: 3.44
+            taxRate: "0.08",
+            taxAmount: "3.44"
           }
         ],
         payments: [
@@ -104,7 +104,7 @@ describe('Modern Extractors Direct Usage Tests', () => {
             method: PaymentMethod.Credit,
             cardType: CardType.Visa,
             lastDigits: "1234",
-            amount: 46.41,
+            amount: "46.41",
             transactionId: "TX78965412"
           }
         ],
@@ -132,7 +132,7 @@ describe('Modern Extractors Direct Usage Tests', () => {
         const receipt = result[1].json;
         expect(receipt.merchant.name).toBe("ACME SUPERMARKET");
         expect(receipt.merchant.storeId).toBe("1035");
-        expect(receipt.totals.total).toBe(46.41);
+        expect(receipt.totals.total).toBe("46.41");
         expect(receipt.items?.length).toBe(2);
         expect(receipt.payments?.[0].method).toBe(PaymentMethod.Credit);
       }
@@ -164,11 +164,11 @@ describe('Modern Extractors Direct Usage Tests', () => {
       // Create mock data that the extractor should return
       const mockExtractedCheck: Check = {
         checkNumber: '12345',
-        date: '2025-05-15',
+        date: new Date('2025-05-15'),
         payee: 'John Smith',
         payer: 'Jane Doe',
-        amount: 500.00,
-        amountText: 'Five hundred dollars and zero cents',
+        amount: '500.00',
+        // amountText is no longer part of the Check interface
         memo: 'Consulting services',
         bankName: 'First National Bank',
         routingNumber: '123456789',
@@ -200,9 +200,9 @@ describe('Modern Extractors Direct Usage Tests', () => {
 
         const check = result[1].json;
         expect(check.checkNumber).toBe('12345');
-        expect(check.date).toBe('2025-05-15');
+        expect(check.date).toBeInstanceOf(Date);
         expect(check.payee).toBe('John Smith');
-        expect(check.amount).toBe(500.00);
+        expect(check.amount).toBe('500.00');
         expect(check.bankName).toBe('First National Bank');
       }
     });

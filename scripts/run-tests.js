@@ -20,17 +20,30 @@ import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import { globSync } from 'glob';
 import { promisify } from 'util';
+import { addDevVarsToEnv } from './load-dev-vars.js';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, '..');
 
+// Load environment variables from .dev.vars before any other operations
+await addDevVarsToEnv();
+
 // Parse command line arguments
 const testType = process.argv[2]?.toLowerCase() || 'all';
 const testFilter = process.argv[3]; // Get the third argument if provided (e.g., "simple")
 const watch = process.argv.includes('--watch');
 const dryRun = process.argv.includes('--dry-run');
+
+// Set NODE_ENV based on test type for proper API key validation
+if (testType === 'integration') {
+  process.env.NODE_ENV = 'integration';
+  console.log('Setting NODE_ENV to "integration" for integration tests');
+} else {
+  process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+  console.log(`NODE_ENV set to "${process.env.NODE_ENV}"`);
+}
 
 console.log(`Test type: ${testType}, Filter: ${testFilter || 'none'}`); // Debug info
 
@@ -113,16 +126,20 @@ if (config.requiresServer) {
   console.log('Starting server for integration tests...');
   
   try {
+    // Load environment variables from .dev.vars
+    console.log('Loading environment variables from .dev.vars file...');
+    await addDevVarsToEnv();
+    
     // Check for required API key with enhanced validation
+    // The API key should now be loaded from .dev.vars already
     if (!process.env.MISTRAL_API_KEY) {
-      // Use hardcoded test API key for integration tests
-      const testApiKey = "wHAFWZ8ksDNcRseO9CWprd5EuhezolxE";
-      process.env.MISTRAL_API_KEY = testApiKey;
-      console.log('INFO: Using test API key for integration tests');
-      console.log(`API Key length: ${testApiKey.length} characters`);
-      console.log(`API Key first 4 chars: ${testApiKey.substring(0, 4)}****`);
+      console.error('ERROR: No MISTRAL_API_KEY found in .dev.vars file or environment');
+      console.error('Please add a valid Mistral API key to your .dev.vars file:');
+      console.error('MISTRAL_API_KEY=your_api_key_here');
+      console.error('Integration tests cannot run without a valid API key.');
+      process.exit(1);
     } else {
-      console.log('INFO: Using existing MISTRAL_API_KEY from environment');
+      console.log('INFO: Using MISTRAL_API_KEY from .dev.vars');
       console.log(`API Key length: ${process.env.MISTRAL_API_KEY.length} characters`);
       console.log(`API Key first 4 chars: ${process.env.MISTRAL_API_KEY.substring(0, 4)}****`);
     }
@@ -134,12 +151,18 @@ if (config.requiresServer) {
     }
     
     // Use a more robust approach to capture output
+    // Ensure API key is explicitly set in the child process environment
+    const serverEnv = { ...process.env };
+    
+    // Explicitly log what we're passing to the server
+    console.log(`API Key length: ${serverEnv.MISTRAL_API_KEY?.length || 0} characters`);
+    console.log(`API Key first 4 chars: ${serverEnv.MISTRAL_API_KEY?.substring(0, 4) || 'undefined'}****`);
+    
+    // Start the server with the complete environment
     serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
       stdio: ['inherit', 'pipe', 'inherit'],
       detached: false,
-      env: { 
-        ...process.env
-      }
+      env: serverEnv
     });
   
     // Capture and parse stdout to get the server URL

@@ -53,11 +53,11 @@ describe('Receipt Extractor Migration Tests', () => {
       },
       receiptNumber: "T-59385",
       receiptType: ReceiptType.Sale,
-      timestamp: "2025-04-28T15:30:45Z",
+      timestamp: new Date("2025-04-28T15:30:45Z"),
       totals: {
-        subtotal: 42.97,
-        tax: 3.44,
-        total: 46.41
+        subtotal: "42.97",
+        tax: "3.44",
+        total: "46.41"
       },
       currency: "USD",
       items: [
@@ -65,21 +65,21 @@ describe('Receipt Extractor Migration Tests', () => {
           description: "Organic Bananas",
           quantity: 1.20,
           unit: "kg",
-          unitPrice: 2.99,
-          totalPrice: 3.59
+          unitPrice: "2.99",
+          totalPrice: "3.59"
         },
         {
           description: "Whole Milk",
           quantity: 2,
-          unitPrice: 3.49,
-          totalPrice: 6.98
+          unitPrice: "3.49",
+          totalPrice: "6.98"
         }
       ],
       taxes: [
         {
           taxName: "CA State Tax",
-          taxRate: 0.08,
-          taxAmount: 3.44
+          taxRate: "0.08",
+          taxAmount: "3.44"
         }
       ],
       payments: [
@@ -87,7 +87,7 @@ describe('Receipt Extractor Migration Tests', () => {
           method: PaymentMethod.Credit,
           cardType: CardType.Visa,
           lastDigits: "1234",
-          amount: 46.41,
+          amount: "46.41",
           transactionId: "TX78965412"
         }
       ],
@@ -115,9 +115,9 @@ describe('Receipt Extractor Migration Tests', () => {
       const receipt = result[1].json;
       expect(receipt.merchant.name).toBe("ACME SUPERMARKET");
       expect(receipt.merchant.storeId).toBe("1035");
-      expect(receipt.totals.total).toBe(46.41);
-      expect(receipt.totals.subtotal).toBe(42.97);
-      expect(receipt.totals.tax).toBe(3.44);
+      expect(receipt.totals.total).toBe("46.41");
+      expect(receipt.totals.subtotal).toBe("42.97");
+      expect(receipt.totals.tax).toBe("3.44");
       expect(receipt.items?.length).toBe(2);
       expect(receipt.payments?.[0].method).toBe(PaymentMethod.Credit);
     }

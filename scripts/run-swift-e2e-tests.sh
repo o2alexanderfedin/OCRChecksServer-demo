@@ -77,8 +77,18 @@ fi
 if [ "$ENV" = "local" ]; then
   echo -e "${YELLOW}Starting the local server with wrangler...${NC}"
   cd "$PROJECT_ROOT" || { echo -e "${RED}Error: Could not find project root directory${NC}"; exit 1; }
-  # Use port 8789 instead of 8787 to avoid conflicts
-  npx wrangler dev --local --port 8789 &
+  
+  # Load environment variables from .dev.vars if it exists
+  if [ -f ".dev.vars" ]; then
+    echo "Loading environment variables from .dev.vars file..."
+    export $(grep -v '^#' .dev.vars | xargs)
+    echo "Variables: MISTRAL_API_KEY=${MISTRAL_API_KEY:0:4}****"
+  else
+    echo -e "${YELLOW}Warning: .dev.vars file not found. API key may not be available.${NC}"
+  fi
+  
+  # Use remote flag to ensure environment variables are loaded
+  npx wrangler dev --remote --port 8789 &
   SERVER_PID=$!
   echo $SERVER_PID > "$SERVER_PID_FILE"
 

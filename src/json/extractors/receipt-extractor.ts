@@ -8,11 +8,14 @@ import { Receipt } from '../schemas/receipt';
 import { JsonExtractor, JsonSchema } from '../types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { ReceiptExtractor as IReceiptExtractor } from './types';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../../types/di-types';
 
 /**
  * Class for extracting receipt data from OCR text
  * Implements the ReceiptExtractor interface
  */
+@injectable()
 export class ReceiptExtractor implements IReceiptExtractor {
   private jsonExtractor: JsonExtractor;
 
@@ -21,7 +24,9 @@ export class ReceiptExtractor implements IReceiptExtractor {
    * 
    * @param jsonExtractor - The JSON extractor to use
    */
-  constructor(jsonExtractor: JsonExtractor) {
+  constructor(
+    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor
+  ) {
     this.jsonExtractor = jsonExtractor;
   }
 
@@ -232,13 +237,13 @@ Provide confidence levels for the extracted data where appropriate.
       normalized.currency = normalized.currency.toUpperCase();
     }
 
-    // Normalize timestamp if provided but not in ISO format
-    if (normalized.timestamp && !normalized.timestamp.includes('T')) {
+    // Ensure timestamp is a Date object
+    if (normalized.timestamp && !(normalized.timestamp instanceof Date)) {
       try {
-        // Simple attempt to convert to ISO format if it's a valid date
+        // Convert to Date object if it's not already
         const date = new Date(normalized.timestamp);
         if (!isNaN(date.getTime())) {
-          normalized.timestamp = date.toISOString();
+          normalized.timestamp = date;
         }
       } catch {
         // Keep original if conversion fails

@@ -6,44 +6,41 @@ import 'jasmine'
 
 // Create our own simplified mock function since jasmine.createSpy might not be available
 interface MockFunction {
-    (): any;
+    (...args: any[]): any;
     calls: {
         count: number;
-        reset: () => void;
+        args: any[][];
+        reset(): void;
     };
-    mockReturnValue: (val: any) => MockFunction;
-    mockImplementation: (fn: Function) => MockFunction;
-    mockReturnedValue: any;
-    mockImplementationValue: Function | null;
+    mockReturnValue(val: any): MockFunction;
+    mockImplementation(fn: Function): MockFunction;
 }
 
 function createSpy(name: string): MockFunction {
-    const mockFn = function() {
-        mockFn.calls.count++;
-        return mockFn.mockReturnedValue;
+    const fn = function(...args: any[]) {
+        fn.calls.count++;
+        fn.calls.args.push(args);
+        return undefined;
     } as MockFunction;
     
-    mockFn.calls = {
+    fn.calls = {
         count: 0,
-        reset: function() {
+        args: [],
+        reset() {
             this.count = 0;
+            this.args = [];
         }
     };
     
-    mockFn.mockReturnValue = function(val: any) {
-        mockFn.mockReturnedValue = val;
-        return mockFn;
+    fn.mockReturnValue = function(val: any) {
+        return fn;
     };
     
-    mockFn.mockImplementation = function(fn: Function) {
-        mockFn.mockImplementationValue = fn;
-        return mockFn;
+    fn.mockImplementation = function(fn2: Function) {
+        return fn;
     };
     
-    mockFn.mockReturnedValue = undefined;
-    mockFn.mockImplementationValue = null;
-    
-    return mockFn;
+    return fn;
 }
 
 describe('MistralOCR', () => {
@@ -99,14 +96,29 @@ describe('MistralOCR', () => {
     }
 
     beforeEach(() => {
-        (mockIo.fetch as jasmine.Spy).calls.reset();
-        (mockIo.atob as jasmine.Spy).calls.reset();
-        (mockIo.log as MockFunction).calls.reset();
-        (mockIo.debug as MockFunction).calls.reset();
-        (mockIo.warn as MockFunction).calls.reset();
-        (mockIo.error as MockFunction).calls.reset();
-        (mockIo.trace as MockFunction).calls.reset();
-    })
+        // Reset all mock functions
+        if ((mockIo.fetch as any).calls && (mockIo.fetch as any).calls.reset) {
+            (mockIo.fetch as any).calls.reset();
+        }
+        if ((mockIo.atob as any).calls && (mockIo.atob as any).calls.reset) {
+            (mockIo.atob as any).calls.reset();
+        }
+        if ((mockIo.log as MockFunction).calls) {
+            (mockIo.log as MockFunction).calls.reset();
+        }
+        if ((mockIo.debug as MockFunction).calls) {
+            (mockIo.debug as MockFunction).calls.reset();
+        }
+        if ((mockIo.warn as MockFunction).calls) {
+            (mockIo.warn as MockFunction).calls.reset();
+        }
+        if ((mockIo.error as MockFunction).calls) {
+            (mockIo.error as MockFunction).calls.reset();
+        }
+        if ((mockIo.trace as MockFunction).calls) {
+            (mockIo.trace as MockFunction).calls.reset();
+        }
+    });
 
     it('should process a single image document', async () => {
         const mockResponse: OCRResponse = {
@@ -131,22 +143,22 @@ describe('MistralOCR', () => {
         // Create a mock process function
         mockClient.ocr.process = function() { return Promise.resolve(mockResponse); };
 
-        const provider = new MistralOCRProvider(mockIo, mockClient)
+        const provider = new MistralOCRProvider(mockIo, mockClient);
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
             type: DocumentType.Image
-        }])
+        }]);
 
         if (result[0] === 'error') {
             fail('Expected successful result: ' + result[1].message);
             return;
         }
 
-        expect(result[1].length).toBe(1)
-        expect(result[1][0].length).toBe(1)
-        expect(result[1][0][0].text).toBe('Sample extracted text')
-        expect(result[1][0][0].boundingBox).toBeDefined()
-    })
+        expect(result[1].length).toBe(1);
+        expect(result[1][0].length).toBe(1);
+        expect(result[1][0][0].text).toBe('Sample extracted text');
+        expect(result[1][0][0].boundingBox).toBeDefined();
+    });
 
     it('should handle API errors', async () => {
         const mockClient = new Mistral({ apiKey: 'test-key' });
@@ -156,19 +168,59 @@ describe('MistralOCR', () => {
         // Create a mock process function that rejects
         mockClient.ocr.process = function() { return Promise.reject(new Error('Bad Request')); };
 
-        const provider = new MistralOCRProvider(mockIo, mockClient)
+        const provider = new MistralOCRProvider(mockIo, mockClient);
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
             type: DocumentType.Image
-        }])
+        }]);
 
         if (result[0] === 'ok') {
             fail('Expected error result');
             return;
         }
 
-        expect(result[1].message).toContain('Bad Request')
-    })
+        expect(result[1].message).toContain('Bad Request');
+        
+        // Verify io.error was called
+        expect((mockIo.error as MockFunction).calls.count).toBeGreaterThan(0);
+    });
+    
+    it('should log detailed API error information', async () => {
+        // Reset error spy to have clean call count
+        (mockIo.error as MockFunction).calls.reset();
+        
+        const mockClient = new Mistral({ apiKey: 'test-key' });
+        // Ensure API key is set properly
+        (mockClient as any).apiKey = 'test-key';
+        
+        // Create a mock process function that rejects with specific error
+        const testError = new Error('Test API Error');
+        mockClient.ocr.process = function() { return Promise.reject(testError); };
+
+        const provider = new MistralOCRProvider(mockIo, mockClient);
+        await provider.processDocuments([{
+            content: new Uint8Array([1, 2, 3]).buffer,
+            type: DocumentType.Image
+        }]);
+        
+        // Verify error logging calls count
+        const errorCallCount = (mockIo.error as MockFunction).calls.count;
+        expect(errorCallCount).toBeGreaterThan(0);
+        
+        // Check if there's at least one call with "Detailed API error information" message
+        const detailedErrorCall = (mockIo.error as MockFunction).calls.args.find(
+            args => args[0] && typeof args[0] === 'string' && args[0].includes('Detailed API error information')
+        );
+        
+        // Verify that we have a call with the right message
+        expect(detailedErrorCall).toBeDefined();
+        
+        // Verify that the error object was passed as the second argument
+        if (detailedErrorCall) {
+            expect(detailedErrorCall.length).toBeGreaterThanOrEqual(2);
+            expect(detailedErrorCall[1]).toBeDefined();
+        }
+    });
 
     it('should handle missing API key', async () => {
         // Create a client without an API key
@@ -177,19 +229,19 @@ describe('MistralOCR', () => {
         // Make sure apiKey property is undefined
         (mockClient as any).apiKey = undefined;
         
-        const provider = new MistralOCRProvider(mockIo, mockClient)
+        const provider = new MistralOCRProvider(mockIo, mockClient);
         const result = await provider.processDocuments([{
             content: new Uint8Array([1, 2, 3]).buffer,
             type: DocumentType.Image
-        }])
+        }]);
 
         if (result[0] === 'ok') {
             fail('Expected error result due to missing API key');
             return;
         }
 
-        expect(result[1].message).toContain('Mistral API authentication error')
-    })
+        expect(result[1].message).toContain('Mistral API authentication error');
+    });
 
     it('should process multiple documents', async () => {
         const mockResponses: OCRResponse[] = [
@@ -231,19 +283,19 @@ describe('MistralOCR', () => {
         // Create a mock process function that returns different responses
         mockClient.ocr.process = function() { return Promise.resolve(mockResponses[callCount++]); };
 
-        const provider = new MistralOCRProvider(mockIo, mockClient)
+        const provider = new MistralOCRProvider(mockIo, mockClient);
         const result = await provider.processDocuments([
             { content: new Uint8Array([1, 2, 3]).buffer, type: DocumentType.Image },
             { content: new Uint8Array([4, 5, 6]).buffer, type: DocumentType.Image }
-        ])
+        ]);
 
         if (result[0] === 'error') {
             fail('Expected successful result: ' + result[1].message);
             return;
         }
 
-        expect(result[1].length).toBe(2)
-        expect(result[1][0][0].text).toBe('Text 1')
-        expect(result[1][1][0].text).toBe('Text 2')
-    })
+        expect(result[1].length).toBe(2);
+        expect(result[1][0][0].text).toBe('Text 1');
+        expect(result[1][1][0].text).toBe('Text 2');
+    });
 }) 

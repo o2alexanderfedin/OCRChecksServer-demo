@@ -3,6 +3,7 @@ import Jasmine from 'jasmine';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { spawn } from 'child_process';
+import { addDevVarsToEnv } from './load-dev-vars.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -36,6 +37,10 @@ if (!process.argv.includes('--bypass-gitflow-check')) {
     process.exit(1);
   }
 }
+
+// Load environment variables from .dev.vars
+console.log('Loading environment variables from .dev.vars file...');
+await addDevVarsToEnv();
 
 console.log('Running unit tests...');
 const jasmine = new Jasmine();

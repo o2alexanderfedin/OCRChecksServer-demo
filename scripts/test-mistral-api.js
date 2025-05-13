@@ -3,20 +3,24 @@ import { Mistral } from '@mistralai/mistralai';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { addDevVarsToEnv } from './load-dev-vars.js';
 
 // Get directory info for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-// Read API key from wrangler.toml
-const wranglerPath = path.join(projectRoot, 'wrangler.toml');
-const wranglerContent = fs.readFileSync(wranglerPath, 'utf-8');
-const match = wranglerContent.match(/MISTRAL_API_KEY\s*=\s*"([^"]+)"/);
-const MISTRAL_API_KEY = match ? match[1] : process.env.MISTRAL_API_KEY;
+// Load environment variables from .dev.vars file
+console.log('Loading environment variables from .dev.vars file...');
+await addDevVarsToEnv();
+
+// Get API key from .dev.vars (loaded into environment variables)
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
 if (!MISTRAL_API_KEY) {
-  console.error('Error: Mistral API key not found in wrangler.toml or environment variables');
+  console.error('Error: Mistral API key not found. Please add it to your .dev.vars file or set it as an environment variable.');
+  console.error('Example .dev.vars file:');
+  console.error('MISTRAL_API_KEY=your_api_key_here');
   process.exit(1);
 }
 

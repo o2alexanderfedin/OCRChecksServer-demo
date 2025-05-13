@@ -3,7 +3,8 @@ import { JsonExtractionRequest } from '../../../src/json/types'
 import { MistralJsonExtractorProvider } from '../../../src/json/mistral'
 import 'jasmine'
 import { Mistral } from '@mistralai/mistralai'
-import { TestDIContainer, TYPES } from '../../../src/di/index'
+import { TestDIContainer } from '../../../src/di/index'
+import { TYPES } from '../../../src/types/di-types'
 
 // Create our own simplified mock function since jasmine.createSpy might not be available
 interface MockFunction {

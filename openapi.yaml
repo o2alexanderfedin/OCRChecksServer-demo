@@ -102,7 +102,7 @@ paths:
                       date: "2025-04-15"
                       payee: "John Doe"
                       payer: "ABC Company"
-                      amount: 250.00
+                      amount: "250.00"
                       bankName: "First National Bank"
                       routingNumber: "123456789"
                       accountNumber: "987654321"
@@ -123,19 +123,19 @@ paths:
                         phone: "555-123-4567"
                       timestamp: "2025-04-15T14:30:00Z"
                       totals:
-                        subtotal: 7.47
-                        tax: 0.65
-                        total: 8.12
+                        subtotal: "7.47"
+                        tax: "0.65"
+                        total: "8.12"
                       currency: "USD"
                       items:
                         - description: "Organic Apples"
                           quantity: 2
-                          unitPrice: 1.99
-                          totalPrice: 3.98
+                          unitPrice: "1.99"
+                          totalPrice: "3.98"
                         - description: "Whole Grain Bread"
                           quantity: 1
-                          unitPrice: 3.49
-                          totalPrice: 3.49
+                          unitPrice: "3.49"
+                          totalPrice: "3.49"
                       confidence: 0.89
                     documentType: "receipt"
                     confidence:
@@ -207,7 +207,7 @@ paths:
                   date: "2025-04-15"
                   payee: "John Doe"
                   payer: "ABC Company"
-                  amount: 250.00
+                  amount: "250.00"
                   bankName: "First National Bank"
                   routingNumber: "123456789"
                   accountNumber: "987654321"
@@ -284,19 +284,19 @@ paths:
                     phone: "555-123-4567"
                   timestamp: "2025-04-15T14:30:00Z"
                   totals:
-                    subtotal: 7.47
-                    tax: 0.65
-                    total: 8.12
+                    subtotal: "7.47"
+                    tax: "0.65"
+                    total: "8.12"
                   currency: "USD"
                   items:
                     - description: "Organic Apples"
                       quantity: 2
-                      unitPrice: 1.99
-                      totalPrice: 3.98
+                      unitPrice: "1.99"
+                      totalPrice: "3.98"
                     - description: "Whole Grain Bread"
                       quantity: 1
-                      unitPrice: 3.49
-                      totalPrice: 3.49
+                      unitPrice: "3.49"
+                      totalPrice: "3.49"
                   confidence: 0.89
                 confidence:
                   ocr: 0.89
@@ -455,9 +455,9 @@ components:
           type: string
           description: Person or entity who wrote/signed the check
         amount:
-          type: number
-          minimum: 0
-          description: Dollar amount of the check
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Dollar amount of the check as a string to preserve exact decimal representation
         amountText:
           type: string
           description: Written text amount of the check
@@ -612,25 +612,25 @@ components:
         - total
       properties:
         subtotal:
-          type: number
-          minimum: 0
-          description: Pre-tax total amount
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Pre-tax total amount as a string to preserve exact decimal representation
         tax:
-          type: number
-          minimum: 0
-          description: Total tax amount
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Total tax amount as a string to preserve exact decimal representation
         tip:
-          type: number
-          minimum: 0
-          description: Tip/gratuity amount
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Tip/gratuity amount as a string to preserve exact decimal representation
         discount:
-          type: number
-          minimum: 0
-          description: Total discount amount
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Total discount amount as a string to preserve exact decimal representation
         total:
-          type: number
-          minimum: 0
-          description: Final total amount including tax, tip, and adjusting for discounts
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Final total amount including tax, tip, and adjusting for discounts as a string to preserve exact decimal representation
 
     ReceiptLineItem:
       type: object
@@ -654,20 +654,20 @@ components:
             - type: string
           description: Unit of measurement
         unitPrice:
-          type: number
-          minimum: 0
-          description: Price per unit
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Price per unit as a string to preserve exact decimal representation
         totalPrice:
-          type: number
-          minimum: 0
-          description: Total price for this line item
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Total price for this line item as a string to preserve exact decimal representation
         discounted:
           type: boolean
           description: Whether the item was discounted
         discountAmount:
-          type: number
-          minimum: 0
-          description: Amount of discount applied
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Amount of discount applied as a string to preserve exact decimal representation
         category:
           type: string
           description: Product category
@@ -687,14 +687,13 @@ components:
             - type: string
           description: Type of tax
         taxRate:
-          type: number
-          minimum: 0
-          maximum: 1
-          description: Tax rate as decimal (e.g., 0.1 for 10%)
+          type: string
+          pattern: "^0?\\.(\\d{1,2})$"
+          description: Tax rate as string representation of decimal (e.g., "0.1" for 10%)
         taxAmount:
-          type: number
-          minimum: 0
-          description: Tax amount
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Tax amount as a string to preserve exact decimal representation
 
     ReceiptPaymentMethod:
       type: object
@@ -714,9 +713,9 @@ components:
           pattern: "^\\d{4}$"
           description: Last 4 digits of payment card
         amount:
-          type: number
-          minimum: 0
-          description: Amount paid with this method
+          type: string
+          pattern: "^\\d+(\\.\\d{1,2})?$"
+          description: Amount paid with this method as a string to preserve exact decimal representation
         transactionId:
           type: string
           description: Payment transaction ID

@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import { DIContainer, TYPES } from '../../../src/di/container';
+import { DIContainer } from '../../../src/di/container';
+import { TYPES } from '../../../src/types/di-types';
 import { IoE } from '../../../src/ocr/types';
 import { Mistral } from '@mistralai/mistralai';
 import { MistralOCRProvider } from '../../../src/ocr/mistral';
@@ -8,6 +9,12 @@ import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
 import { ReceiptScanner } from '../../../src/scanner/receipt-scanner';
 import { CheckScanner } from '../../../src/scanner/check-scanner';
+import { 
+  IScannerInputValidator,
+  CheckScannerInputValidator,
+  ReceiptScannerInputValidator,
+  TYPES as VALIDATOR_TYPES
+} from '../../../src/validators';
 import 'jasmine';
 
 describe('DIContainer', () => {
@@ -176,7 +183,7 @@ describe('DIContainer', () => {
         testContainer.get<Mistral>(TYPES.MistralClient);
         fail('Should have thrown an error for empty API key');
       } catch (error) {
-        expect(String(error)).toContain('CRITICAL ERROR: Mistral API key is missing or empty');
+        expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
       }
     });
     
@@ -197,7 +204,7 @@ describe('DIContainer', () => {
         testContainer.get<Mistral>(TYPES.MistralClient);
         fail('Should have thrown an error for short API key');
       } catch (error) {
-        expect(String(error)).toContain('CRITICAL ERROR: Invalid Mistral API key format - too short');
+        expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
       }
     });
     
@@ -224,7 +231,7 @@ describe('DIContainer', () => {
           testContainer.get<Mistral>(TYPES.MistralClient);
           fail('Should have thrown an error for placeholder API key');
         } catch (error) {
-          expect(String(error)).toContain('CRITICAL ERROR: Detected placeholder text in Mistral API key');
+          expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
         }
       });
     });

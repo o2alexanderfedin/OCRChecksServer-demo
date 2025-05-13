@@ -97,7 +97,8 @@ describe('ReceiptScanner Integration', function() {
           }
         };
         
-        // Create scanner
+        // Create scanner with better error handling
+        console.log(`Receipt scanner test using API key: ${MISTRAL_API_KEY?.substring(0, 4)}**** (length: ${MISTRAL_API_KEY?.length})`);
         const scanner = ScannerFactory.createMistralReceiptScanner(io, MISTRAL_API_KEY!);
         
         // Load test image from fixtures directory

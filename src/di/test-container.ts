@@ -1,4 +1,5 @@
-import { DIContainer, TYPES } from './container';
+import { DIContainer } from './container';
+import { TYPES } from '../types/di-types';
 import { Mistral } from '@mistralai/mistralai';
 import { IoE } from '../ocr/types';
 
@@ -19,6 +20,9 @@ export function createMockMistral(options: {
   
   // Create a real Mistral instance that will pass instanceof checks
   const mistralInstance = new Mistral({ apiKey });
+  
+  // Explicitly set the apiKey property for access in MistralOCRProvider
+  (mistralInstance as any).apiKey = apiKey;
   
   // Default OCR process implementation
   const defaultOcrProcess = async () => ({

@@ -16,7 +16,7 @@ import { dirname, resolve as pathResolve } from 'path';
 import fs from 'fs/promises';
 
 // Constants
-const ITERATIONS = 3; // Number of times to start the server for statistics
+const ITERATIONS = 10; // Number of times to start the server for statistics
 const SERVER_MAX_TIMEOUT = 3000; // 3 seconds max startup time
 const TARGET_P50 = 1500; // 1.5 seconds target for median (P50)
 const TARGET_P95 = 2500; // 2.5 seconds target for P95

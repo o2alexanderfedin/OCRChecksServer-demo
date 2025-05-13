@@ -4,7 +4,8 @@ import 'jasmine'
 import { Mistral } from '@mistralai/mistralai'
 
 // Import our testing tools
-import { TestDIContainer, TYPES } from '../../../src/di/index'
+import { TestDIContainer } from '../../../src/di/index'
+import { TYPES } from '../../../src/types/di-types'
 import { MistralJsonExtractorProvider } from '../../../src/json/mistral'
 
 // Create our own simplified mock function since jasmine.createSpy might not be available

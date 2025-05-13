@@ -8,11 +8,14 @@ import { Check, BankAccountType, CheckType } from '../schemas/check';
 import { JsonExtractor, JsonSchema } from '../types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { CheckExtractor as ICheckExtractor } from './types';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../../types/di-types';
 
 /**
  * Class for extracting check data from OCR text
  * Implements the CheckExtractor interface
  */
+@injectable()
 export class CheckExtractor implements ICheckExtractor {
   private jsonExtractor: JsonExtractor;
 
@@ -21,7 +24,9 @@ export class CheckExtractor implements ICheckExtractor {
    * 
    * @param jsonExtractor - The JSON extractor to use
    */
-  constructor(jsonExtractor: JsonExtractor) {
+  constructor(
+    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor
+  ) {
     this.jsonExtractor = jsonExtractor;
   }
 

@@ -2,7 +2,8 @@
 // Import required modules
 import fs from 'fs';
 import path from 'path';
-import { TestDIContainer, TYPES } from '../../../src/di/index.js';
+import { TestDIContainer } from '../../../src/di/index.js';
+import { TYPES } from '../../../src/types/di-types.js';
 import { DocumentType } from '../../../src/ocr/types.js';
 import { workerIoE } from '../../../src/io.js';
 import { fileURLToPath } from 'url';
@@ -33,7 +34,7 @@ describe('MistralOCR Semi-Integration', () => {
     console.log('Initializing TestDIContainer with mock Mistral client');
     
     // Create a test container with mock Mistral client
-    container = new TestDIContainer().registerMistralDependencies(
+    container = TestDIContainer.createForTests(
       testIo, 
       'test_valid_api_key_123456789012345678901234567890'
     );

@@ -35,6 +35,7 @@ import {
 const fileValidator: IFileValidator = z.union([
   z.instanceof(File),
   z.instanceof(Buffer),
+  z.instanceof(ArrayBuffer),
   z.string().min(1, "File path cannot be empty")
 ]);
 

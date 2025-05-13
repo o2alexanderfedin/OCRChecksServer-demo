@@ -17,7 +17,7 @@ export interface ScannerOptions {
  * Scanner input type
  */
 export interface ScannerInput {
-  file: File | Buffer | string; // File object, Buffer, or file path
+  file: File | Buffer | ArrayBuffer | string; // File object, Buffer, ArrayBuffer, or file path
   mimeType?: string;
   options?: ScannerOptions;
 }

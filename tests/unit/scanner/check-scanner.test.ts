@@ -5,6 +5,8 @@ import { CheckExtractor as ICheckExtractor } from '../../../src/json/extractors/
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import type { Check } from '../../../src/json/schemas/check';
+import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
+import 'reflect-metadata';
 
 // Mock implementations
 class MockOCRProvider implements OCRProvider {
@@ -35,17 +37,30 @@ class MockJsonExtractor implements JsonExtractor {
   }
 }
 
+class MockScannerInputValidator implements IScannerInputValidator {
+  assertValid(value: ScannerInput): ScannerInput {
+    // Just pass through for testing
+    return value;
+  }
+  
+  validate(value: ScannerInput) {
+    return undefined; // No validation errors
+  }
+}
+
 describe('CheckScanner', () => {
   let ocrProvider: OCRProvider;
   let jsonExtractor: JsonExtractor;
   let checkExtractor: ICheckExtractor;
+  let inputValidator: IScannerInputValidator;
   let scanner: CheckScanner;
 
   beforeEach(function(): void {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
     checkExtractor = new CheckExtractor(jsonExtractor);
-    scanner = new CheckScanner(ocrProvider, checkExtractor);
+    inputValidator = new MockScannerInputValidator();
+    scanner = new CheckScanner(ocrProvider, checkExtractor, inputValidator);
   });
 
   it('should process document and extract structured check data', async () => {
@@ -80,7 +95,7 @@ describe('CheckScanner', () => {
       }
     };
     
-    scanner = new CheckScanner(failingOcrProvider, checkExtractor);
+    scanner = new CheckScanner(failingOcrProvider, checkExtractor, inputValidator);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
@@ -104,7 +119,7 @@ describe('CheckScanner', () => {
       }
     };
     
-    scanner = new CheckScanner(ocrProvider, failingCheckExtractor);
+    scanner = new CheckScanner(ocrProvider, failingCheckExtractor, inputValidator);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
@@ -166,6 +181,35 @@ describe('CheckScanner', () => {
       expect(result[1].ocrConfidence).toBe(0.95);
       expect(result[1].extractionConfidence).toBe(0.9);
       expect(result[1].overallConfidence).toBe(0.93);
+    }
+  });
+
+  it('should handle validation failure', async () => {
+    // Arrange
+    const validationError = new Error('Invalid document format');
+    const failingValidator: IScannerInputValidator = {
+      assertValid: () => {
+        throw validationError;
+      },
+      validate: () => {
+        throw validationError;
+      }
+    };
+    
+    scanner = new CheckScanner(ocrProvider, checkExtractor, failingValidator);
+    const document: Document = {
+      content: new ArrayBuffer(10),
+      type: DocumentType.Image
+    };
+    
+    // Act
+    const result = await scanner.processDocument(document);
+    
+    // Assert
+    expect(result[0]).toBe('error');
+    if (result[0] === 'error') {
+      expect(result[1]).toContain('Validation failed');
+      expect(result[1]).toContain('Invalid document format');
     }
   });
 });

@@ -92,13 +92,6 @@ export class DIContainer {
     
     return this;
   }
-  
-  /**
-   * @deprecated Use registerDependencies instead
-   */
-  registerMistralDependencies(io: IoE, apiKey: string, caller?: string): DIContainer {
-    return this.registerDependencies(io, apiKey, caller);
-  }
 
   /**
    * Register Mistral client with validation
@@ -301,6 +294,15 @@ export class DIContainer {
    */
   get<T>(identifier: symbol): T {
     return this.container.get<T>(identifier);
+  }
+
+  /**
+   * Get a Mistral API Key
+   * 
+   * @returns A Mistral API Key
+   */
+  getMistralApiKey(): ApiKey {
+    return this.container.get<ApiKey>(TYPES.MistralApiKey);
   }
 
   /**

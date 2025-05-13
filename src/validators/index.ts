@@ -28,6 +28,7 @@ import {
   IScannerInputValidator, 
   ScannerOptions 
 } from './scanner/types';
+import { ValidationMiddleware } from './api/middleware';
 
 /**
  * File validator implementation
@@ -92,6 +93,11 @@ export function registerValidators(container: Container): void {
   container.bind<IScannerInputValidator>(TYPES.ScannerInputValidator)
     .to(ReceiptScannerInputValidator)
     .whenParentNamed('receipt');
+    
+  // Register validation middleware
+  container.bind(TYPES.ValidationMiddleware)
+    .to(ValidationMiddleware)
+    .inSingletonScope();
 }
 
 // Export all validators

@@ -41,7 +41,14 @@ describe('Validation System Integration', () => {
     
     // Invalid key
     const invalidKey = 'short';
-    expect(() => apiKeyValidator.assertValid(invalidKey)).toThrow(jasmine.any(ValidationError));
+    expect(() => apiKeyValidator.assertValid(invalidKey)).toThrow();
+    
+    try {
+      apiKeyValidator.assertValid(invalidKey);
+      fail('Should have thrown ValidationError');
+    } catch (error) {
+      expect(error instanceof ValidationError).toBe(true);
+    }
   });
   
   it('should validate Mistral configurations using the validator from the container', () => {
@@ -61,7 +68,14 @@ describe('Validation System Integration', () => {
       timeout: -5000
     };
     
-    expect(() => mistralConfigValidator.assertValid(invalidConfig)).toThrow(jasmine.any(ValidationError));
+    expect(() => mistralConfigValidator.assertValid(invalidConfig)).toThrow();
+    
+    try {
+      mistralConfigValidator.assertValid(invalidConfig);
+      fail('Should have thrown ValidationError');
+    } catch (error) {
+      expect(error instanceof ValidationError).toBe(true);
+    }
   });
   
   it('should use validation middleware correctly', () => {

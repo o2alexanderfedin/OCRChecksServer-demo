@@ -68,6 +68,11 @@ const testConfigs = {
     timeoutInterval: 180000, // Increase timeout to 3 minutes for integration tests
     requiresServer: true
   },
+  performance: {
+    spec_files: ['performance/**/*.test.ts'],
+    timeoutInterval: 300000, // 5 minutes for performance tests
+    requiresServer: true
+  },
   semi: {
     spec_files: ['semi/**/*.test.js'],
     timeoutInterval: 60000
@@ -87,7 +92,7 @@ const testConfigs = {
 // Validate test type
 if (!testConfigs[testType]) {
   console.error(`Invalid test type: ${testType}`);
-  console.error('Valid test types: unit, functional, integration, semi, all');
+  console.error('Valid test types: unit, functional, integration, performance, semi, all');
   process.exit(1);
 }
 

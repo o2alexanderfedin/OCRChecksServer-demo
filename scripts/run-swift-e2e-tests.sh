@@ -49,10 +49,10 @@ ENV=${1:-local}  # Use first argument or default to "local"
 
 # Environment-specific configuration
 ENVIRONMENTS=(
-  "production:https://api.nolock.social"
-  "staging:https://staging-api.nolock.social"
+  "production:https://ocr-checks-worker.af-4a0.workers.dev"
+  "staging:https://ocr-checks-worker-staging.af-4a0.workers.dev"
   "dev:https://ocr-checks-worker-dev.af-4a0.workers.dev"
-  "local:http://localhost:8789"
+  "local:http://localhost:62872"
 )
 
 # Find the URL for the specified environment
@@ -88,7 +88,7 @@ if [ "$ENV" = "local" ]; then
   fi
   
   # Use remote flag to ensure environment variables are loaded
-  npx wrangler dev --remote --port 8789 &
+  npx wrangler dev --remote --port 62872 &
   SERVER_PID=$!
   echo $SERVER_PID > "$SERVER_PID_FILE"
 

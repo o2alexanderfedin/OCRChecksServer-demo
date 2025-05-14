@@ -1,6 +1,6 @@
 {
   "name": "ocr-checks-worker",
-  "version": "1.53.1",
+  "version": "1.54.0",
   "description": "A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks",
   "type": "module",
   "main": "src/index.ts",
@@ -16,6 +16,7 @@
     "test:functional": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-functional-tests.js",
     "test:semi": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-semi-tests.js",
     "test:integration": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-tests.js integration",
+    "test:performance": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-tests.js performance",
     "test:receipt-scanner": "node --no-deprecation --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' scripts/run-receipt-scanner-test.js",
     "test:swift-e2e": "bash scripts/run-swift-e2e-tests.sh",
     "test:smoke": "bash scripts/run-smoke-tests.sh",

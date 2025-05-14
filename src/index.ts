@@ -51,51 +51,6 @@ app.post('/process', async (c) => {
 
     // Get image data
     const imageBuffer = await c.req.arrayBuffer();
-
-    // Verify API key is available
-    if (!c.env.MISTRAL_API_KEY) {
-      const errorMessage = '[/process:handler] CRITICAL ERROR: MISTRAL_API_KEY environment variable is not set';
-      console.error(errorMessage);
-      // For HTTP endpoints we return a response rather than throw, but with clear error location
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // Validate API key format - at minimum it should be a reasonable length
-    if (c.env.MISTRAL_API_KEY.length < 20) {
-      const errorMessage = `[/process:handler] CRITICAL ERROR: Invalid API key format - too short (${c.env.MISTRAL_API_KEY.length} chars)`;
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please provide a valid Mistral API key in your environment variables'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // Check for obviously invalid placeholder keys
-    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
-    if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
-      const errorMessage = '[/process:handler] CRITICAL ERROR: Detected placeholder text in Mistral API key';
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please replace the placeholder API key with a valid Mistral API key'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    
-    // Log API key presence (not the actual key)
-    console.log('API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
     
     // Create appropriate scanner based on document content type
     const scanner = ScannerFactory.createScannerByType(
@@ -137,7 +92,7 @@ app.post('/process', async (c) => {
     });
   } catch (error) {
     console.error('Error processing document:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ message: 'Internal server error', error }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -162,50 +117,6 @@ app.post('/check', async (c) => {
     
     // Get image data
     const imageBuffer = await c.req.arrayBuffer();
-
-    // Verify API key is available
-    if (!c.env.MISTRAL_API_KEY) {
-      const errorMessage = '[/check:handler] CRITICAL ERROR: MISTRAL_API_KEY environment variable is not set';
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // Validate API key format - at minimum it should be a reasonable length
-    if (c.env.MISTRAL_API_KEY.length < 20) {
-      const errorMessage = `[/check:handler] CRITICAL ERROR: Invalid API key format - too short (${c.env.MISTRAL_API_KEY.length} chars)`;
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please provide a valid Mistral API key in your environment variables'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // Check for obviously invalid placeholder keys
-    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
-    if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
-      const errorMessage = '[/check:handler] CRITICAL ERROR: Detected placeholder text in Mistral API key';
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please replace the placeholder API key with a valid Mistral API key'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    
-    // Log API key presence (not the actual key)
-    console.log('/check: API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
 
     // Create check scanner
     const scanner = ScannerFactory.createMistralCheckScanner(workerIoE, c.env.MISTRAL_API_KEY);
@@ -242,7 +153,7 @@ app.post('/check', async (c) => {
     });
   } catch (error) {
     console.error('Error processing check:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ message: 'Internal server error', error }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -267,50 +178,6 @@ app.post('/receipt', async (c) => {
     
     // Get image data
     const imageBuffer = await c.req.arrayBuffer();
-
-    // Verify API key is available
-    if (!c.env.MISTRAL_API_KEY) {
-      const errorMessage = '[/receipt:handler] CRITICAL ERROR: MISTRAL_API_KEY environment variable is not set';
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please ensure MISTRAL_API_KEY is set in your environment variables'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // Validate API key format - at minimum it should be a reasonable length
-    if (c.env.MISTRAL_API_KEY.length < 20) {
-      const errorMessage = `[/receipt:handler] CRITICAL ERROR: Invalid API key format - too short (${c.env.MISTRAL_API_KEY.length} chars)`;
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please provide a valid Mistral API key in your environment variables'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // Check for obviously invalid placeholder keys
-    const commonPlaceholders = ['your-api-key-here', 'api-key', 'mistral-api-key', 'placeholder'];
-    if (commonPlaceholders.some(placeholder => c.env.MISTRAL_API_KEY.toLowerCase().includes(placeholder))) {
-      const errorMessage = '[/receipt:handler] CRITICAL ERROR: Detected placeholder text in Mistral API key';
-      console.error(errorMessage);
-      return new Response(JSON.stringify({ 
-        error: errorMessage,
-        hint: 'Please replace the placeholder API key with a valid Mistral API key'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    
-    // Log API key presence (not the actual key)
-    console.log('/receipt: API key is available (first 4 chars):', c.env.MISTRAL_API_KEY.substring(0, 4) + '...');
 
     // Create receipt scanner
     const scanner = ScannerFactory.createMistralReceiptScanner(workerIoE, c.env.MISTRAL_API_KEY);
@@ -347,24 +214,44 @@ app.post('/receipt', async (c) => {
     });
   } catch (error) {
     console.error('Error processing receipt:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ message: 'Internal server error', error }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 });
 
-// Health check endpoint for testing server availability
-app.get('/health', () => {
-  // Create health response with proper Date object as per HealthResponse interface
-  return new Response(JSON.stringify({
-    status: 'ok',
-    timestamp: new Date(),
-    version: pkg.version
-  }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
-  });
+// Health check endpoint for testing server availability and API key configuration
+app.get('/health', (c) => {
+  try {
+    // Validate DI
+    var diContainer = ScannerFactory.createDIContainer(workerIoE, c.env.MISTRAL_API_KEY);
+
+    ScannerFactory.createMistralCheckScanner(workerIoE, c.env.MISTRAL_API_KEY);
+    ScannerFactory.createScannerByType(workerIoE, c.env.MISTRAL_API_KEY, 'check');
+
+    ScannerFactory.createMistralReceiptScanner(workerIoE, c.env.MISTRAL_API_KEY);
+    ScannerFactory.createScannerByType(workerIoE, c.env.MISTRAL_API_KEY, 'receipt');
+
+    var apiKey = diContainer.getMistralApiKey();
+
+    // Create health response with proper Date object as per HealthResponse interface
+    return new Response(JSON.stringify({
+      status: 'ok',
+      timestamp: Date.now(),
+      version: pkg.version,
+      apiKey: apiKey ? apiKey.slice(0, 4) + '...' : `Invalid Mistral API Key: ${apiKey}`
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    console.error('Error processing receipt:', error);
+    return new Response(JSON.stringify({ message: 'Internal server error', error }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 });
 
 export default app; 

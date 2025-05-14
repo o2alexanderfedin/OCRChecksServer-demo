@@ -76,7 +76,7 @@ describe('DIContainer', () => {
   describe('Basic functionality', () => {
     it('should create a container with all dependencies registered', () => {
       // Create container and register dependencies
-      const container = new DIContainer().registerMistralDependencies(mockIoE, validApiKey);
+      const container = new DIContainer().registerDependencies(mockIoE, validApiKey);
       
       // Verify that we can get the IoE instance
       const io = container.get<IoE>(TYPES.IoE);
@@ -129,7 +129,7 @@ describe('DIContainer', () => {
 
     it('should provide convenience methods to get scanners', () => {
       // Create container and register dependencies
-      const container = new DIContainer().registerMistralDependencies(mockIoE, validApiKey);
+      const container = new DIContainer().registerDependencies(mockIoE, validApiKey);
       
       // Get receipt scanner using convenience method
       const receiptScanner = container.getReceiptScanner();
@@ -144,7 +144,7 @@ describe('DIContainer', () => {
 
     it('should maintain singleton instances', () => {
       // Create container and register dependencies
-      const container = new DIContainer().registerMistralDependencies(mockIoE, validApiKey);
+      const container = new DIContainer().registerDependencies(mockIoE, validApiKey);
       
       // Get instances multiple times to check singleton behavior
       const mistralClient1 = container.get<Mistral>(TYPES.MistralClient);
@@ -173,17 +173,17 @@ describe('DIContainer', () => {
       
       // Act & Assert
       expect(() => {
-        container.registerMistralDependencies(mockIoE, emptyApiKey);
+        container.registerDependencies(mockIoE, emptyApiKey);
         container.get<Mistral>(TYPES.MistralClient); // This triggers the validation
       }).toThrowError(Error);
       
       try {
         const testContainer = new DIContainer();
-        testContainer.registerMistralDependencies(mockIoE, emptyApiKey);
+        testContainer.registerDependencies(mockIoE, emptyApiKey);
         testContainer.get<Mistral>(TYPES.MistralClient);
         fail('Should have thrown an error for empty API key');
       } catch (error) {
-        expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
+        expect(String(error)).toContain('CRITICAL ERROR: Mistral API key is missing or empty');
       }
     });
     
@@ -194,17 +194,17 @@ describe('DIContainer', () => {
       
       // Act & Assert
       expect(() => {
-        container.registerMistralDependencies(mockIoE, shortApiKey);
+        container.registerDependencies(mockIoE, shortApiKey);
         container.get<Mistral>(TYPES.MistralClient); // This triggers the validation
       }).toThrowError(Error);
       
       try {
         const testContainer = new DIContainer();
-        testContainer.registerMistralDependencies(mockIoE, shortApiKey);
+        testContainer.registerDependencies(mockIoE, shortApiKey);
         testContainer.get<Mistral>(TYPES.MistralClient);
         fail('Should have thrown an error for short API key');
       } catch (error) {
-        expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
+        expect(String(error)).toContain('CRITICAL ERROR: Mistral API key is too short');
       }
     });
     
@@ -221,13 +221,13 @@ describe('DIContainer', () => {
       placeholderKeys.forEach(placeholderKey => {
         const container = new DIContainer();
         expect(() => {
-          container.registerMistralDependencies(mockIoE, placeholderKey);
+          container.registerDependencies(mockIoE, placeholderKey);
           container.get<Mistral>(TYPES.MistralClient); // This triggers the validation
         }).toThrowError(Error);
         
         try {
           const testContainer = new DIContainer();
-          testContainer.registerMistralDependencies(mockIoE, placeholderKey);
+          testContainer.registerDependencies(mockIoE, placeholderKey);
           testContainer.get<Mistral>(TYPES.MistralClient);
           fail('Should have thrown an error for placeholder API key');
         } catch (error) {
@@ -242,7 +242,7 @@ describe('DIContainer', () => {
     let container: DIContainer;
     
     beforeEach(() => {
-      container = new DIContainer().registerMistralDependencies(mockIoE, validApiKey);
+      container = new DIContainer().registerDependencies(mockIoE, validApiKey);
     });
     
     it('should correctly resolve OCR provider with its dependencies', () => {

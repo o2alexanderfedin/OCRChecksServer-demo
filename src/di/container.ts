@@ -53,13 +53,30 @@ export class DIContainer {
   }
 
   /**
-   * Register all dependencies with Mistral implementation
+   * Register all dependencies
    * 
    * @param io - The IO interface for network operations
    * @param apiKey - Mistral API key
+   * @param caller - caller of the method
    * @returns The container instance for method chaining
+   * @throws Error if io or apiKey is not provided
    */
-  registerMistralDependencies(io: IoE, apiKey: string): DIContainer {
+  registerDependencies(io: IoE, apiKey: string, caller?: string): DIContainer {
+    // Validate required parameters
+    if (!io) {
+      throw new Error(`[DIContainer.${caller ?? 'registerDependencies'}] CRITICAL ERROR: IO interface is missing or undefined`);
+    }
+    
+    if (!apiKey) {
+      throw new Error(`[DIContainer.${caller ?? 'registerDependencies'}] CRITICAL ERROR: Mistral API key is missing or empty`);
+    }
+    
+    // Check for minimum length (basic validation before full validation in validateApiKey)
+    const minKeyLength = 20;
+    if (apiKey.length < minKeyLength) {
+      throw new Error(`[DIContainer.${caller ?? 'registerDependencies'}] CRITICAL ERROR: Mistral API key is too short (${apiKey.length} chars, minimum ${minKeyLength})`);
+    }
+    
     // Register basic dependencies
     this.container.bind(TYPES.IoE).toConstantValue(io);
     this.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
@@ -277,6 +294,15 @@ export class DIContainer {
    */
   get<T>(identifier: symbol): T {
     return this.container.get<T>(identifier);
+  }
+
+  /**
+   * Get a Mistral API Key
+   * 
+   * @returns A Mistral API Key
+   */
+  getMistralApiKey(): ApiKey {
+    return this.container.get<ApiKey>(TYPES.MistralApiKey);
   }
 
   /**

@@ -21,6 +21,7 @@ import { spawn } from 'child_process';
 import { globSync } from 'glob';
 import { promisify } from 'util';
 import { addDevVarsToEnv } from './load-dev-vars.js';
+import { exit } from 'process';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
@@ -35,6 +36,11 @@ const testType = process.argv[2]?.toLowerCase() || 'all';
 const testFilter = process.argv[3]; // Get the third argument if provided (e.g., "simple")
 const watch = process.argv.includes('--watch');
 const dryRun = process.argv.includes('--dry-run');
+
+// DEBUG: Log full command line args
+console.log('DEBUG - Full process.argv:', JSON.stringify(process.argv));
+console.log('DEBUG - testType:', testType);
+console.log('DEBUG - testFilter:', testFilter);
 
 // Set NODE_ENV based on test type for proper API key validation
 if (testType === 'integration') {
@@ -62,6 +68,11 @@ const testConfigs = {
     timeoutInterval: 180000, // Increase timeout to 3 minutes for integration tests
     requiresServer: true
   },
+  performance: {
+    spec_files: ['performance/**/*.test.ts'],
+    timeoutInterval: 300000, // 5 minutes for performance tests
+    requiresServer: true
+  },
   semi: {
     spec_files: ['semi/**/*.test.js'],
     timeoutInterval: 60000
@@ -81,7 +92,7 @@ const testConfigs = {
 // Validate test type
 if (!testConfigs[testType]) {
   console.error(`Invalid test type: ${testType}`);
-  console.error('Valid test types: unit, functional, integration, semi, all');
+  console.error('Valid test types: unit, functional, integration, performance, semi, all');
   process.exit(1);
 }
 
@@ -247,23 +258,23 @@ console.log(`Running ${testType} tests...`);
 // If a filter is provided, filter the spec files
 let filteredSpecFiles = config.spec_files;
 if (testFilter) {
+  console.log(`Filter spec files by: ${testFilter}`);
   // Set specific file pattern if a test file is specified
-  if (testFilter === 'simple') {
-    filteredSpecFiles = ['integration/simple.test.ts'];
-    console.log(`Direct match: using specific test file pattern: ${JSON.stringify(filteredSpecFiles)}`);
-  } else {
+  if ((testFilter ?? '').length > 0) {
     filteredSpecFiles = config.spec_files.map(pattern => {
       // If it's a pattern ending with a wildcard, limit it to files containing the filter
       if (pattern.includes('**')) {
-        return pattern.replace('**/', `**/*${testFilter}*`);
+        return pattern
+          .replace('**/*', `**/`)
+          .replace('**/', `**/*${testFilter}*`);
       }
       // Otherwise, just return files matching the filter
       return pattern.includes(testFilter) ? pattern : null;
-    }).filter(Boolean); // Remove null entries
-    
-    console.log(`Filtered spec files: ${JSON.stringify(filteredSpecFiles)}`);
+    }).filter(Boolean); // Remove null entries 
   }
-  
+
+  console.log(`Filtered spec files (${testFilter}): ${JSON.stringify(filteredSpecFiles)}`);
+
   // Check that files actually exist
   console.log('Checking for matching test files:');
   filteredSpecFiles.forEach(pattern => {

@@ -40,8 +40,8 @@ const options = {
 
 // Environment-specific configuration
 const environments = {
-  production: 'https://api.nolock.social',
-  staging: 'https://staging-api.nolock.social',
+  production: 'https://ocr-checks-worker-dev.af-4a0.workers.dev',
+  staging: 'https://ocr-checks-worker-dev.af-4a0.workers.dev',
   dev: 'https://ocr-checks-worker-dev.af-4a0.workers.dev',
   local: 'http://localhost:8787'
 };
@@ -68,6 +68,8 @@ const results: Record<string, any> = {
   baseUrl: API_URL,
   target: options.env,
   version: null,
+  apiKeyConfigured: undefined,
+  apiKeyMessage: undefined,
   tests: {}
 };
 
@@ -126,7 +128,18 @@ async function testHealth(): Promise<void> {
     console.dir(healthData, { depth: null, colors: true });
   }
   
-  logResult('Health Check', true, `Server version: ${healthData.version}`);
+  // Check API key status if available
+  const apiKeyStatus = healthData.mistralApiKeyStatus 
+    ? `API Key: ${healthData.mistralApiKeyStatus.configured ? `${colors.green}OK` : `${colors.red}Not Configured`}${colors.reset}` 
+    : '';
+    
+  logResult('Health Check', true, `Server version: ${healthData.version}${apiKeyStatus ? ' | ' + apiKeyStatus : ''}`);
+  
+  // Store API key status in results
+  if (healthData.mistralApiKeyStatus) {
+    results.apiKeyConfigured = healthData.mistralApiKeyStatus.configured;
+    results.apiKeyMessage = healthData.mistralApiKeyStatus.message;
+  }
 }
 
 /**
@@ -444,6 +457,21 @@ async function runAllTests(): Promise<void> {
   }
   
   log(`\n${colors.bright}${passedCount === Object.keys(results.tests).length ? colors.green : colors.yellow}${passedCount}/${Object.keys(results.tests).length} tests passed${colors.reset}`);
+  
+  // Deployment Analysis
+  log(`\n${colors.bright}${colors.magenta}Deployment Analysis:${colors.reset}`);
+  
+  // Check for API Key issues
+  if (results.apiKeyConfigured === false) {
+    log(`${colors.red}• Mistral API key issue: ${results.apiKeyMessage}${colors.reset}`);
+    log(`  This will prevent OCR and document processing from working correctly.`);
+    log(`  Please set a valid Mistral API key in your environment variables.`);
+  } else if (results.apiKeyConfigured === true) {
+    log(`${colors.green}• Mistral API key is properly configured.${colors.reset}`);
+  } else {
+    log(`${colors.yellow}• Mistral API key status unknown - health endpoint didn't return API key information.${colors.reset}`);
+    log(`  This may indicate an older server version without API key status checking.`);
+  }
   
   // Save results to file if requested
   if (options.save) {

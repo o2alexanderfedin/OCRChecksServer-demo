@@ -75,8 +75,8 @@ export $(cat .dev.vars | grep -v '^#' | xargs)
 echo -e "${BLUE}${BOLD}Starting server in test mode...${NC}"
 # Use SERVER_PORT environment variable to request specific port
 export SERVER_PORT
-# Start server and capture its output to get actual port
-NODE_ENV=test node --no-deprecation scripts/start-server.js > .server-output.log 2>&1 &
+# Start server and capture its output to get actual port, but also show output to user
+NODE_ENV=test node --no-deprecation scripts/start-server.js 2>&1 | tee .server-output.log &
 
 # Give the server time to start up
 echo -e "${YELLOW}Waiting for server to start (max ${SERVER_STARTUP_WAIT} seconds)...${NC}"
@@ -113,12 +113,20 @@ echo
 # Check if server started successfully
 if [ ! -f "$SERVER_PID_FILE" ]; then
   echo -e "${RED}${BOLD}ERROR: Server PID file not found. Server may have failed to start.${NC}"
+  if [ -f ".server-output.log" ]; then
+    echo -e "${YELLOW}Server output logs:${NC}"
+    cat .server-output.log
+  fi
   exit 1
 fi
 
 SERVER_PID=$(cat "$SERVER_PID_FILE")
 if ! ps -p $SERVER_PID > /dev/null; then
   echo -e "${RED}${BOLD}ERROR: Server process not found. Server may have crashed.${NC}"
+  if [ -f ".server-output.log" ]; then
+    echo -e "${YELLOW}Server output logs:${NC}"
+    cat .server-output.log
+  fi
   exit 1
 fi
 

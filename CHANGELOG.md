@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.56.0] - 2025-05-13
+
+### Added
+- Added Swagger UI integration via `/api-docs` endpoint for easy API exploration and testing
+- Added OpenAPI specification at `/openapi.json` endpoint
+- Implemented dynamic version synchronization between package.json and API documentation
+- Added multi-environment server selection in Swagger UI for testing across environments
+- Added comprehensive Swagger UI usage guide in docs/swagger-ui-guide.md
+- Added Swagger UI troubleshooting guide in docs/swagger-ui-troubleshooting.md
+
+### Changed
+- Improved cross-origin resource sharing (CORS) to allow API testing from any domain
+- Enhanced documentation with interactive API exploration capabilities
+- Fixed staging environment configuration in wrangler.toml
+
+### Improved
+- Better developer experience with visual API documentation
+- Enhanced API discoverability with interactive documentation
+- Simplified API integration testing with real-time request/response examples
+
+## [1.55.0] - 2025-05-10
+
+### Added
+- Added Swift client task cancellation support (v1.3.0)
+- Fixed Content-Type header handling for image uploads in Swift client
+- Updated Swift proxy submodule reference to v1.3.0
+
 ## [1.52.0] - 2025-05-08
 
 ### Added

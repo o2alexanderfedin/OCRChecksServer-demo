@@ -3,7 +3,7 @@
  * Particularly useful for Mistral API which has a 6 requests/second limit
  */
 
-import { withRateLimit, configureRateLimiting, getRateLimitingStats } from './retry.js';
+import { withRateLimit, configureRateLimiting, getRateLimitingStats, retry } from './retry.js';
 
 /**
  * A fetch implementation that respects rate limits
@@ -26,10 +26,39 @@ export async function throttledFetch(
   // Check if this is a direct Mistral API call
   const isMistralCall = urlStr.includes('mistral.ai');
 
+  // Configure retry options
+  const retryOptions = {
+    retries: 3,
+    initialDelay: 1000,
+    maxDelay: 5000,
+    factor: 1.5,
+    retryIf: (error: any) => {
+      // Retry on connection errors
+      if (error instanceof TypeError && error.message.includes('fetch failed')) {
+        return true;
+      }
+      // Retry on network errors with ECONNREFUSED
+      if (error?.cause?.code === 'ECONNREFUSED') {
+        return true;
+      }
+      // Retry on timeout errors
+      if (error?.message?.includes('timeout')) {
+        return true;
+      }
+      return false;
+    },
+    onRetry: (error: any, attempt: number) => {
+      console.log(`Retrying fetch to ${urlStr.split('?')[0]} (attempt ${attempt}/3) after error: ${error.message}`);
+    }
+  };
+
   try {
-    // Health checks can bypass the rate limiting to avoid unnecessary delays
+    // Health checks might need retries but can bypass rate limiting
     if (isHealthCheck) {
-      return await fetch(url, init);
+      return await retry(() => fetch(url, init), {
+        ...retryOptions,
+        respectRateLimit: false
+      });
     }
     
     // All Mistral API calls need to be strictly rate limited
@@ -45,14 +74,14 @@ export async function throttledFetch(
           fetchInit.signal = controller.signal;
         }
         
-        return await withRateLimit(() => fetch(url, fetchInit));
+        return await retry(() => withRateLimit(() => fetch(url, fetchInit)), retryOptions);
       } finally {
         clearTimeout(timeoutId);
       }
     }
   
     // For non-Mistral endpoints, we still use the queue but with higher priority
-    return await withRateLimit(() => fetch(url, init));
+    return await retry(() => withRateLimit(() => fetch(url, init)), retryOptions);
   } catch (error) {
     // Enhance error with request details (but don't log sensitive data)
     console.error(`Fetch error for ${urlStr.split('?')[0]}:`, error);

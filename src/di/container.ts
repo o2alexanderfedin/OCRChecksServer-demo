@@ -28,7 +28,7 @@ const mistralClientConfig = {
   retryConfig: {
     strategy: "backoff",
     backoff: {
-      initialInterval: 500,     // Reduced to allow more retry attempts within the timeframe
+      initialInterval: 1000,    // Reduced to allow more retry attempts within the timeframe
       maxInterval: 10000,       // Keep max interval the same
       exponent: 1.8,            // Increased for more aggressive backoff
       maxElapsedTime: 25000     // Reduced to ensure we stay under Cloudflare's 30s limit

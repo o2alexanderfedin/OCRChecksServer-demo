@@ -3,7 +3,8 @@
  * Helps prevent orphaned processes that can cause test timeouts
  */
 
-import fs from 'fs/promises';
+import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -71,21 +72,31 @@ export function registerCleanupHandlers(): void {
   // Handle process exit
   process.on('exit', () => {
     try {
-      // Synchronous cleanup on exit
-      const pidContent = fs.readFileSync(serverPidPath, 'utf8');
-      const pid = parseInt(pidContent.trim(), 10);
-      
-      if (pid && !isNaN(pid)) {
+      // Only perform cleanup if the file exists
+      if (fsSync.existsSync(serverPidPath)) {
+        // Synchronous cleanup on exit
+        const pidContent = fsSync.readFileSync(serverPidPath, 'utf8');
+        const pid = parseInt(pidContent.trim(), 10);
+        
+        if (pid && !isNaN(pid)) {
+          try {
+            // Check if the process is still running
+            if (process.kill(pid, 0)) {
+              process.kill(pid, 'SIGTERM');
+              console.log(`Terminated server process ${pid} during exit`);
+            }
+          } catch (e) {
+            // Ignore errors during exit - process may not exist
+          }
+        }
+        
+        // Try to delete PID file synchronously
         try {
-          process.kill(pid, 'SIGTERM');
-          console.log(`Terminated server process ${pid} during exit`);
+          fsSync.unlinkSync(serverPidPath);
         } catch (e) {
-          // Ignore errors during exit
+          // Ignore errors deleting the file
         }
       }
-      
-      // Try to delete PID file synchronously
-      fs.unlinkSync(serverPidPath);
     } catch (e) {
       // Ignore errors during exit
     }

@@ -3,6 +3,8 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { CheckOCRResponse, ProcessDocumentResponse } from '../../src/types/api-responses';
 import { Check } from '../../src/json/schemas/check';
+import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
+import { setupServerCleanup } from '../helpers/server-cleanup.js';
 
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -10,6 +12,18 @@ const __dirname = path.dirname(__filename);
 
 // Get API URL from environment
 const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
+
+// Set up proper server cleanup
+setupServerCleanup().catch(error => {
+  console.error('Failed to set up server cleanup:', error);
+});
+
+// Configure throttled fetch with recommended settings
+setupThrottledFetch({
+  enabled: true,
+  requestInterval: 200, // Slightly more conservative than the 167ms limit
+  debug: process.env.DEBUG_THROTTLE === 'true'
+});
 
 describe('Check Processing API', function() {
   // Set a much longer timeout for API calls to prevent timeouts
@@ -36,7 +50,7 @@ describe('Check Processing API', function() {
     try {
       // Make API request
       console.log(`Sending check image to API at ${API_URL}/check`);
-      const response = await fetch(`${API_URL}/check`, {
+      const response = await throttledFetch(`${API_URL}/check`, {
         method: 'POST',
         headers: {
           'Content-Type': 'image/jpeg'
@@ -99,7 +113,7 @@ describe('Check Processing API', function() {
     try {
       // Make API request
       console.log(`Sending check image to API at ${API_URL}/process?type=check`);
-      const response = await fetch(`${API_URL}/process?type=check`, {
+      const response = await throttledFetch(`${API_URL}/process?type=check`, {
         method: 'POST',
         headers: {
           'Content-Type': 'image/jpeg'

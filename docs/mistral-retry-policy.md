@@ -15,7 +15,7 @@ const mistralClientConfig = {
   retryConfig: {
     strategy: "backoff",
     backoff: {
-      initialInterval: 500,     // Milliseconds before first retry
+      initialInterval: 1000,    // Milliseconds before first retry
       maxInterval: 10000,       // Maximum milliseconds between retries
       exponent: 1.8,            // Exponential factor for backoff increase
       maxElapsedTime: 25000     // Total milliseconds before giving up

@@ -235,10 +235,10 @@ app.get('/health', (c) => {
 
     var apiKey = diContainer.getMistralApiKey();
 
-    // Create health response with proper Date object as per HealthResponse interface
+    // Create health response with ISO formatted date string as per HealthResponse interface
     return new Response(JSON.stringify({
       status: 'ok',
-      timestamp: Date.now(),
+      timestamp: new Date().toISOString(),
       version: pkg.version,
       apiKey: apiKey ? apiKey.slice(0, 4) + '...' : `Invalid Mistral API Key: ${apiKey}`
     }), {

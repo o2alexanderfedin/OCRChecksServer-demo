@@ -7,7 +7,7 @@ const openApiSpec = {
   "info": {
     "title": "OCR Checks Server API",
     "description": "API for processing images of paper checks and receipts using OCR and extracting structured data.\n\nThis API accepts image uploads (JPEG, PNG) and returns structured JSON data with extracted information.\n\nThe API offers both dedicated endpoints for specific document types and a universal processing endpoint.",
-    "version": "1.0.0", // This will be dynamically replaced with the package version
+    "version": "1.0.0", /* This will be dynamically replaced with the package version */
     "license": {
       "name": "AGPL-3.0-or-later",
       "url": "https://www.gnu.org/licenses/agpl-3.0.html"

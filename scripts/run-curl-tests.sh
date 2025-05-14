@@ -19,14 +19,17 @@ TEST_MODE=${TEST_MODE:-"normal"} # Options: normal, verbose, quiet
 # Test image path - try different locations in order
 TEST_IMAGE=""
 POSSIBLE_IMAGES=(
+  # Prefer simple JPG test images first for faster tests
   "tiny-test.jpg"
   "micro-test.jpg"
   "small-test.jpg"
+  # Then try fixture images - JPG format first (more reliable for curl tests)
   "tests/fixtures/images/fredmeyer-receipt.jpg"
   "tests/fixtures/images/fredmeyer-receipt-2.jpg"
   "tests/fixtures/images/rental-bill.jpg" 
-  "tests/fixtures/images/pge-bill.HEIC"
-  "tests/fixtures/images/promo-check.HEIC"
+  # HEIC images often need special handling and may not work with curl binary post
+  # "tests/fixtures/images/pge-bill.HEIC"
+  # "tests/fixtures/images/promo-check.HEIC"
 )
 
 # Rate limiting settings - add delays between calls to stay under API limits
@@ -34,6 +37,8 @@ RATE_LIMIT_DELAY=200       # 200ms ~= 5 requests/sec is below Mistral's 6/sec li
 FAILED_TESTS_COUNT=0       # Track test failures
 TOTAL_TESTS_COUNT=0        # Track total tests run
 TESTS_START_TIME=$(date +%s)
+# Default timeout for curl requests (in seconds)
+CURL_TIMEOUT=30            # 30 seconds is enough for most operations, but can be overridden
 
 # Find the first available test image
 for img in "${POSSIBLE_IMAGES[@]}"; do
@@ -78,15 +83,17 @@ run_test() {
   local data=${5:-""}
   local expected_status=${6:-200}
   local validation_command=${7:-""}
+  local timeout=${8:-$CURL_TIMEOUT}
   
   TOTAL_TESTS_COUNT=$((TOTAL_TESTS_COUNT + 1))
   
   print_message "info" "\n${BOLD}Running Test: ${name}${NC}" "$BLUE"
   print_message "info" "Endpoint: ${endpoint}" "$YELLOW"
   print_message "info" "Method: ${method}" "$YELLOW"
+  print_message "info" "Timeout: ${timeout}s" "$YELLOW"
   
   # Prepare curl command
-  local curl_cmd="curl -s -w '\n%{http_code}' -X ${method}"
+  local curl_cmd="curl -s -w '\n%{http_code}' -X ${method} --max-time ${timeout}"
   
   # Add headers
   curl_cmd+=" -H 'Content-Type: ${content_type}'"
@@ -190,7 +197,8 @@ run_test \
   "image/jpeg" \
   "${TEST_IMAGE}" \
   200 \
-  "grep -q '\"documentType\":\"check\"' && echo 'Document type is check'"
+  "grep -q '\"documentType\":\"check\"' && echo 'Document type is check'" \
+  60  # 60 second timeout for this endpoint
 
 # Test 5: Process universal endpoint for receipts
 run_test \
@@ -200,7 +208,8 @@ run_test \
   "image/jpeg" \
   "${TEST_IMAGE}" \
   200 \
-  "grep -q '\"documentType\":\"receipt\"' && echo 'Document type is receipt'"
+  "grep -q '\"documentType\":\"receipt\"' && echo 'Document type is receipt'" \
+  60  # 60 second timeout for this endpoint
 
 # Test 6: Error handling - invalid content type
 run_test \

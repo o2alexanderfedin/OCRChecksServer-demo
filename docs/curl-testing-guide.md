@@ -78,7 +78,9 @@ The curl tests cover the following endpoints and scenarios:
    - Invalid document type
    - Unsupported HTTP method
 
-## Rate Limiting
+## Rate Limiting and Timeouts
+
+### Rate Limiting
 
 The test script includes built-in rate limiting to avoid hitting Mistral API rate limits. By default, it adds a 200ms delay between requests to stay under the 6 requests/second limit.
 
@@ -87,6 +89,18 @@ You can adjust this delay if needed:
 ```bash
 RATE_LIMIT_DELAY=300 npm run test:integration:curl
 ```
+
+### Request Timeouts
+
+For endpoints that involve AI processing (like image OCR), the tests use an extended timeout value to allow for longer processing times. The default timeout for requests is 30 seconds, but AI-powered endpoints use 60 seconds.
+
+You can customize the global timeout by setting the `CURL_TIMEOUT` environment variable:
+
+```bash
+CURL_TIMEOUT=45 npm run test:integration:curl
+```
+
+Individual tests can also specify their own timeout values as the last parameter to the `run_test` function.
 
 ## Adding New Tests
 
@@ -100,8 +114,11 @@ run_test \
   "content-type" \
   "data or path-to-file" \
   expected_status_code \
-  "validation_command"
+  "validation_command" \
+  timeout_in_seconds
 ```
+
+The timeout parameter is optional and defaults to 30 seconds. For endpoints that require longer processing times (like AI-powered OCR), you may need to increase this value to avoid premature timeouts.
 
 ## Troubleshooting
 

@@ -5,31 +5,147 @@
 
 // Rate limiting state
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 200; // 200ms = 5 requests per second
+const MIN_REQUEST_INTERVAL = 167; // 167ms ≈ 6 requests per second (Mistral API limit)
+let REQUEST_QUEUE: Function[] = [];
+let isProcessingQueue = false;
+let totalRequests = 0;
+let queuedRequests = 0;
+let maxQueueLength = 0;
+
+// Rate limiting configuration
+let verboseLogging = false;
+const RATE_LIMIT_CONFIG = {
+  rateLimitEnabled: true,
+  requestInterval: MIN_REQUEST_INTERVAL,
+  debug: false,
+};
 
 /**
- * Enforces rate limiting by delaying execution if needed to respect
- * the rate limit of 5 requests per second
- * 
- * @param fn Function to execute with rate limiting
- * @returns The result of the function
+ * Process the queue of rate-limited requests
  */
-export async function withRateLimit<T>(fn: () => Promise<T>): Promise<T> {
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
+async function processQueue() {
+  if (isProcessingQueue || REQUEST_QUEUE.length === 0) return;
   
-  // If we've made a request too recently, delay until we're under the rate limit
-  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-    const delayTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-    console.log(`Rate limiting: Waiting ${delayTime}ms before next request`);
-    await new Promise(resolve => setTimeout(resolve, delayTime));
+  isProcessingQueue = true;
+  
+  // Update max queue length for monitoring
+  if (REQUEST_QUEUE.length > maxQueueLength) {
+    maxQueueLength = REQUEST_QUEUE.length;
   }
   
-  // Update the last request time
-  lastRequestTime = Date.now();
+  if (RATE_LIMIT_CONFIG.debug) {
+    console.log(`Starting to process queue with ${REQUEST_QUEUE.length} requests`);
+  }
   
-  // Execute the function
-  return await fn();
+  while (REQUEST_QUEUE.length > 0) {
+    const task = REQUEST_QUEUE.shift();
+    if (!task) continue;
+    
+    // Only rate limit if enabled
+    if (RATE_LIMIT_CONFIG.rateLimitEnabled) {
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      
+      // If we've made a request too recently, delay until we're under the rate limit
+      if (timeSinceLastRequest < RATE_LIMIT_CONFIG.requestInterval) {
+        const delayTime = RATE_LIMIT_CONFIG.requestInterval - timeSinceLastRequest;
+        
+        if (RATE_LIMIT_CONFIG.debug) {
+          console.log(`Rate limiting: Queue size ${REQUEST_QUEUE.length}, waiting ${delayTime}ms before next request`);
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, delayTime));
+      }
+    }
+    
+    // Update the last request time
+    lastRequestTime = Date.now();
+    totalRequests++;
+    
+    // Execute the queued task with timeout protection
+    try {
+      // Create a timeout promise that will reject after 30 seconds
+      const timeout = new Promise<never>((_, reject) => {
+        const id = setTimeout(() => {
+          reject(new Error('Task execution timed out after 30 seconds'));
+        }, 30000);
+        // Store the timeout ID so we can clear it later
+        return () => clearTimeout(id);
+      });
+
+      // Execute the task with the timeout
+      await Promise.race([
+        task(),
+        timeout
+      ]);
+      
+      if (RATE_LIMIT_CONFIG.debug && REQUEST_QUEUE.length > 0) {
+        console.log(`Task completed. ${REQUEST_QUEUE.length} items remaining in queue.`);
+      }
+    } catch (error) {
+      console.error('Error in rate-limited task:', error);
+      
+      // Log additional error details for debugging
+      if (error instanceof Error) {
+        console.error(`Task error details: ${error.name}: ${error.message}`);
+        if (error.stack) {
+          console.error(`Stack trace: ${error.stack}`);
+        }
+      }
+    }
+  }
+  
+  if (RATE_LIMIT_CONFIG.debug) {
+    console.log(`Queue processing completed. Processed ${totalRequests} total requests.`);
+  }
+  
+  isProcessingQueue = false;
+}
+
+/**
+ * Enforces rate limiting by using a queue-based approach to respect
+ * the rate limit of 6 requests per second (Mistral API limit)
+ * 
+ * @param fn Function to execute with rate limiting
+ * @param options Optional configuration overrides for this specific call
+ * @returns The result of the function
+ */
+export async function withRateLimit<T>(
+  fn: () => Promise<T>,
+  options: { skipQueue?: boolean } = {}
+): Promise<T> {
+  // Skip queue if explicitly requested or rate limiting is disabled
+  if (options.skipQueue || !RATE_LIMIT_CONFIG.rateLimitEnabled) {
+    if (RATE_LIMIT_CONFIG.debug) {
+      console.log('Skipping rate limit queue (explicitly disabled)');
+    }
+    return await fn();
+  }
+  
+  return new Promise<T>((resolve, reject) => {
+    // Update statistics
+    queuedRequests++;
+    
+    // Add the task to the queue
+    REQUEST_QUEUE.push(async () => {
+      try {
+        const result = await fn();
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    });
+    
+    // Log queue size if debugging is enabled
+    if (RATE_LIMIT_CONFIG.debug) {
+      console.log(`Added task to queue. Current size: ${REQUEST_QUEUE.length}`);
+    }
+    
+    // Start processing the queue if it's not already being processed
+    if (!isProcessingQueue) {
+      processQueue();
+    }
+  });
 }
 
 /**
@@ -66,8 +182,8 @@ export async function retry<T>(
 
   while (attempt <= retries) {
     try {
-      // Use rate limiting if specified
-      if (respectRateLimit) {
+      // Use rate limiting if specified and enabled
+      if (respectRateLimit && RATE_LIMIT_CONFIG.rateLimitEnabled) {
         return await withRateLimit(() => fn());
       } else {
         return await fn();
@@ -95,6 +211,51 @@ export async function retry<T>(
 
   // This should never happen, but TypeScript needs it
   throw lastError;
+}
+
+/**
+ * Configure the rate limiting behavior
+ */
+export function configureRateLimiting(config: {
+  enabled?: boolean;
+  requestInterval?: number;
+  debug?: boolean;
+} = {}): void {
+  if (config.enabled !== undefined) {
+    RATE_LIMIT_CONFIG.rateLimitEnabled = config.enabled;
+  }
+  
+  if (config.requestInterval !== undefined) {
+    RATE_LIMIT_CONFIG.requestInterval = config.requestInterval;
+  }
+  
+  if (config.debug !== undefined) {
+    RATE_LIMIT_CONFIG.debug = config.debug;
+    verboseLogging = config.debug;
+  }
+  
+  console.log(`Rate limiting configuration updated:`, RATE_LIMIT_CONFIG);
+}
+
+/**
+ * Get statistics about rate limiting
+ */
+export function getRateLimitingStats(): {
+  totalRequests: number;
+  queuedRequests: number;
+  currentQueueLength: number;
+  maxQueueLength: number;
+  isProcessingQueue: boolean;
+  config: typeof RATE_LIMIT_CONFIG;
+} {
+  return {
+    totalRequests,
+    queuedRequests,
+    currentQueueLength: REQUEST_QUEUE.length,
+    maxQueueLength,
+    isProcessingQueue,
+    config: { ...RATE_LIMIT_CONFIG },
+  };
 }
 
 /**

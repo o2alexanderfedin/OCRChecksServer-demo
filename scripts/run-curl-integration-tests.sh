@@ -12,7 +12,7 @@ BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 # Configuration
-SERVER_PORT=${SERVER_PORT:-8787}
+SERVER_PORT=${SERVER_PORT:-0} # Use 0 to let the OS assign an available port
 SERVER_STARTUP_WAIT=15 # seconds to wait for server to start
 SERVER_PID_FILE="./.server-pid"
 TEST_MODE=${TEST_MODE:-"normal"}

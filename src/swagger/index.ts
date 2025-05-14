@@ -10,23 +10,16 @@ export function createSwaggerUI() {
   // Create a Swagger UI middleware with the OpenAPI spec
   const spec = getOpenAPISpecWithCurrentVersion();
   
-  // Ensure we have a localhost server in development environments
-  if (!spec.servers.some(server => server.url.includes('localhost'))) {
-    spec.servers.unshift({
-      url: 'http://localhost:8787',
-      description: 'Local development server'
-    });
-  }
+  // Use a relative URL for local testing
+  // This prevents CORS issues by ensuring requests go to the same origin
+  spec.servers = [{
+    url: '',  // Empty URL means same origin
+    description: 'Current server'
+  }];
   
   return swaggerUI({
     spec: spec,
-    title: 'OCR Checks Server API Documentation',
-    // Additional Swagger UI options that improve usability
-    docExpansion: 'list',
-    deepLinking: true,
-    tryItOutEnabled: true,
-    persistAuthorization: true,
-    withCredentials: false
+    title: 'OCR Checks Server API Documentation'
   });
 }
 

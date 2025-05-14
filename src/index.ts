@@ -15,14 +15,31 @@ interface Env {
 }
 
 const app = new Hono<{ Bindings: Env }>();
-app.use('*', cors({
-  origin: '*',
-  allowHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  exposeHeaders: ['Content-Length', 'Content-Type'],
-  maxAge: 86400,
-  credentials: true
-}));
+// Apply CORS middleware to all routes
+app.options('*', (c) => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+      'Access-Control-Max-Age': '86400',
+    }
+  });
+});
+
+// Add CORS headers to all responses
+app.use('*', async (c, next) => {
+  await next();
+  
+  // Get the response
+  const response = c.res;
+  
+  // Add CORS headers
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+});
 
 // Serve examples directory for client testing
 app.get('/examples/*', serveStatic({ root: './' }));

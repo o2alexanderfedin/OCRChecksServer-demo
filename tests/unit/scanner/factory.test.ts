@@ -34,4 +34,27 @@ describe('ScannerFactory', () => {
     // Assert
     expect(ScannerFactory.createMistralReceiptScanner).toHaveBeenCalledWith(mockIoE, apiKey);
   });
+
+  describe('createDIContainer validation', () => {
+    it('should throw an error when io is missing', () => {
+      // Act & Assert
+      expect(() => {
+        ScannerFactory.createDIContainer(null as unknown as IoE, apiKey);
+      }).toThrowError(/CRITICAL ERROR: IO interface is missing or undefined/);
+    });
+
+    it('should throw an error when apiKey is missing', () => {
+      // Act & Assert
+      expect(() => {
+        ScannerFactory.createDIContainer(mockIoE, '');
+      }).toThrowError(/CRITICAL ERROR: Mistral API key is missing or empty/);
+    });
+
+    it('should throw an error when apiKey is too short', () => {
+      // Act & Assert
+      expect(() => {
+        ScannerFactory.createDIContainer(mockIoE, 'short');
+      }).toThrowError(/CRITICAL ERROR: Mistral API key is too short/);
+    });
+  });
 });

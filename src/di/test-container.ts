@@ -2,6 +2,7 @@ import { DIContainer } from './container';
 import { TYPES } from '../types/di-types';
 import { Mistral } from '@mistralai/mistralai';
 import { IoE } from '../ocr/types';
+import { registerValidators } from '../validators';
 
 /**
  * Creates a mock Mistral client that passes instanceof checks
@@ -235,8 +236,86 @@ export class TestDIContainer extends DIContainer {
   }
   
   /**
-   * Creates a TestDIContainer with a mock Mistral client that has
-   * customized mock implementations for unit tests
+   * Register all dependencies with test mocks, with relaxed validation for tests
+   * Overrides the base implementation to ensure test-specific behavior
+   * 
+   * @param io - The IO interface for network operations
+   * @param apiKey - Mistral API key
+   * @param caller - caller of the method
+   * @returns The container instance for method chaining
+   * @throws Error if io or apiKey is not provided
+   */
+  override registerDependencies(io: IoE, apiKey: string, caller?: string): TestDIContainer {
+    // For tests, perform basic validation but with more relaxed requirements
+    if (!io) {
+      throw new Error(`[DIContainer.${caller ?? 'registerDependencies'}] CRITICAL ERROR: IO interface is missing or undefined`);
+    }
+    
+    if (!apiKey) {
+      throw new Error(`[DIContainer.${caller ?? 'registerDependencies'}] CRITICAL ERROR: Mistral API key is missing or empty`);
+    }
+    
+    // For tests, we accept any non-empty API key
+    
+    // Register basic dependencies
+    this.container.bind(TYPES.IoE).toConstantValue(io);
+    this.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
+
+    // Register all validators
+    registerValidators(this.container);
+    this.registerValidationMiddleware();
+    
+    // Register the standard components
+    this.registerMistralClient();
+    this.registerProviders();
+    this.registerExtractors();
+    this.registerScanners();
+    
+    return this;
+  }
+  
+  /**
+   * Register all dependencies but using a mock Mistral client
+   * 
+   * @param io - The IO interface for network operations
+   * @param apiKey - Mistral API key
+   * @param caller - caller of the method
+   * @param mockOptions - Optional customizations for the mock client
+   * @returns The container instance for method chaining
+   * @throws Error if io or apiKey is not provided
+   */
+  registerTestDependencies(
+    io: IoE, 
+    apiKey: string, 
+    caller?: string,
+    mockOptions?: {
+      ocrProcess?: (params: any) => Promise<any>;
+      chatComplete?: (params: any) => Promise<any>;
+    }
+  ): TestDIContainer {
+    // First register dependencies with our overridden method
+    this.registerDependencies(io, apiKey, caller);
+    
+    // Override MistralClient with our test-specific mock implementation 
+    if (this.container.isBound(TYPES.MistralClient)) {
+      this.container.unbind(TYPES.MistralClient);
+    }
+    this.container.bind(TYPES.MistralClient).toDynamicValue(() => {
+      // Create a mock Mistral instance with custom implementations
+      return createMockMistral({
+        apiKey,
+        io,
+        mockOcrProcess: mockOptions?.ocrProcess,
+        mockChatComplete: mockOptions?.chatComplete
+      });
+    }).inSingletonScope();
+    
+    return this;
+  }
+  
+
+  /**
+   * Creates a TestDIContainer with a mock Mistral client for testing purposes
    * 
    * @param io - The IO interface for logs
    * @param apiKey - API key to use (will be validated)
@@ -253,25 +332,8 @@ export class TestDIContainer extends DIContainer {
   ): TestDIContainer {
     const container = new TestDIContainer();
     
-    // Register IoE and API key
-    container.container.bind(TYPES.IoE).toConstantValue(io);
-    container.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
-    
-    // Register mock Mistral client with custom implementations
-    container.container.bind(TYPES.MistralClient).toDynamicValue(() => {
-      // Create a mock Mistral instance with custom implementations
-      return createMockMistral({
-        apiKey,
-        io,
-        mockOcrProcess: mockOptions?.ocrProcess,
-        mockChatComplete: mockOptions?.chatComplete
-      });
-    }).inSingletonScope();
-    
-    // Register the rest of the dependencies
-    container.registerProviders();
-    container.registerExtractors();
-    container.registerScanners();
+    // Use the registerTestDependencies method to set up the container
+    container.registerTestDependencies(io, apiKey, 'createForTests', mockOptions);
     
     return container;
   }

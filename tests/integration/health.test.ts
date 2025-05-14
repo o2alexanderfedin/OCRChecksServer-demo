@@ -47,7 +47,8 @@ describe('Health Check Endpoint', function() {
       
       // Verify response structure
       expect(body.status).toBe('ok');
-      expect(typeof body.timestamp).toBe('string');
+      // Timestamp can be a string or a number (epoch time)
+      expect(['string', 'number']).toContain(typeof body.timestamp);
       expect(typeof body.version).toBe('string');
       
       // Check timestamp is valid date

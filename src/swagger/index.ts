@@ -9,7 +9,15 @@ import openApiSpec from './openapi-spec';
 export function createSwaggerUI() {
   // Create a Swagger UI middleware with the OpenAPI spec
   return swaggerUI({
-    openAPISpec: getOpenAPISpecWithCurrentVersion()
+    openAPISpec: getOpenAPISpecWithCurrentVersion(),
+    options: {
+      supportedSubmitMethods: ['get', 'post'],
+      tryItOutEnabled: true,
+      deepLinking: true,
+      docExpansion: 'list',
+      persistAuthorization: true
+    },
+    title: 'OCR Checks Server API Documentation'
   });
 }
 

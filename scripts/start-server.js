@@ -84,7 +84,14 @@ console.log(`API Key first 4 chars: ${process.env.MISTRAL_API_KEY.substring(0, 4
 
 // Start the server with the custom environment
 console.log('Starting development server...');
-const serverProcess = spawn('wrangler', ['dev', '--var', `MISTRAL_API_KEY:${process.env.MISTRAL_API_KEY}`], {
+// Try to use a consistent port (8787) by default
+const port = process.env.SERVER_PORT || 8787;
+console.log(`Attempting to start server on port ${port}...`);
+const serverProcess = spawn('wrangler', [
+  'dev', 
+  '--port', port.toString(),
+  '--var', `MISTRAL_API_KEY:${process.env.MISTRAL_API_KEY}`
+], {
   cwd: pathResolve(__dirname, '..'), // Point to project root instead of scripts directory
   shell: true,
   stdio: ['ignore', 'pipe', 'pipe'],

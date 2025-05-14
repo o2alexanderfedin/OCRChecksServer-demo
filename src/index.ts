@@ -5,6 +5,8 @@ import { serveStatic } from 'hono/cloudflare-workers';
 import { workerIoE } from './io';
 import { ScannerFactory } from './scanner/factory';
 import { Document, DocumentType } from './ocr/types';
+// Import Swagger UI middleware
+import { createSwaggerUI, getOpenAPISpecWithCurrentVersion } from './swagger';
 // Get package version (used in health check)
 import pkg from '../package.json';
 
@@ -13,16 +15,50 @@ interface Env {
 }
 
 const app = new Hono<{ Bindings: Env }>();
-app.use('*', cors());
+// Apply CORS middleware to all routes
+app.options('*', (c) => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+      'Access-Control-Max-Age': '86400',
+    }
+  });
+});
+
+// Add CORS headers to all responses
+app.use('*', async (c, next) => {
+  await next();
+  
+  // Get the response
+  const response = c.res;
+  
+  // Add CORS headers
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+});
 
 // Serve examples directory for client testing
 app.get('/examples/*', serveStatic({ root: './' }));
+
+// Serve OpenAPI Swagger UI for API documentation
+app.get('/api-docs', createSwaggerUI());
+
+// Serve the raw OpenAPI specification as JSON
+app.get('/openapi.json', (c) => {
+  return c.json(getOpenAPISpecWithCurrentVersion());
+});
 
 // All functionality is now provided through dedicated endpoints:
 // - /process - Universal document processing endpoint
 // - /check - Check-specific processing endpoint
 // - /receipt - Receipt-specific processing endpoint
 // - /health - Server status endpoint
+// - /api-docs - API documentation (Swagger UI)
+// - /openapi.json - Raw OpenAPI specification
 
 // New unified endpoint for processing documents
 app.post('/process', async (c) => {

@@ -26,7 +26,8 @@ duration_ms = 30000  # Set maximum execution time to 30 seconds
 # Staging environment
 [env.staging]
 name = "ocr-checks-worker-staging"
-route = "staging-api.nolock.social/*"
+# Removing custom domain route to use workers.dev subdomain only
+# route = "staging-api.nolock.social/*"
 workers_dev = true
 vars = { ENVIRONMENT = "staging", MISTRAL_DEBUG = true }
 

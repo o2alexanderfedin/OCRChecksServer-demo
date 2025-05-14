@@ -1,12 +1,20 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..', '..');
 const checksDir = path.join(projectRoot, 'tests', 'fixtures', 'images');
 const resultsPath = path.join(projectRoot, 'integration-test-results.json');
+
+// Configure throttled fetch with recommended settings
+setupThrottledFetch({
+  enabled: true,
+  requestInterval: 200, // Slightly more conservative than the 167ms limit
+  debug: process.env.DEBUG_THROTTLE === 'true'
+});
 
 // API endpoint configuration
 const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
@@ -27,7 +35,8 @@ async function sendCheckImage(imagePath: string): Promise<any> {
   const imageBuffer = fs.readFileSync(imagePath);
   
   try {
-    const response = await fetch(API_URL, {
+    // Use throttled fetch to respect rate limits
+    const response = await throttledFetch(API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'image/jpeg',
@@ -54,7 +63,11 @@ describe('OCR API Integration', () => {
   // Check API availability before tests
   beforeAll(async () => {
     try {
-      const response = await fetch(API_URL, { method: 'HEAD' });
+      // Health checks can bypass throttling
+      const response = await throttledFetch(API_URL, { 
+        method: 'HEAD'
+      });
+      
       if (!response.ok) {
         throw new Error(`API endpoint returned status ${response.status}`);
       }

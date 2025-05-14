@@ -15,7 +15,14 @@ interface Env {
 }
 
 const app = new Hono<{ Bindings: Env }>();
-app.use('*', cors());
+app.use('*', cors({
+  origin: '*',
+  allowHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  exposeHeaders: ['Content-Length', 'Content-Type'],
+  maxAge: 86400,
+  credentials: true
+}));
 
 // Serve examples directory for client testing
 app.get('/examples/*', serveStatic({ root: './' }));

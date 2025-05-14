@@ -212,7 +212,47 @@ if (config.requiresServer) {
     
     // Give the server more time to start and be fully ready
     console.log('Waiting for server to be fully ready...');
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    
+    // Wait longer for server startup
+    const serverStartupTimeout = 15000; // 15 seconds
+    console.log(`Giving server ${serverStartupTimeout/1000} seconds to start up...`);
+    await new Promise(resolve => setTimeout(resolve, serverStartupTimeout));
+    
+    // Perform a health check to verify server is responding before running tests
+    console.log('Performing health check on server...');
+    let serverReady = false;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        // Get the URL from the process.env (set above) or use default localhost URL
+        const serverUrl = process.env.OCR_API_URL || 'http://localhost:8787';
+        
+        // We use the built-in fetch API (Node.js v18+)
+        const response = await fetch(`${serverUrl}/health`);
+        if (response.ok) {
+          console.log('Server health check passed!');
+          console.log(`Server started successfully on port 8787. PID: ${serverPid}`);
+          console.log(`To stop the server, run: kill ${serverPid}`);
+          serverReady = true;
+          break;
+        } else {
+          console.warn(`Health check failed with status: ${response.status}`);
+          if (attempt < 3) {
+            console.log(`Retrying in 3 seconds (attempt ${attempt}/3)...`);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
+        }
+      } catch (error) {
+        console.warn(`Health check attempt ${attempt}/3 failed:`, error.message);
+        if (attempt < 3) {
+          console.log(`Retrying in 3 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+    }
+    
+    if (!serverReady) {
+      console.error('Server health check failed after 3 attempts. Tests may fail.');
+    }
     
     // Read the PID file to ensure we have the correct server PID
     try {

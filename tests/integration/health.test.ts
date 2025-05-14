@@ -5,6 +5,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { HealthResponse } from '../../src/types/api-responses';
+import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
+import { setupServerCleanup } from '../helpers/server-cleanup.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +14,16 @@ const projectRoot = path.resolve(__dirname, '..', '..');
 
 // API endpoint configuration
 const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
+
+// DO NOT set up server cleanup in this test file
+// The server is managed by the test runner and cleaned up after all tests
+
+// Configure throttled fetch with recommended settings
+setupThrottledFetch({
+  enabled: true,
+  requestInterval: 200, // Slightly more conservative than the 167ms limit
+  debug: process.env.DEBUG_THROTTLE === 'true'
+});
 
 describe('Health Check Endpoint', function() {
   // Set a longer timeout for API calls
@@ -27,7 +39,7 @@ describe('Health Check Endpoint', function() {
     try {
       // Make the API request to the health endpoint
       console.log(`Checking health endpoint at ${API_URL}/health`);
-      const response = await fetch(`${API_URL}/health`, {
+      const response = await throttledFetch(`${API_URL}/health`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'

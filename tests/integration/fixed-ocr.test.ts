@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { OCRResult } from '../../src/ocr/types';
+import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
+import { setupServerCleanup } from '../helpers/server-cleanup.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +14,18 @@ const expectedResultsPath = path.join(fixturesDir, 'expected', 'mistral-ocr-resu
 
 // API endpoint configuration
 const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
+
+// Set up proper server cleanup
+setupServerCleanup().catch(error => {
+  console.error('Failed to set up server cleanup:', error);
+});
+
+// Configure throttled fetch with recommended settings
+setupThrottledFetch({
+  enabled: true,
+  requestInterval: 200, // Slightly more conservative than the 167ms limit
+  debug: process.env.DEBUG_THROTTLE === 'true'
+});
 
 // Utility functions
 function getFirstCheckImage() {
@@ -95,7 +109,7 @@ describe('Fixed OCR Tests with Expected Results', () => {
     console.log(`Using image file: ${imagePath}`);
     
     const imageBuffer = fs.readFileSync(imagePath);
-    const response = await fetch(API_URL, {
+    const response = await throttledFetch(API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'image/jpeg',

@@ -13,21 +13,53 @@ export async function throttledFetch(
   url: string | URL | Request, 
   init?: RequestInit
 ): Promise<Response> {
-  // Check if this is a direct Mistral API call
-  const isMistralCall = typeof url === 'string' 
-    ? url.includes('mistral.ai') 
+  // Parse the URL to string for easier handling
+  const urlStr = typeof url === 'string' 
+    ? url 
     : url instanceof URL 
-      ? url.hostname.includes('mistral.ai')
-      : url.url.includes('mistral.ai');
+      ? url.toString()
+      : url.url;
+      
+  // Check if this is a health check endpoint (can bypass throttling)
+  const isHealthCheck = urlStr.includes('/health');
+  
+  // Check if this is a direct Mistral API call
+  const isMistralCall = urlStr.includes('mistral.ai');
 
-  // All Mistral API calls need to be strictly rate limited
-  if (isMistralCall) {
-    // Return rate-limited fetch for Mistral
-    return withRateLimit(() => fetch(url, init));
+  try {
+    // Health checks can bypass the rate limiting to avoid unnecessary delays
+    if (isHealthCheck) {
+      return await fetch(url, init);
+    }
+    
+    // All Mistral API calls need to be strictly rate limited
+    if (isMistralCall) {
+      // Return rate-limited fetch for Mistral with longer timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      
+      try {
+        // Add abort signal to init if it doesn't already have one
+        const fetchInit = init ? { ...init } : {};
+        if (!fetchInit.signal) {
+          fetchInit.signal = controller.signal;
+        }
+        
+        return await withRateLimit(() => fetch(url, fetchInit));
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+  
+    // For non-Mistral endpoints, we still use the queue but with higher priority
+    return await withRateLimit(() => fetch(url, init));
+  } catch (error) {
+    // Enhance error with request details (but don't log sensitive data)
+    console.error(`Fetch error for ${urlStr.split('?')[0]}:`, error);
+    
+    // Rethrow to allow callers to handle the error
+    throw error;
   }
-
-  // For non-Mistral endpoints, we still use the queue but with higher priority
-  return withRateLimit(() => fetch(url, init));
 }
 
 // Re-export rate limiting configuration utilities

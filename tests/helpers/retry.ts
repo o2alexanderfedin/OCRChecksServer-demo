@@ -62,15 +62,36 @@ async function processQueue() {
     lastRequestTime = Date.now();
     totalRequests++;
     
-    // Execute the queued task
+    // Execute the queued task with timeout protection
     try {
-      await task();
+      // Create a timeout promise that will reject after 30 seconds
+      const timeout = new Promise<never>((_, reject) => {
+        const id = setTimeout(() => {
+          reject(new Error('Task execution timed out after 30 seconds'));
+        }, 30000);
+        // Store the timeout ID so we can clear it later
+        return () => clearTimeout(id);
+      });
+
+      // Execute the task with the timeout
+      await Promise.race([
+        task(),
+        timeout
+      ]);
       
       if (RATE_LIMIT_CONFIG.debug && REQUEST_QUEUE.length > 0) {
         console.log(`Task completed. ${REQUEST_QUEUE.length} items remaining in queue.`);
       }
     } catch (error) {
       console.error('Error in rate-limited task:', error);
+      
+      // Log additional error details for debugging
+      if (error instanceof Error) {
+        console.error(`Task error details: ${error.name}: ${error.message}`);
+        if (error.stack) {
+          console.error(`Stack trace: ${error.stack}`);
+        }
+      }
     }
   }
   

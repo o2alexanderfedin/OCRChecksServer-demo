@@ -5,6 +5,8 @@ import { serveStatic } from 'hono/cloudflare-workers';
 import { workerIoE } from './io';
 import { ScannerFactory } from './scanner/factory';
 import { Document, DocumentType } from './ocr/types';
+// Import Swagger UI middleware
+import { createSwaggerUI, getOpenAPISpecWithCurrentVersion } from './swagger';
 // Get package version (used in health check)
 import pkg from '../package.json';
 
@@ -18,11 +20,21 @@ app.use('*', cors());
 // Serve examples directory for client testing
 app.get('/examples/*', serveStatic({ root: './' }));
 
+// Serve OpenAPI Swagger UI for API documentation
+app.get('/api-docs', createSwaggerUI());
+
+// Serve the raw OpenAPI specification as JSON
+app.get('/openapi.json', (c) => {
+  return c.json(getOpenAPISpecWithCurrentVersion());
+});
+
 // All functionality is now provided through dedicated endpoints:
 // - /process - Universal document processing endpoint
 // - /check - Check-specific processing endpoint
 // - /receipt - Receipt-specific processing endpoint
 // - /health - Server status endpoint
+// - /api-docs - API documentation (Swagger UI)
+// - /openapi.json - Raw OpenAPI specification
 
 // New unified endpoint for processing documents
 app.post('/process', async (c) => {

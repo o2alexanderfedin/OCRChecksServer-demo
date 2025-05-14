@@ -229,8 +229,8 @@ run_test \
   "DELETE" \
   "application/json" \
   "" \
-  405 \
-  "true" # No specific validation, just expect 405 status
+  404 \
+  "true" # No specific validation, just expect 404 status (Cloudflare returns 404 for unsupported methods)
 
 # Calculate test execution time
 TESTS_END_TIME=$(date +%s)

@@ -296,13 +296,36 @@ jasmine.loadConfig({
   timeoutInterval: config.timeoutInterval
 });
 
-// Add reporter for detailed output
+// Delay configuration for rate limiting
+const TEST_DELAY_CONFIG = {
+  // Delay between test files to avoid overwhelming APIs with rate limits
+  delayBetweenFiles: testType === 'integration' ? 2000 : 0,  // 2 seconds between integration tests
+  delayAfterSuite: testType === 'integration' ? 500 : 0,     // 0.5 seconds between suites
+};
+
+// Log delay configuration
+if (TEST_DELAY_CONFIG.delayBetweenFiles > 0 || TEST_DELAY_CONFIG.delayAfterSuite > 0) {
+  console.log('Test delay configuration (for rate limiting):');
+  console.log(`- Delay between test files: ${TEST_DELAY_CONFIG.delayBetweenFiles}ms`);
+  console.log(`- Delay after test suites: ${TEST_DELAY_CONFIG.delayAfterSuite}ms`);
+}
+
+// Function to add delays between tests
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Add reporter for detailed output with rate limiting delays
 jasmine.addReporter({
   jasmineStarted: function(suiteInfo) {
     console.log(`Running ${suiteInfo.totalSpecsDefined} tests`);
   },
-  suiteStarted: function(result) {
+  suiteStarted: async function(result) {
     console.log(`Suite started: ${result.description}`);
+    
+    // Add a delay before starting a suite (except for the first one)
+    if (TEST_DELAY_CONFIG.delayBetweenFiles > 0) {
+      console.log(`Rate limiting: Adding delay of ${TEST_DELAY_CONFIG.delayBetweenFiles}ms before starting next test file`);
+      await delay(TEST_DELAY_CONFIG.delayBetweenFiles);
+    }
   },
   specStarted: function(result) {
     console.log(`Test started: ${result.description}`);
@@ -317,10 +340,16 @@ jasmine.addReporter({
       console.log(`Pending reason: ${result.pendingReason}`);
     }
   },
-  suiteDone: function(result) {
+  suiteDone: async function(result) {
     console.log(`Suite finished: ${result.description}`);
     if (result.failedExpectations && result.failedExpectations.length > 0) {
       console.log(`Suite failures: ${JSON.stringify(result.failedExpectations, null, 2)}`);
+    }
+    
+    // Add a delay after completing a suite
+    if (TEST_DELAY_CONFIG.delayAfterSuite > 0) {
+      console.log(`Rate limiting: Adding delay of ${TEST_DELAY_CONFIG.delayAfterSuite}ms after suite`);
+      await delay(TEST_DELAY_CONFIG.delayAfterSuite);
     }
   },
   jasmineDone: function(result) {

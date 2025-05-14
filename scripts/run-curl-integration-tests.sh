@@ -17,6 +17,7 @@ SERVER_STARTUP_WAIT=15 # seconds to wait for server to start
 SERVER_PID_FILE="./.server-pid"
 TEST_MODE=${TEST_MODE:-"normal"}
 EXIT_CODE=0
+ACTUAL_SERVER_PORT=""  # Will be populated with the actual port from server output
 
 # Clean up resources before exiting
 cleanup() {
@@ -44,8 +45,9 @@ cleanup() {
       fi
     fi
     
-    # Remove PID file
+    # Remove PID file and server output log
     rm -f "$SERVER_PID_FILE"
+    rm -f ".server-output.log"
   fi
   
   echo -e "${GREEN}Cleanup complete.${NC}"
@@ -71,11 +73,42 @@ export $(cat .dev.vars | grep -v '^#' | xargs)
 
 # Start the server
 echo -e "${BLUE}${BOLD}Starting server in test mode...${NC}"
-NODE_ENV=test node --no-deprecation scripts/start-server.js &
+# Use SERVER_PORT environment variable to request specific port
+export SERVER_PORT
+# Start server and capture its output to get actual port
+NODE_ENV=test node --no-deprecation scripts/start-server.js > .server-output.log 2>&1 &
 
 # Give the server time to start up
-echo -e "${YELLOW}Waiting ${SERVER_STARTUP_WAIT} seconds for server to start...${NC}"
-sleep $SERVER_STARTUP_WAIT
+echo -e "${YELLOW}Waiting for server to start (max ${SERVER_STARTUP_WAIT} seconds)...${NC}"
+
+# Loop until server is ready or timeout
+start_time=$(date +%s)
+while true; do
+  # Check if server output log exists and contains port information
+  if [ -f ".server-output.log" ]; then
+    # Extract the actual port from the server output
+    port_line=$(grep -o "Ready on http://localhost:[0-9]\+" .server-output.log | tail -1)
+    if [ -n "$port_line" ]; then
+      ACTUAL_SERVER_PORT=$(echo $port_line | grep -o "[0-9]\+$")
+      echo -e "${GREEN}Server started on port: ${ACTUAL_SERVER_PORT}${NC}"
+      break
+    fi
+  fi
+  
+  # Check if timeout reached
+  current_time=$(date +%s)
+  elapsed=$((current_time - start_time))
+  if [ $elapsed -ge $SERVER_STARTUP_WAIT ]; then
+    echo -e "${YELLOW}Timeout reached. Using default port ${SERVER_PORT}.${NC}"
+    ACTUAL_SERVER_PORT=$SERVER_PORT
+    break
+  fi
+  
+  # Wait a bit before checking again
+  sleep 1
+  echo -n "."
+done
+echo
 
 # Check if server started successfully
 if [ ! -f "$SERVER_PID_FILE" ]; then
@@ -91,7 +124,7 @@ fi
 
 # Check if server is responding to health checks
 echo -e "${YELLOW}Verifying server health...${NC}"
-HEALTH_RESPONSE=$(curl -s "http://localhost:${SERVER_PORT}/health")
+HEALTH_RESPONSE=$(curl -s "http://localhost:${ACTUAL_SERVER_PORT}/health")
 HEALTH_STATUS=$?
 
 if [ $HEALTH_STATUS -ne 0 ] || ! echo "$HEALTH_RESPONSE" | grep -q '"status":"ok"'; then
@@ -104,7 +137,7 @@ echo -e "${GREEN}Server is healthy and ready for testing.${NC}"
 
 # Run the curl tests
 echo -e "${BLUE}${BOLD}Running curl integration tests...${NC}"
-API_URL="http://localhost:${SERVER_PORT}" TEST_MODE="$TEST_MODE" ./scripts/run-curl-tests.sh
+API_URL="http://localhost:${ACTUAL_SERVER_PORT}" TEST_MODE="$TEST_MODE" ./scripts/run-curl-tests.sh
 EXIT_CODE=$?
 
 # Result summary

@@ -9,6 +9,18 @@ The OCR Checks Server now includes a Swagger UI integration that provides an int
 - **Swagger UI Interface**: `/api-docs`
 - **Raw OpenAPI Specification**: `/openapi.json`
 
+## Environments
+
+The Swagger UI allows you to select from the following server environments:
+
+1. **Current Server**: Uses the current host (relative URL) - best for local testing
+2. **Local Development**: http://localhost:8787
+3. **Development Environment**: https://ocr-checks-worker-dev.af-4a0.workers.dev
+4. **Staging Environment**: https://ocr-checks-worker-staging.af-4a0.workers.dev
+5. **Production Environment**: https://ocr-checks-worker.af-4a0.workers.dev
+
+You can switch between these environments in the Swagger UI interface by selecting from the dropdown at the top of the page.
+
 ## Features
 
 - **Interactive API Documentation**: Browse all available endpoints with descriptions

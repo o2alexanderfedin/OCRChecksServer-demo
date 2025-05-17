@@ -1,6 +1,6 @@
 {
   "name": "ocr-checks-worker",
-  "version": "1.59.0",
+  "version": "1.60.0",
   "description": "A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks",
   "type": "module",
   "main": "src/index.ts",

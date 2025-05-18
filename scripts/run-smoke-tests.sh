@@ -116,8 +116,8 @@ echo -e "${BLUE}Running smoke tests against ${CYAN}$ENV${BLUE} environment...${N
 echo -e "${YELLOW}Command: ts-node $PROJECT_ROOT/scripts/production-smoke-test.ts ${ARGS[*]}${NC}"
 echo -e ""
 
-# Execute the tests with --no-deprecation flag to ignore deprecation warnings
-ts-node --no-deprecation "$PROJECT_ROOT/scripts/production-smoke-test.ts" "${ARGS[@]}"
+# Execute the tests with node to avoid deprecation warnings
+node --no-deprecation -r ts-node/register "$PROJECT_ROOT/scripts/production-smoke-test.ts" "${ARGS[@]}"
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then

@@ -21,7 +21,8 @@
  *   OCR_API_URL=https://custom.api.url ts-node scripts/production-smoke-test.ts --verbose
  */
 
-import fs from 'fs';
+import { promises as fsPromises } from 'fs';
+import * as fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -146,7 +147,7 @@ async function testHealth(): Promise<void> {
  * Find a test image or create a tiny test pattern if none found
  * This ensures we always have a small, valid image for testing
  */
-function findTestImage(): string {
+async function findTestImage(): Promise<string> {
   // Define a fallback tiny test image path
   const tinyTestPath = path.join(projectRoot, 'tiny-test.jpg');
   
@@ -160,15 +161,22 @@ function findTestImage(): string {
   ];
 
   for (const imagePath of possibleImages) {
-    if (fs.existsSync(imagePath)) {
-      // If the file exists but is too large (over 1KB), skip it for faster testing
-      const stats = fs.statSync(imagePath);
-      if (stats.size > 1024) { // 1KB
-        log(`Skipping large image: ${path.basename(imagePath)} (${Math.round(stats.size / 1024)}KB)`, colors.dim);
+    try {
+      // Check if file exists and get its size without using Stats constructor
+      if (!fs.existsSync(imagePath)) continue;
+      
+      // Get file size using file stat - avoid using new fs.Stats() constructor directly
+      const fileSize = (await fsPromises.stat(imagePath)).size;
+      
+      if (fileSize > 1024) { // 1KB
+        log(`Skipping large image: ${path.basename(imagePath)} (${Math.round(fileSize / 1024)}KB)`, colors.dim);
         continue;
       }
       
       return imagePath;
+    } catch (err) {
+      log(`Error checking file ${path.basename(imagePath)}: ${err.message}`, colors.dim);
+      continue;
     }
   }
   
@@ -230,7 +238,7 @@ function findTestImage(): string {
  * Check Processing Test
  */
 async function testCheckProcessing(): Promise<void> {
-  const imagePath = findTestImage();
+  const imagePath = await findTestImage();
   const imageBuffer = fs.readFileSync(imagePath);
   const imageName = path.basename(imagePath);
   
@@ -286,7 +294,7 @@ async function testCheckProcessing(): Promise<void> {
  * Receipt Processing Test
  */
 async function testReceiptProcessing(): Promise<void> {
-  const imagePath = findTestImage();
+  const imagePath = await findTestImage();
   const imageBuffer = fs.readFileSync(imagePath);
   const imageName = path.basename(imagePath);
   
@@ -338,7 +346,7 @@ async function testReceiptProcessing(): Promise<void> {
  * Universal Process Endpoint Test
  */
 async function testUniversalProcessing(): Promise<void> {
-  const imagePath = findTestImage();
+  const imagePath = await findTestImage();
   const imageBuffer = fs.readFileSync(imagePath);
   const imageName = path.basename(imagePath);
   

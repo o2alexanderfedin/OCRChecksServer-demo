@@ -116,8 +116,8 @@ echo -e "${BLUE}Running smoke tests against ${CYAN}$ENV${BLUE} environment...${N
 echo -e "${YELLOW}Command: ts-node $PROJECT_ROOT/scripts/production-smoke-test.ts ${ARGS[*]}${NC}"
 echo -e ""
 
-# Execute the tests with --no-deprecation and avoiding the deprecated --experimental-loader flag
-node --no-deprecation --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("ts-node/esm", pathToFileURL("./"));' "$PROJECT_ROOT/scripts/production-smoke-test.ts" "${ARGS[@]}"
+# Execute the tests
+ts-node "$PROJECT_ROOT/scripts/production-smoke-test.ts" "${ARGS[@]}"
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then

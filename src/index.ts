@@ -107,8 +107,9 @@ app.post('/process', async (c) => {
 
     // Handle result
     if (result[0] === 'error') {
+      console.error('Error in result:', result[1]);
       return new Response(JSON.stringify({ error: result[1] }), {
-        status: 500,
+        status: 429,
         headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -128,8 +129,11 @@ app.post('/process', async (c) => {
     });
   } catch (error) {
     console.error('Error processing document:', error);
-    return new Response(JSON.stringify({ message: 'Internal server error', error }), {
-      status: 500,
+    return new Response(JSON.stringify({ 
+      message: 'Too many requests, please try again later',
+      error: error instanceof Error ? error.message : String(error)
+    }), {
+      status: 429,
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -169,8 +173,9 @@ app.post('/check', async (c) => {
 
     // Handle result
     if (result[0] === 'error') {
+      console.error('Error in result:', result[1]);
       return new Response(JSON.stringify({ error: result[1] }), {
-        status: 500,
+        status: 429,
         headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -189,8 +194,11 @@ app.post('/check', async (c) => {
     });
   } catch (error) {
     console.error('Error processing check:', error);
-    return new Response(JSON.stringify({ message: 'Internal server error', error }), {
-      status: 500,
+    return new Response(JSON.stringify({ 
+      message: 'Too many requests, please try again later',
+      error: error instanceof Error ? error.message : String(error)
+    }), {
+      status: 429,
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -230,8 +238,9 @@ app.post('/receipt', async (c) => {
 
     // Handle result
     if (result[0] === 'error') {
+      console.error('Error in result:', result[1]);
       return new Response(JSON.stringify({ error: result[1] }), {
-        status: 500,
+        status: 429,
         headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -250,8 +259,11 @@ app.post('/receipt', async (c) => {
     });
   } catch (error) {
     console.error('Error processing receipt:', error);
-    return new Response(JSON.stringify({ message: 'Internal server error', error }), {
-      status: 500,
+    return new Response(JSON.stringify({ 
+      message: 'Too many requests, please try again later',
+      error: error instanceof Error ? error.message : String(error)
+    }), {
+      status: 429,
       headers: { 'Content-Type': 'application/json' }
     });
   }
@@ -282,9 +294,12 @@ app.get('/health', (c) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error processing receipt:', error);
-    return new Response(JSON.stringify({ message: 'Internal server error', error }), {
-      status: 500,
+    console.error('Error in health check:', error);
+    return new Response(JSON.stringify({ 
+      message: 'Too many requests, please try again later',
+      error: error instanceof Error ? error.message : String(error)
+    }), {
+      status: 429,
       headers: { 'Content-Type': 'application/json' }
     });
   }

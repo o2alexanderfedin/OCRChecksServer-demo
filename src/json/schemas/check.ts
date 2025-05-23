@@ -10,8 +10,12 @@ export const checkSchema = {
   "title": "Check",
   "description": "Schema for check data extracted from images",
   "type": "object",
-  "required": ["checkNumber", "date", "payee", "confidence"],
+  "required": ["confidence"],
   "properties": {
+    "isValidInput": {
+      "type": "boolean",
+      "description": "Indicates if the input appears to be a valid check image"
+    },
     "checkNumber": {
       "type": "string",
       "description": "Check number or identifier"

@@ -10,8 +10,12 @@ export const receiptSchema = {
   "title": "Receipt",
   "description": "Schema for receipt data extracted from images",
   "type": "object",
-  "required": ["merchant", "timestamp", "totals", "confidence"],
+  "required": ["confidence"],
   "properties": {
+    "isValidInput": {
+      "type": "boolean",
+      "description": "Indicates if the input appears to be a valid receipt image"
+    },
     "merchant": {
       "type": "object",
       "required": ["name"],
@@ -485,6 +489,11 @@ export interface Receipt extends ReceiptBase {
   notes?: string[];
   metadata?: ReceiptMetadata;
   confidence: number;
+  /**
+   * Indicates if the input appears to be a valid receipt image
+   * False if the system has detected potential hallucinations
+   */
+  isValidInput?: boolean;
 }
 
 export default receiptSchema;

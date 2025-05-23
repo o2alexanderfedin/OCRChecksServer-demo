@@ -97,11 +97,15 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                         {
                             role: 'system',
                             content:
-                                'You are top10 JSON extraction professional.\n'+
-                                'Extract valid JSON from the provided markdown.\n'+
-                                'Make sure the quotes are correctly balanced, and the JSON is correct.'+
-                                'The given markdown is always a source of truth.\n'+
-                                'If something is not there, then you have no value for that.'
+                                'You are a top-tier JSON extraction professional.\n'+
+                                'Extract valid JSON from the provided markdown using these critical guidelines:\n'+
+                                '1. The given markdown is the ONLY source of truth\n'+
+                                '2. Use null or empty values for fields you cannot confidently extract\n'+
+                                '3. NEVER invent or hallucinate data that is not explicitly in the text\n'+
+                                '4. Assign low confidence scores when information is unclear or incomplete\n'+
+                                '5. For minimal or empty images, provide empty/null values and low confidence\n'+
+                                '6. Set isValidInput=false if the input appears to be invalid or minimal\n'+
+                                '7. Ensure valid JSON with balanced quotes and correct syntax'
                         },
                         {
                             role: 'user',
@@ -299,12 +303,20 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
             return request.markdown;
         }
         
-        // For raw text without instructions, add basic extraction guidance
+        // For raw text without instructions, add comprehensive extraction guidance with anti-hallucination measures
         return `Extract the following information from this text as JSON:
 
 ${request.markdown}
 
-Return valid JSON that matches the provided schema.`;
+Return valid JSON that matches the provided schema.
+IMPORTANT: 
+- Use null or empty values for fields you cannot confidently extract
+- Only include information clearly present in the text
+- NEVER invent or hallucinate data that is not explicitly in the text
+- Set confidence=0.1 and isValidInput=false if the input appears invalid or minimal
+- Assign confidence scores that accurately reflect your certainty (0.0-1.0)
+- Prefer accuracy over completeness - it's better to return less data than wrong data
+- If the input doesn't look like valid source material, return minimal JSON with isValidInput=false`;
     }
     
     /**
@@ -331,8 +343,30 @@ Return valid JSON that matches the provided schema.`;
         // Evaluate JSON structure completeness
         const jsonStructureConfidence = extractedJson && Object.keys(extractedJson).length > 0 ? 0.9 : 0.3;
         
-        // Weigh finish reason more heavily (70%) than JSON structure (30%)
-        const confidenceScore = (finishReasonConfidence * 0.7) + (jsonStructureConfidence * 0.3);
+        // Check if the extracted JSON has an isValidInput flag set to false,
+        // which indicates potential hallucination
+        let validInputMultiplier = 1.0;
+        if ('isValidInput' in extractedJson && extractedJson.isValidInput === false) {
+            // If input is flagged as invalid, reduce confidence significantly
+            validInputMultiplier = 0.3;
+            console.log('- Input flagged as potentially invalid, reducing confidence');
+        }
+        
+        // Weigh finish reason (60%), JSON structure (20%), and valid input status (20%)
+        let confidenceScore = (finishReasonConfidence * 0.6) + (jsonStructureConfidence * 0.2);
+        
+        // Apply the valid input multiplier
+        confidenceScore = confidenceScore * validInputMultiplier;
+        
+        // If there's an explicit confidence in the extracted JSON, weigh it as well
+        if ('confidence' in extractedJson && 
+            typeof extractedJson.confidence === 'number' && 
+            extractedJson.confidence >= 0 && 
+            extractedJson.confidence <= 1) {
+            // Blend with the model's own confidence assessment (weighted at 20%)
+            confidenceScore = (confidenceScore * 0.8) + (extractedJson.confidence as number * 0.2);
+            console.log('- Using model\'s confidence assessment:', extractedJson.confidence);
+        }
         
         // Return normalized score between 0 and 1, rounded to 2 decimal places
         return Math.round(confidenceScore * 100) / 100;

@@ -71,6 +71,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
             
             // Construct the prompt for Mistral
             const prompt = this.constructPrompt(request);
+            console.log('- Prompt:', prompt);
             console.log('- Prompt length:', prompt.length, 'chars');
             
             // Sample text from the beginning and end of the input
@@ -95,7 +96,12 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                     messages: [
                         {
                             role: 'system',
-                            content: 'You are a JSON extraction specialist. Extract structured data from the provided text and return it as valid JSON.'
+                            content:
+                                'You are top10 JSON extraction professional.\n'+
+                                'Extract valid JSON from the provided markdown.\n'+
+                                'Make sure the quotes are correctly balanced, and the JSON is correct.'+
+                                'The given markdown is always a source of truth.\n'+
+                                'If something is not there, then you have no value for that.'
                         },
                         {
                             role: 'user',
@@ -285,9 +291,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
      * @returns Formatted prompt string
      */
     private constructPrompt(request: JsonExtractionRequest): string {
-        let prompt = `Extract the following information from this markdown text as JSON:\n\n${request.markdown}\n\n`
-        prompt += "Provide your response as a valid JSON object only."
-        return prompt
+        return request.markdown
     }
     
     /**

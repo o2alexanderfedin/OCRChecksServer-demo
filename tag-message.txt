@@ -1,1 +1,1 @@
-v1.59.2 - Fix error handling [Bugfix]
+v1.59.3 - Enhanced load testing [Improvement]

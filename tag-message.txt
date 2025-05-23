@@ -1,7 +1,7 @@
-v1.59.5: Update Mistral API key and fix authentication issues
+v1.59.6: Improve prompt handling in JSON extractor
 
 This release includes:
-- Updated Mistral API key across all environments
-- Fixed 401 Unauthorized errors in API requests
-- Added utility scripts for API key validation
-- Successfully tested on all environments
+- Enhanced prompt detection for domain-specific prompts
+- Fixed double-wrapping of receipt and check extraction prompts
+- Implemented smart prompt handling logic
+- Fixed timeout issues caused by excessively nested prompts

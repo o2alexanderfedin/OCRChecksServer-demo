@@ -17,7 +17,10 @@ PROD_URL="https://ocr-checks-worker.af-4a0.workers.dev"
 TEST_IMAGE="tests/fixtures/images/fredmeyer-receipt.jpg"
 
 # Test duration (can be overridden with first argument)
-DURATION=${1:-300}
+DURATION=${1:-600}  # Default to 10 minutes (600 seconds)
+
+# Sleep interval between requests (in seconds)
+SLEEP_INTERVAL="0.33"  # 1/3 of a second
 
 # Test endpoint
 ENDPOINT="/receipt"
@@ -30,6 +33,9 @@ STAGING_FAIL=0
 PROD_SUCCESS=0
 PROD_FAIL=0
 
+# Request counter
+REQUEST_COUNT=0
+
 # Verify test image exists
 if [ ! -f "$TEST_IMAGE" ]; then
   echo -e "${RED}${BOLD}ERROR: Test image not found at $TEST_IMAGE${NC}"
@@ -39,7 +45,7 @@ fi
 echo -e "${BLUE}${BOLD}===== OCR Checks Environment Load Test =====${NC}"
 echo -e "${BLUE}Starting tests against all environments for $DURATION seconds${NC}"
 echo -e "${BLUE}Using test image: ${TEST_IMAGE}${NC}"
-echo -e "${BLUE}Request interval: 1 second${NC}"
+echo -e "${BLUE}Request interval: $SLEEP_INTERVAL seconds${NC}"
 echo -e "${BLUE}${BOLD}==========================================${NC}\n"
 
 # Calculate end time
@@ -49,8 +55,9 @@ END_TIME=$(($(date +%s) + DURATION))
 test_environment() {
   local url=$1
   local env_name=$2
+  local timestamp=$(date "+%Y-%m-%d %H:%M:%S")
   
-  echo -e "${YELLOW}Testing $env_name: $url$ENDPOINT${NC}"
+  echo -e "${YELLOW}[$timestamp] Testing $env_name: $url$ENDPOINT${NC}"
   
   # Run curl command and capture both body and status code
   local http_response=$(curl -s -w "\n%{http_code}" -X POST -H "Content-Type: image/jpeg" --data-binary @"$TEST_IMAGE" "$url$ENDPOINT")
@@ -89,13 +96,13 @@ START_TIME=$(date +%s)
 while [ $(date +%s) -lt $END_TIME ]; do
   # Test each environment with a round-robin approach
   test_environment "$DEV_URL" "DEV"
-  sleep 1
+  sleep $SLEEP_INTERVAL
   
   test_environment "$STAGING_URL" "STAGING"
-  sleep 1
+  sleep $SLEEP_INTERVAL
   
   test_environment "$PROD_URL" "PROD"
-  sleep 1
+  sleep $SLEEP_INTERVAL
   
   # Print a separator between rounds
   echo -e "${BLUE}--------------------------------${NC}"
@@ -104,7 +111,17 @@ while [ $(date +%s) -lt $END_TIME ]; do
   ELAPSED=$(($(date +%s) - START_TIME))
   REMAINING=$((DURATION - ELAPSED))
   
-  echo -e "${BLUE}Elapsed: ${ELAPSED}s / Remaining: ${REMAINING}s${NC}\n"
+  # Increment request counter
+  REQUEST_COUNT=$((REQUEST_COUNT + 3))
+  
+  # Calculate request rate per minute
+  if [ $ELAPSED -gt 0 ]; then
+    RATE=$(echo "scale=2; $REQUEST_COUNT * 60 / $ELAPSED" | bc)
+  else
+    RATE="0.00"
+  fi
+  
+  echo -e "${BLUE}Elapsed: ${ELAPSED}s / Remaining: ${REMAINING}s | Requests: $REQUEST_COUNT | Rate: $RATE req/min${NC}\n"
   
   # Check if we should exit early
   if [ $ELAPSED -ge $DURATION ]; then
@@ -138,10 +155,17 @@ fi
 # Calculate actual elapsed time
 ACTUAL_ELAPSED=$(($(date +%s) - START_TIME))
 
+# Calculate overall request rate
+if [ $ACTUAL_ELAPSED -gt 0 ]; then
+  OVERALL_RATE=$(echo "scale=2; $REQUEST_COUNT * 60 / $ACTUAL_ELAPSED" | bc)
+else
+  OVERALL_RATE="0.00"
+fi
+
 # Print summary
 echo -e "\n${BLUE}${BOLD}===== Test Summary =====${NC}"
 echo -e "${BOLD}Total test duration: ${ACTUAL_ELAPSED} seconds${NC}"
-echo -e "${BOLD}Total requests: ${TOTAL}${NC}\n"
+echo -e "${BOLD}Total requests: ${REQUEST_COUNT} (${OVERALL_RATE} req/min)${NC}\n"
 
 echo -e "${YELLOW}${BOLD}DEV Environment:${NC}"
 echo -e "  Success: $DEV_SUCCESS / $DEV_TOTAL (${DEV_RATE}%)"

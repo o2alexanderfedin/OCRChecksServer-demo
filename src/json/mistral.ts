@@ -291,7 +291,11 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
      * @returns Formatted prompt string
      */
     private constructPrompt(request: JsonExtractionRequest): string {
-        return request.markdown
+        return `Extract the following information from this markdown text as JSON:
+
+${request.markdown}
+
+Return valid JSON that matches the provided schema.`
     }
     
     /**

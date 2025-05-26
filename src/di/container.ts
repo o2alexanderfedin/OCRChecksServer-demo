@@ -23,19 +23,19 @@ import {
   ReceiptScannerInputValidator
 } from '../validators';
 // Import config as a static file
-// Optimized for Cloudflare Worker environment which has a 30-second execution limit
+// Optimized for Cloudflare Worker environment which has a 60-second execution limit
 const mistralClientConfig = {
   retryConfig: {
     strategy: "backoff",
     backoff: {
-      initialInterval: 1000,    // Reduced to allow more retry attempts within the timeframe
-      maxInterval: 10000,       // Keep max interval the same
-      exponent: 1.8,            // Increased for more aggressive backoff
-      maxElapsedTime: 25000     // Reduced to ensure we stay under Cloudflare's 30s limit
+      initialInterval: 1000,    // Start with 1 second delay
+      maxInterval: 10000,       // Max 10 second delay between retries
+      exponent: 1.8,            // Moderate backoff progression
+      maxElapsedTime: 45000     // Allow up to 45 seconds for retries within 60s Worker limit
     },
     retryConnectionErrors: true
   },
-  timeoutMs: 15000              // Reduced timeout to prevent single request from consuming too much time
+  timeoutMs: 30000              // Increased to 30 seconds for individual requests
 };
 
 // Import types from centralized location

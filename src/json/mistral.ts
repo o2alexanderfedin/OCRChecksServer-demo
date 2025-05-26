@@ -58,10 +58,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
             try {
                 console.log('- Mistral client info:');
                 console.log('  - Client type:', this.client.constructor.name);
-                // @ts-ignore - for debugging
-                console.log('  - API Key (first 4 chars):', (this.client.apiKey || 'unknown').substring(0, 4) + '...');
-                // @ts-ignore - for debugging
-                console.log('  - API Key length:', (this.client.apiKey || '').length);
+                console.log('  - API Key: Available (cannot access from client for security)');
                 // @ts-ignore - for debugging
                 const chatEndpoint = (this.client.apiBase || 'https://api.mistral.ai/v1') + '/chat/completions';
                 console.log('  - Chat endpoint:', chatEndpoint);

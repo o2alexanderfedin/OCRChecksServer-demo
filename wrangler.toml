@@ -21,7 +21,7 @@ vars = { ENVIRONMENT = "development", MISTRAL_DEBUG = true }
 # With the paid plan, we can now set higher limits
 [env.dev.limits]
 cpu_ms = 50  # Default CPU time limit in milliseconds
-duration_ms = 30000  # Set maximum execution time to 30 seconds
+duration_ms = 60000  # Increased to 60 seconds for complex OCR + JSON extraction
 
 # Staging environment
 [env.staging]
@@ -34,7 +34,7 @@ vars = { ENVIRONMENT = "staging", MISTRAL_DEBUG = true }
 # Staging environment limits
 [env.staging.limits]
 cpu_ms = 50  # Default CPU time limit in milliseconds
-duration_ms = 30000  # Set maximum execution time to 30 seconds
+duration_ms = 60000  # Increased to 60 seconds for complex OCR + JSON extraction
 
 # Production environment
 [env.production]
@@ -46,7 +46,7 @@ vars = { ENVIRONMENT = "production", MISTRAL_DEBUG = false }
 # Production environment limits
 [env.production.limits]
 cpu_ms = 50  # Default CPU time limit in milliseconds
-duration_ms = 30000  # Set maximum execution time to 30 seconds
+duration_ms = 60000  # Increased to 60 seconds for complex OCR + JSON extraction
 
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]

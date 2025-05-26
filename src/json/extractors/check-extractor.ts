@@ -42,8 +42,9 @@ export class CheckExtractor implements ICheckExtractor {
       name: "Check",
       schemaDefinition: {
         type: "object",
-        required: ["checkNumber", "date", "payee", "amount", "confidence"],
+        required: ["confidence"], // Only require confidence, allowing empty checks
         properties: {
+          isValidInput: { type: "boolean" }, // New field to indicate if input appears valid
           checkNumber: { type: "string" },
           date: { type: "string" },
           payee: { type: "string" },
@@ -143,8 +144,12 @@ For numerical values, extract them as numbers without currency symbols.
 For the date, convert it to ISO 8601 format (YYYY-MM-DD) if possible.
 Extract the routing number as a 9-digit string.
 
-If any information is not present or cannot be confidently extracted, omit those fields.
-Provide confidence levels for the extracted data where appropriate.
+IMPORTANT: 
+- Extract only information that is clearly visible in the input
+- Use null, empty strings, or 0 values for uncertain information
+- Assign confidence scores proportional to clarity and completeness of the input
+- Prioritize accuracy over completeness
+- Set overall confidence below 0.5 if the input appears invalid or contains minimal information
 `;
   }
 
@@ -157,6 +162,9 @@ Provide confidence levels for the extracted data where appropriate.
   private normalizeCheckData(check: Check): Check {
     // Make a copy to avoid modifying the original
     const normalized = { ...check };
+    
+    // Detect potential hallucinations
+    this.detectHallucinations(normalized);
 
     // Ensure date is a Date object
     if (normalized.date && !(normalized.date instanceof Date)) {
@@ -267,6 +275,61 @@ Provide confidence levels for the extracted data where appropriate.
       if (checkNumberMatch && checkNumberMatch[1]) {
         check.checkNumber = checkNumberMatch[1];
       }
+    }
+  }
+  
+  /**
+   * Detects potential hallucinations in the extracted check data
+   * 
+   * @param check - The check data to validate
+   */
+  private detectHallucinations(check: Check): void {
+    // Common hallucinated values
+    const suspiciousPatterns = {
+      checkNumbers: ["1234", "5678", "0000"],
+      payees: ["John Doe", "Jane Doe", "John Smith"],
+      amounts: [100, 150.75, 200, 500],
+      dates: ["2023-10-05", "2024-01-05"]
+    };
+    
+    // Count suspicious matches
+    let suspicionScore = 0;
+    
+    // Check for suspicious check number
+    if (check.checkNumber && suspiciousPatterns.checkNumbers.includes(check.checkNumber)) {
+      suspicionScore++;
+    }
+    
+    // Check for suspicious payee
+    if (check.payee && suspiciousPatterns.payees.some(p => check.payee?.includes(p))) {
+      suspicionScore++;
+    }
+    
+    // Check for suspicious amount
+    if (check.amount && suspiciousPatterns.amounts.includes(check.amount)) {
+      suspicionScore++;
+    }
+    
+    // Check for suspicious date
+    if (check.date) {
+      const dateStr = typeof check.date === 'string' ? check.date : check.date.toISOString().split('T')[0];
+      if (suspiciousPatterns.dates.includes(dateStr)) {
+        suspicionScore++;
+      }
+    }
+    
+    // If multiple suspicious patterns match, likely hallucination
+    if (suspicionScore >= 2) {
+      // Mark as invalid input
+      check.isValidInput = false;
+      
+      // Reduce confidence significantly
+      check.confidence = Math.min(check.confidence || 0, 0.3);
+      
+      console.log(`Potential hallucination detected in check data (suspicion score: ${suspicionScore})`);
+    } else {
+      // Mark as valid unless explicitly set otherwise
+      check.isValidInput = check.isValidInput !== false;
     }
   }
 }

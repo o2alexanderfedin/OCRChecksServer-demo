@@ -42,8 +42,9 @@ export class ReceiptExtractor implements IReceiptExtractor {
       name: "Receipt",
       schemaDefinition: {
         type: "object",
-        required: ["merchant", "timestamp", "totals", "currency", "confidence"],
+        required: ["confidence"], // Only require confidence, allowing empty receipts
         properties: {
+          isValidInput: { type: "boolean" }, // New field to indicate if input appears valid
           merchant: {
             type: "object",
             required: ["name"],
@@ -217,8 +218,12 @@ For numerical values, extract them as numbers without currency symbols.
 For the date, convert it to ISO 8601 format (YYYY-MM-DDThh:mm:ssZ) if possible.
 For the currency, use the standard 3-letter ISO currency code (e.g., USD, EUR, GBP).
 
-If any information is not present or cannot be confidently extracted, omit those fields.
-Provide confidence levels for the extracted data where appropriate.
+IMPORTANT: 
+- Extract only information that is clearly visible in the input
+- Use null, empty strings, or 0 values for uncertain information
+- Assign confidence scores proportional to clarity and completeness of the input
+- Prioritize accuracy over completeness
+- Set overall confidence below 0.5 if the input appears invalid or contains minimal information
 `;
   }
 
@@ -231,6 +236,9 @@ Provide confidence levels for the extracted data where appropriate.
   private normalizeReceiptData(receipt: Receipt): Receipt {
     // Make a copy to avoid modifying the original
     const normalized = { ...receipt };
+    
+    // Detect potential hallucinations
+    this.detectHallucinations(normalized);
 
     // Ensure currency is uppercase
     if (normalized.currency) {
@@ -253,5 +261,70 @@ Provide confidence levels for the extracted data where appropriate.
     // Additional normalization logic can be added here
 
     return normalized;
+  }
+  
+  /**
+   * Detects potential hallucinations in the extracted receipt data
+   * 
+   * @param receipt - The receipt data to validate
+   */
+  private detectHallucinations(receipt: Receipt): void {
+    // Common hallucinated values and suspicious patterns
+    const suspiciousPatterns = {
+      stores: ["Store", "Market", "Supermarket", "Shop"],
+      totals: [0, 10, 15.99, 20, 25, 50, 100],
+      currencies: ["USD", "EUR", "GBP"],
+      itemCounts: [0, 1], // Having exactly 0 or 1 items is suspicious for hallucination
+      emptyMerchant: true // Having an empty merchant name but other fields filled is suspicious
+    };
+    
+    // Count suspicious matches
+    let suspicionScore = 0;
+    
+    // Check for suspicious merchant name
+    if (receipt.merchant && receipt.merchant.name) {
+      if (suspiciousPatterns.stores.some(s => receipt.merchant?.name === s)) {
+        suspicionScore++;
+      }
+    } else if (receipt.totals && receipt.totals.total > 0) {
+      // Empty merchant name but has total - suspicious
+      suspicionScore++;
+    }
+    
+    // Check for suspicious total
+    if (receipt.totals && suspiciousPatterns.totals.includes(receipt.totals.total)) {
+      suspicionScore++;
+    }
+    
+    // Check for suspicious currency
+    if (receipt.currency && receipt.currency.length === 3 && !receipt.merchant?.name) {
+      suspicionScore++;
+    }
+    
+    // Check item count (0 or 1 items but with total is suspicious)
+    if (receipt.items && receipt.items.length <= 1 && receipt.totals && receipt.totals.total > 0) {
+      suspicionScore++;
+    }
+    
+    // If input data is minimal but results are rich, that's suspicious
+    const hasRichOutput = receipt.merchant?.name || (receipt.totals && receipt.totals.total > 0);
+    const hasMinimalInput = !receipt.merchant?.address && !receipt.merchant?.phone && !receipt.items?.length;
+    if (hasRichOutput && hasMinimalInput) {
+      suspicionScore++;
+    }
+    
+    // If multiple suspicious patterns match, likely hallucination
+    if (suspicionScore >= 2) {
+      // Mark as invalid input
+      receipt.isValidInput = false;
+      
+      // Reduce confidence significantly
+      receipt.confidence = Math.min(receipt.confidence || 0, 0.3);
+      
+      console.log(`Potential hallucination detected in receipt data (suspicion score: ${suspicionScore})`);
+    } else {
+      // Mark as valid unless explicitly set otherwise
+      receipt.isValidInput = receipt.isValidInput !== false;
+    }
   }
 }

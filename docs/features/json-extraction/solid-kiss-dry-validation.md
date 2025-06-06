@@ -135,9 +135,9 @@ graph TB
     D[Cloudflare Workers AI] --> B
     E[Console Logger] --> C
     
-    style A fill:#f96
-    style B fill:#9f6
-    style C fill:#9f6
+    style A fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    style B fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000
+    style C fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000
 ```
 
 **Verdict**: ✅ **COMPLIANT** - Proper dependency inversion

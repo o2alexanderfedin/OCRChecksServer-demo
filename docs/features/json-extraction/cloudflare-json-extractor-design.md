@@ -33,9 +33,9 @@ graph TB
         F2 --> G2[Result]
     end
 
-    style B2 fill:#f96,stroke:#333,stroke-width:4px
-    style C2 fill:#96f,stroke:#333,stroke-width:2px
-    style D2 fill:#9f6,stroke:#333,stroke-width:2px
+    style B2 fill:#e1f5fe,stroke:#01579b,stroke-width:4px,color:#000
+    style C2 fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    style D2 fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000
 ```
 
 ## Component Design
@@ -87,7 +87,7 @@ graph LR
     B --> F
     D --> F
 
-    style F fill:#f96,stroke:#333,stroke-width:4px
+    style F fill:#e1f5fe,stroke:#01579b,stroke-width:4px,color:#000
 ```
 
 ## Implementation Details
@@ -148,9 +148,9 @@ graph TB
     M --> O[Return Error Result]
     N --> O
     
-    style K fill:#9f6
-    style L fill:#ff9
-    style O fill:#f99
+    style K fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000
+    style L fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style O fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000
 ```
 
 ## Technical Specifications

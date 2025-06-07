@@ -17,5 +17,6 @@ export const TYPES = {
   CheckScanner: Symbol.for('CheckScanner'),
   ValidationMiddleware: Symbol.for('ValidationMiddleware'),
   AntiHallucinationDetector: Symbol.for('AntiHallucinationDetector'),
-  JsonExtractionConfidenceCalculator: Symbol.for('JsonExtractionConfidenceCalculator')
+  JsonExtractionConfidenceCalculator: Symbol.for('JsonExtractionConfidenceCalculator'),
+  CloudflareAI: Symbol.for('CloudflareAI')
 };

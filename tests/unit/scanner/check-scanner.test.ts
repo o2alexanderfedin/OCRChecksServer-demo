@@ -3,6 +3,7 @@ import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr
 import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
 import { CheckExtractor as ICheckExtractor } from '../../../src/json/extractors/types';
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
+import { AntiHallucinationDetector } from '../../../src/json/utils/anti-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import type { Check } from '../../../src/json/schemas/check';
 import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
@@ -53,12 +54,14 @@ describe('CheckScanner', () => {
   let jsonExtractor: JsonExtractor;
   let checkExtractor: ICheckExtractor;
   let inputValidator: IScannerInputValidator;
+  let antiHallucinationDetector: AntiHallucinationDetector;
   let scanner: CheckScanner;
 
   beforeEach(function(): void {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
-    checkExtractor = new CheckExtractor(jsonExtractor);
+    antiHallucinationDetector = new AntiHallucinationDetector();
+    checkExtractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
     inputValidator = new MockScannerInputValidator();
     scanner = new CheckScanner(ocrProvider, checkExtractor, inputValidator);
   });

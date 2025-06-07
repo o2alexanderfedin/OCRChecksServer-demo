@@ -4,6 +4,7 @@ import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr
 import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
 import { ReceiptExtractor as IReceiptExtractor } from '../../../src/json/extractors/types';
 import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
+import { AntiHallucinationDetector } from '../../../src/json/utils/anti-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
 
@@ -45,12 +46,14 @@ describe('ReceiptScanner', () => {
   let jsonExtractor: JsonExtractor;
   let receiptExtractor: IReceiptExtractor;
   let inputValidator: IScannerInputValidator;
+  let antiHallucinationDetector: AntiHallucinationDetector;
   let processor: ReceiptScanner;
 
   beforeEach(function(): void {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
-    receiptExtractor = new ReceiptExtractor(jsonExtractor);
+    antiHallucinationDetector = new AntiHallucinationDetector();
+    receiptExtractor = new ReceiptExtractor(jsonExtractor, antiHallucinationDetector);
     inputValidator = new MockScannerInputValidator();
     processor = new ReceiptScanner(ocrProvider, receiptExtractor, inputValidator);
   });

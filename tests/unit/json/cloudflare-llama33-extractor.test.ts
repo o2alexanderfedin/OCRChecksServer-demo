@@ -9,35 +9,56 @@ import { JsonExtractionConfidenceCalculator } from '../../../src/json/utils/conf
 import type { IoE } from '../../../src/ocr/types.js';
 
 // Mock implementations
-class MockIoE implements IoE {
-  readonly fetch = async (url: string, options: RequestInit): Promise<Response> => {
-    return new Response();
-  };
-  
-  readonly atob = (data: string): string => {
-    return Buffer.from(data, 'base64').toString();
-  };
-  
-  readonly log = (message: string): void => {
-    console.log(message);
-  };
-  
-  readonly debug = (message: string, data?: unknown): void => {
-    console.log(message, data);
-  };
-  
-  readonly warn = (message: string, data?: unknown): void => {
-    console.warn(message, data);
-  };
-  
-  readonly error = (message: string, error?: unknown): void => {
-    console.error(message, error);
-  };
-  
-  readonly trace = (source: string, methodName: string, args?: unknown): void => {
-    console.log(`[${source}:${methodName}]`, args);
-  };
-}
+const mockIoE: IoE = {
+  fetch: async () => new Response(),
+  atob: () => '',
+  log: () => {},
+  debug: () => {},
+  warn: () => {},
+  error: () => {},
+  trace: () => {},
+  console: {
+    log: () => {},
+    error: () => {}
+  },
+  fs: {
+    writeFileSync: () => {},
+    readFileSync: () => '',
+    existsSync: () => false,
+    promises: {
+      readFile: async () => '',
+      writeFile: async () => {},
+      readdir: async () => [],
+      rm: async () => {},
+      mkdir: async () => undefined,
+      copyFile: async () => {}
+    }
+  },
+  process: {
+    argv: [],
+    env: {},
+    exit: () => { throw new Error('exit called'); },
+    cwd: () => ''
+  },
+  asyncImport: async () => ({ default: {} }),
+  performance: {
+    now: () => 0
+  },
+  tryCatch: <T>(fn: () => T) => {
+    try {
+      return ['ok', fn()] as const;
+    } catch (error) {
+      return ['error', error] as const;
+    }
+  },
+  asyncTryCatch: async <T>(fn: () => Promise<T>) => {
+    try {
+      return ['ok', await fn()] as const;
+    } catch (error) {
+      return ['error', error] as const;
+    }
+  }
+} as IoE;
 
 class MockCloudflareAI {
   async run(model: string, inputs: any): Promise<any> {
@@ -71,7 +92,7 @@ describe('CloudflareLlama33JsonExtractor', () => {
   let extractor: CloudflareLlama33JsonExtractor;
 
   beforeEach(() => {
-    io = new MockIoE();
+    io = mockIoE;
     cloudflareAI = new MockCloudflareAI();
     antiHallucinationDetector = new AntiHallucinationDetector();
     confidenceCalculator = new JsonExtractionConfidenceCalculator();
@@ -118,7 +139,7 @@ describe('CloudflareLlama33JsonExtractor', () => {
 
     it('should handle AI execution failures', async () => {
       const failingExtractor = new CloudflareLlama33JsonExtractor(
-        io,
+        mockIoE,
         new MockFailingCloudflareAI() as any,
         antiHallucinationDetector,
         confidenceCalculator

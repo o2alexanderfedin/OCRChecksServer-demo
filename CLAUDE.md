@@ -69,8 +69,16 @@
    - Example: [Technical Debt Tracking](./.claude/rules/technical-debt-tracking.md) provides a framework for systematically managing technical debt
    - Example: [GitHub Project Management](./.claude/rules/github-project-management.md) establishes best practices for creating and managing GitHub Projects v2 with proper issue hierarchy, field configuration, and API usage
    - Example: [Kanban Execution Flow](./.claude/rules/kanban-execution-flow.md) defines task selection criteria, status transitions, and work-in-progress management for efficient project execution
+   - Example: [Project Status Management](./.claude/rules/project-status-management.md) ensures correct hierarchical status management to prevent parent issues being marked "Done" while child dependencies remain incomplete
 
-10. **Perform Post-Mortem Analysis**
+10. **Maintain Accurate Project Status**
+   - Before marking any issue as "Done", verify ALL child dependencies are complete
+   - Parent issues (Epics, User Stories) cannot be "Done" if any child tasks are still "Todo" or "In Progress"
+   - Always verify code implementation exists before updating status
+   - Follow the [Project Status Management](./.claude/rules/project-status-management.md) rules to maintain consistency
+   - Use verification scripts to check dependencies before status updates
+
+11. **Perform Post-Mortem Analysis**
    - After each feature completion, conduct a post-mortem analysis using the [post-mortem template](./.claude/templates/post-mortem.md)
    - Document all issues encountered, root causes, and solutions applied
    - Extract reusable lessons and create or update rule files

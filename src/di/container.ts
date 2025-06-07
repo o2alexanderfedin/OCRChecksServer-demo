@@ -1,10 +1,16 @@
 import 'reflect-metadata';
 import { Container } from 'inversify';
 import { IoE } from '../ocr/types';
+import { CloudflareAI } from '../json/cloudflare-llama33-extractor';
 import { MistralOCRProvider } from '../ocr/mistral';
 import { MistralJsonExtractorProvider } from '../json/mistral';
+import { CloudflareLlama33JsonExtractor } from '../json/cloudflare-llama33-extractor';
+import { JsonExtractor } from '../json/types';
 import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
 import { CheckExtractor } from '../json/extractors/check-extractor';
+import { AntiHallucinationDetector } from '../json/utils/anti-hallucination-detector';
+import { JsonExtractionConfidenceCalculator } from '../json/utils/confidence-calculator';
+import { JsonExtractorFactory } from '../json/factory/json-extractor-factory';
 import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
@@ -87,7 +93,9 @@ export class DIContainer {
     
     this.registerMistralClient();
     this.registerProviders();
+    this.registerUtilities();
     this.registerExtractors();
+    this.registerFactory();
     this.registerScanners();
     
     return this;
@@ -181,12 +189,67 @@ export class DIContainer {
       return new MistralOCRProvider(io, mistralClient);
     }).inSingletonScope();
     
-    // Register JSON extractor provider
-    this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue((context) => {
-      const io = context.get<IoE>(TYPES.IoE);
-      const mistralClient = context.get<Mistral>(TYPES.MistralClient);
-      return new MistralJsonExtractorProvider(io, mistralClient);
+    // Register CloudflareAI binding
+    this.registerCloudflareAI();
+    
+    // Register JSON extractor provider based on environment
+    this.registerJsonExtractor();
+  }
+
+  /**
+   * Register CloudflareAI binding
+   * @protected
+   */
+  protected registerCloudflareAI(): void {
+    this.container.bind(TYPES.CloudflareAI).toDynamicValue(() => {
+      // Check if we're in Cloudflare Workers environment
+      if (typeof globalThis !== 'undefined' && (globalThis as any).AI) {
+        return (globalThis as any).AI;
+      }
+      
+      // Provide mock implementation for non-Cloudflare environments
+      return {
+        run: async (model: string, inputs: any): Promise<any> => {
+          throw new Error('CloudflareAI is not available in this environment. Please run in Cloudflare Workers or configure a mock.');
+        }
+      };
     }).inSingletonScope();
+  }
+
+  /**
+   * Register JSON extractor based on environment configuration
+   * @protected
+   */
+  protected registerJsonExtractor(): void {
+    this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue((context) => {
+      const extractorType = process.env.JSON_EXTRACTOR_TYPE || 'mistral';
+      const io = context.get<IoE>(TYPES.IoE);
+      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
+      const confidenceCalculator = context.get<JsonExtractionConfidenceCalculator>(TYPES.JsonExtractionConfidenceCalculator);
+      
+      switch (extractorType.toLowerCase()) {
+        case 'cloudflare':
+          const cloudflareAI = context.get<CloudflareAI>(TYPES.CloudflareAI);
+          return new CloudflareLlama33JsonExtractor(io, cloudflareAI, antiHallucinationDetector, confidenceCalculator);
+          
+        case 'mistral':
+        default:
+          const mistralClient = context.get<Mistral>(TYPES.MistralClient);
+          return new MistralJsonExtractorProvider(io, mistralClient, confidenceCalculator);
+      }
+    }).inSingletonScope();
+  }
+
+  /**
+   * Register shared utilities
+   * @protected
+   */
+  protected registerUtilities(): void {
+    // Register anti-hallucination detector
+    this.container.bind(TYPES.AntiHallucinationDetector).to(AntiHallucinationDetector).inSingletonScope();
+    
+    // Register confidence calculator
+    this.container.bind(TYPES.JsonExtractionConfidenceCalculator).to(JsonExtractionConfidenceCalculator).inSingletonScope();
   }
 
   /**
@@ -196,14 +259,29 @@ export class DIContainer {
   protected registerExtractors(): void {
     // Register receipt extractor
     this.container.bind(TYPES.ReceiptExtractor).toDynamicValue((context) => {
-      const jsonExtractor = context.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
-      return new ReceiptExtractor(jsonExtractor);
+      const jsonExtractor = context.get<JsonExtractor>(TYPES.JsonExtractorProvider);
+      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
+      return new ReceiptExtractor(jsonExtractor, antiHallucinationDetector);
     }).inSingletonScope();
     
     // Register check extractor
     this.container.bind(TYPES.CheckExtractor).toDynamicValue((context) => {
-      const jsonExtractor = context.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
-      return new CheckExtractor(jsonExtractor);
+      const jsonExtractor = context.get<JsonExtractor>(TYPES.JsonExtractorProvider);
+      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
+      return new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    }).inSingletonScope();
+  }
+
+  /**
+   * Register JSON extractor factory
+   * @protected
+   */
+  protected registerFactory(): void {
+    this.container.bind(TYPES.JsonExtractorFactory).toDynamicValue((context) => {
+      const io = context.get<IoE>(TYPES.IoE);
+      return new JsonExtractorFactory(io, {
+        container: this.container
+      });
     }).inSingletonScope();
   }
 
@@ -321,6 +399,78 @@ export class DIContainer {
    */
   getCheckScanner(): CheckScanner {
     return this.container.get<CheckScanner>(TYPES.CheckScanner);
+  }
+
+  /**
+   * Register all dependencies for testing
+   * Uses default test values for IO and API key
+   * @returns The container instance for method chaining
+   */
+  register(): DIContainer {
+    // Create mock IO for testing - match existing test pattern
+    const mockIO: IoE = {
+      fetch: async () => new Response(),
+      atob: () => '',
+      log: () => {},
+      debug: () => {},
+      warn: () => {},
+      error: () => {},
+      trace: () => {},
+      console: {
+        log: () => {},
+        error: () => {}
+      },
+      fs: {
+        writeFileSync: () => {},
+        readFileSync: () => '',
+        existsSync: () => false,
+        promises: {
+          readFile: async () => '',
+          writeFile: async () => {},
+          readdir: async () => [],
+          rm: async () => {},
+          mkdir: async () => undefined,
+          copyFile: async () => {}
+        }
+      },
+      process: {
+        argv: [],
+        env: {},
+        exit: () => { throw new Error('exit called'); },
+        cwd: () => ''
+      },
+      asyncImport: async () => ({ default: {} }),
+      performance: {
+        now: () => 0
+      },
+      tryCatch: <T>(fn: () => T) => {
+        try {
+          return ['ok', fn()] as const;
+        } catch (error) {
+          return ['error', error] as const;
+        }
+      },
+      asyncTryCatch: async <T>(fn: () => Promise<T>) => {
+        try {
+          return ['ok', await fn()] as const;
+        } catch (error) {
+          return ['error', error] as const;
+        }
+      }
+    } as IoE;
+
+    // Use a test API key
+    const testApiKey = 'test_valid_api_key_123456789012345678901234567890';
+
+    return this.registerDependencies(mockIO, testApiKey, 'register');
+  }
+
+  /**
+   * Get the underlying Inversify container
+   * @returns The Inversify container instance
+   */
+  getContainer(): Container {
+    return this.container;
   }
 }
 

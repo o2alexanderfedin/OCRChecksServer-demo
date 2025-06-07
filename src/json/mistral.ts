@@ -5,6 +5,7 @@ import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './ty
 import { injectable, inject } from 'inversify';
 import { TYPES as VALIDATOR_TYPES } from '../validators';
 import { TYPES } from '../types/di-types';
+import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculator';
 
 /**
  * Mistral JSON extractor implementation
@@ -14,18 +15,22 @@ import { TYPES } from '../types/di-types';
 export class MistralJsonExtractorProvider implements JsonExtractor {
     private readonly client: Mistral
     private readonly io: IoE
+    private readonly confidenceCalculator: JsonExtractionConfidenceCalculator
 
     /**
      * Creates a new Mistral JSON extractor instance
      * @param io I/O interface for network operations
      * @param client Mistral client instance
+     * @param confidenceCalculator Confidence calculation utility
      */
     constructor(
         @inject(TYPES.IoE) io: IoE, 
-        @inject(TYPES.MistralClient) client: Mistral
+        @inject(TYPES.MistralClient) client: Mistral,
+        @inject(TYPES.JsonExtractionConfidenceCalculator) confidenceCalculator: JsonExtractionConfidenceCalculator
     ) {
         this.io = io
         this.client = client
+        this.confidenceCalculator = confidenceCalculator
         
         // Only verify that we have a Mistral instance
         // Trust that the Mistral client will handle API key validation internally
@@ -168,7 +173,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                 }
                 
                 // Calculate confidence score
-                const confidence = this.calculateConfidence(response, jsonContent);
+                const confidence = this.confidenceCalculator.calculateConfidence(response, jsonContent);
                 console.log('- Confidence score:', confidence);
                 
                 console.log('======== MISTRAL JSON EXTRACTION COMPLETE ========');
@@ -322,52 +327,5 @@ IMPORTANT:
      * @param extractedJson The extracted JSON data
      * @returns Confidence score between 0 and 1
      */
-    private calculateConfidence(response: Record<string, unknown>, extractedJson: Record<string, unknown>): number {
-        // Base confidence on multiple factors
-        let finishReasonConfidence = 0.75; // Default value
-        
-        // Check finish reason from response
-        if (Array.isArray(response.choices) && 
-            response.choices.length > 0 && 
-            typeof response.choices[0] === 'object' &&
-            response.choices[0] !== null) {
-            // If finishReason is "stop", give it maximum confidence
-            if (response.choices[0].finishReason === 'stop') {
-                finishReasonConfidence = 1.0;
-            }
-        }
-        
-        // Evaluate JSON structure completeness
-        const jsonStructureConfidence = extractedJson && Object.keys(extractedJson).length > 0 ? 0.9 : 0.3;
-        
-        // Check if the extracted JSON has an isValidInput flag set to false,
-        // which indicates potential hallucination
-        let validInputMultiplier = 1.0;
-        if ('isValidInput' in extractedJson && extractedJson.isValidInput === false) {
-            // If input is flagged as invalid, reduce confidence significantly
-            validInputMultiplier = 0.3;
-            console.log('- Input flagged as potentially invalid, reducing confidence');
-        }
-        
-        // Weigh finish reason (60%), JSON structure (20%), and valid input status (20%)
-        let confidenceScore = (finishReasonConfidence * 0.6) + (jsonStructureConfidence * 0.2);
-        
-        // Apply the valid input multiplier
-        confidenceScore = confidenceScore * validInputMultiplier;
-        
-        // If there's an explicit confidence in the extracted JSON, weigh it as well
-        if ('confidence' in extractedJson && 
-            typeof extractedJson.confidence === 'number' && 
-            extractedJson.confidence >= 0 && 
-            extractedJson.confidence <= 1) {
-            // Blend with the model's own confidence assessment (weighted at 20%)
-            confidenceScore = (confidenceScore * 0.8) + (extractedJson.confidence as number * 0.2);
-            console.log('- Using model\'s confidence assessment:', extractedJson.confidence);
-        }
-        
-        // Return normalized score between 0 and 1, rounded to 2 decimal places
-        return Math.round(confidenceScore * 100) / 100;
-    }
-    
     // Schema validation is now handled by Mistral's API
 }

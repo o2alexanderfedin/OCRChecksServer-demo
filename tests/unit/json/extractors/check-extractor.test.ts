@@ -2,6 +2,7 @@ import { CheckExtractor } from '../../../../src/json/extractors/check-extractor'
 import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types';
 import { CheckExtractor as ICheckExtractor } from '../../../../src/json/extractors/types';
 import { Check, CheckType, BankAccountType } from '../../../../src/json/schemas/check';
+import { AntiHallucinationDetector } from '../../../../src/json/utils/anti-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 
 // Mock implementations
@@ -35,11 +36,13 @@ class FailingJsonExtractor implements JsonExtractor {
 
 describe('CheckExtractor', () => {
   let jsonExtractor: JsonExtractor;
+  let antiHallucinationDetector: AntiHallucinationDetector;
   let checkExtractor: ICheckExtractor;
 
   beforeEach(function(): void {
     jsonExtractor = new MockJsonExtractor();
-    checkExtractor = new CheckExtractor(jsonExtractor);
+    antiHallucinationDetector = new AntiHallucinationDetector();
+    checkExtractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
   });
 
   it('should extract check data from OCR text', async () => {
@@ -57,7 +60,9 @@ describe('CheckExtractor', () => {
       expect(result[1].json.payee).toBe('John Smith');
       expect(result[1].json.amount).toBe('1234.56');
       expect(result[1].json.date).toBeInstanceOf(Date);
-      expect(result[1].json.date.toISOString().substring(0, 10)).toBe('2025-05-01');
+      if (result[1].json.date instanceof Date) {
+        expect(result[1].json.date.toISOString().substring(0, 10)).toBe('2025-05-01');
+      }
       expect(result[1].json.bankName).toBe('First National Bank');
       expect(result[1].confidence).toBe(0.9);
     }
@@ -66,7 +71,7 @@ describe('CheckExtractor', () => {
   it('should handle extraction failures', async () => {
     // Arrange
     const failingExtractor = new FailingJsonExtractor();
-    const extractor = new CheckExtractor(failingExtractor);
+    const extractor = new CheckExtractor(failingExtractor, antiHallucinationDetector);
     const ocrText = 'Invalid text';
     
     // Act
@@ -98,7 +103,7 @@ describe('CheckExtractor', () => {
       }
     };
     
-    const extractor = new CheckExtractor(jsonExtractor);
+    const extractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
     const ocrText = 'Check #A123456789\nPay to: John Smith\nAmount: $1,234.56';
     
     // Act
@@ -136,7 +141,7 @@ describe('CheckExtractor', () => {
       }
     };
     
-    const extractor = new CheckExtractor(jsonExtractor);
+    const extractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
     const ocrText = 'Check MICR line: ⑆123456789⑆ ⑈9876543210⑈ ⑇1234⑇';
     
     // Act

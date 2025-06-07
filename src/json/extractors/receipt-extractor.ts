@@ -10,6 +10,7 @@ import type { Result } from 'functionalscript/types/result/module.f.js';
 import { ReceiptExtractor as IReceiptExtractor } from './types';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../types/di-types';
+import { AntiHallucinationDetector } from '../utils/anti-hallucination-detector';
 
 /**
  * Class for extracting receipt data from OCR text
@@ -18,16 +19,20 @@ import { TYPES } from '../../types/di-types';
 @injectable()
 export class ReceiptExtractor implements IReceiptExtractor {
   private jsonExtractor: JsonExtractor;
+  private antiHallucinationDetector: AntiHallucinationDetector;
 
   /**
    * Creates a new receipt extractor
    * 
    * @param jsonExtractor - The JSON extractor to use
+   * @param antiHallucinationDetector - The anti-hallucination detector utility
    */
   constructor(
-    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor
+    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor,
+    @inject(TYPES.AntiHallucinationDetector) antiHallucinationDetector: AntiHallucinationDetector
   ) {
     this.jsonExtractor = jsonExtractor;
+    this.antiHallucinationDetector = antiHallucinationDetector;
   }
 
   /**
@@ -237,8 +242,8 @@ IMPORTANT:
     // Make a copy to avoid modifying the original
     const normalized = { ...receipt };
     
-    // Detect potential hallucinations
-    this.detectHallucinations(normalized);
+    // Detect potential hallucinations using shared utility
+    this.antiHallucinationDetector.detectReceiptHallucinations(normalized);
 
     // Ensure currency is uppercase
     if (normalized.currency) {
@@ -261,70 +266,5 @@ IMPORTANT:
     // Additional normalization logic can be added here
 
     return normalized;
-  }
-  
-  /**
-   * Detects potential hallucinations in the extracted receipt data
-   * 
-   * @param receipt - The receipt data to validate
-   */
-  private detectHallucinations(receipt: Receipt): void {
-    // Common hallucinated values and suspicious patterns
-    const suspiciousPatterns = {
-      stores: ["Store", "Market", "Supermarket", "Shop"],
-      totals: [0, 10, 15.99, 20, 25, 50, 100],
-      currencies: ["USD", "EUR", "GBP"],
-      itemCounts: [0, 1], // Having exactly 0 or 1 items is suspicious for hallucination
-      emptyMerchant: true // Having an empty merchant name but other fields filled is suspicious
-    };
-    
-    // Count suspicious matches
-    let suspicionScore = 0;
-    
-    // Check for suspicious merchant name
-    if (receipt.merchant && receipt.merchant.name) {
-      if (suspiciousPatterns.stores.some(s => receipt.merchant?.name === s)) {
-        suspicionScore++;
-      }
-    } else if (receipt.totals && receipt.totals.total > 0) {
-      // Empty merchant name but has total - suspicious
-      suspicionScore++;
-    }
-    
-    // Check for suspicious total
-    if (receipt.totals && suspiciousPatterns.totals.includes(receipt.totals.total)) {
-      suspicionScore++;
-    }
-    
-    // Check for suspicious currency
-    if (receipt.currency && receipt.currency.length === 3 && !receipt.merchant?.name) {
-      suspicionScore++;
-    }
-    
-    // Check item count (0 or 1 items but with total is suspicious)
-    if (receipt.items && receipt.items.length <= 1 && receipt.totals && receipt.totals.total > 0) {
-      suspicionScore++;
-    }
-    
-    // If input data is minimal but results are rich, that's suspicious
-    const hasRichOutput = receipt.merchant?.name || (receipt.totals && receipt.totals.total > 0);
-    const hasMinimalInput = !receipt.merchant?.address && !receipt.merchant?.phone && !receipt.items?.length;
-    if (hasRichOutput && hasMinimalInput) {
-      suspicionScore++;
-    }
-    
-    // If multiple suspicious patterns match, likely hallucination
-    if (suspicionScore >= 2) {
-      // Mark as invalid input
-      receipt.isValidInput = false;
-      
-      // Reduce confidence significantly
-      receipt.confidence = Math.min(receipt.confidence || 0, 0.3);
-      
-      console.log(`Potential hallucination detected in receipt data (suspicion score: ${suspicionScore})`);
-    } else {
-      // Mark as valid unless explicitly set otherwise
-      receipt.isValidInput = receipt.isValidInput !== false;
-    }
   }
 }

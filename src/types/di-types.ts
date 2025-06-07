@@ -15,5 +15,9 @@ export const TYPES = {
   CheckExtractor: Symbol.for('CheckExtractor'),
   ReceiptScanner: Symbol.for('ReceiptScanner'),
   CheckScanner: Symbol.for('CheckScanner'),
-  ValidationMiddleware: Symbol.for('ValidationMiddleware')
+  ValidationMiddleware: Symbol.for('ValidationMiddleware'),
+  AntiHallucinationDetector: Symbol.for('AntiHallucinationDetector'),
+  JsonExtractionConfidenceCalculator: Symbol.for('JsonExtractionConfidenceCalculator'),
+  CloudflareAI: Symbol.for('CloudflareAI'),
+  JsonExtractorFactory: Symbol.for('JsonExtractorFactory')
 };

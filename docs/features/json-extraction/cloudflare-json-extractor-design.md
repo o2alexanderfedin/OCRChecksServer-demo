@@ -48,10 +48,10 @@ graph TB
         E1["Epic #1<br/>Add CloudflareLlama33JsonExtractor Implementation<br/>📊 13 pts | 🔄 In Progress"]
     end
     
-    subgraph "User Stories (14 points total)"
+    subgraph "User Stories (19 points total)"
         US2["User Story #2<br/>Shared anti-hallucination utilities<br/>📊 3 pts | ✅ Done"]
         US3["User Story #3<br/>Shared confidence calculation utilities<br/>📊 3 pts | ✅ Done"]
-        US4["User Story #4<br/>CloudflareLlama33JsonExtractor implementation<br/>📊 3 pts | 🔄 In Progress"]
+        US4["User Story #4<br/>CloudflareLlama33JsonExtractor implementation<br/>📊 8 pts | 🔄 In Progress"]
         US5["User Story #5<br/>DI container configuration for multiple extractors<br/>📊 5 pts | 🔄 In Progress"]
     end
     
@@ -94,12 +94,27 @@ graph TB
 ```
 
 ### Project Status Summary
-- **Total Story Points**: 35 points
-- **Completed**: 18 points (51% - Core functionality)
-- **In Progress**: 8 points (23% - User stories with pending tasks)
-- **Pending**: 9 points (26% - Optional enhancements)
+
+- **Total Story Points**: 13 points (Epic represents hierarchical sum with GitHub constraints)
+- **User Story Points**: 19 points total (sum of child engineering task points)
+- **Completed**: 6 points (32% - User Stories #2, #3 fully complete)
+- **In Progress**: 13 points (68% - User Stories #4, #5 with mixed task completion)
+- **Engineering Tasks**: 12 of 21 points complete (57% task-level completion)
+
+### Story Point Calculation Method
+
+- **Engineering Tasks**: Fixed at 3 points each (7 tasks × 3 = 21 points)
+- **User Stories**: Sum of child engineering task points
+  - US #2: Task #6 = 3 points ✅
+  - US #3: Task #7 = 3 points ✅
+  - US #4: Tasks #8+#11+#12 = 9 points (GitHub: 8 pts) 🔄
+  - US #5: Tasks #9+#10 = 6 points (GitHub: 5 pts) 🔄
+- **Epic**: Sum of user story points = 19 points (GitHub: 13 pts) 🔄
+
+*Note: GitHub's predefined options (1,2,3,5,8,13) limit exact representation of calculated sums*
 
 ### Implementation Progress
+
 - ✅ **Core Implementation Complete**: All essential CloudflareLlama33JsonExtractor functionality is implemented
 - ✅ **Shared Utilities**: Anti-hallucination detection and confidence calculation utilities extracted
 - ✅ **DI Integration**: Dependency injection configured for multiple extractor support

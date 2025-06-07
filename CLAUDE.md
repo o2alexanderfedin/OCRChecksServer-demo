@@ -68,6 +68,7 @@
    - Example: [Continuous Improvement](./.claude/rules/continuous-improvement.md) guides the evolution of tools and documentation based on experience
    - Example: [Technical Debt Tracking](./.claude/rules/technical-debt-tracking.md) provides a framework for systematically managing technical debt
    - Example: [GitHub Project Management](./.claude/rules/github-project-management.md) establishes best practices for creating and managing GitHub Projects v2 with proper issue hierarchy, field configuration, and API usage
+   - Example: [Kanban Execution Flow](./.claude/rules/kanban-execution-flow.md) defines task selection criteria, status transitions, and work-in-progress management for efficient project execution
 
 10. **Perform Post-Mortem Analysis**
    - After each feature completion, conduct a post-mortem analysis using the [post-mortem template](./.claude/templates/post-mortem.md)

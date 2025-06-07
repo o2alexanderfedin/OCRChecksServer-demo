@@ -1,7 +1,7 @@
-v1.59.6: Improve prompt handling in JSON extractor
+v1.59.9: Documentation improvements and Kanban workflow generalization
 
 This release includes:
-- Enhanced prompt detection for domain-specific prompts
-- Fixed double-wrapping of receipt and check extraction prompts
-- Implemented smart prompt handling logic
-- Fixed timeout issues caused by excessively nested prompts
+- Generalized Kanban execution flow documentation for reusability
+- Comprehensive GitHub Projects v2 integration patterns
+- Enhanced project management guidelines and best practices
+- Removed code-specific references from documentation templates

@@ -10,6 +10,7 @@ import type { Result } from 'functionalscript/types/result/module.f.js';
 import { CheckExtractor as ICheckExtractor } from './types';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../types/di-types';
+import { AntiHallucinationDetector } from '../utils/anti-hallucination-detector';
 
 /**
  * Class for extracting check data from OCR text
@@ -18,16 +19,20 @@ import { TYPES } from '../../types/di-types';
 @injectable()
 export class CheckExtractor implements ICheckExtractor {
   private jsonExtractor: JsonExtractor;
+  private antiHallucinationDetector: AntiHallucinationDetector;
 
   /**
    * Creates a new check extractor
    * 
    * @param jsonExtractor - The JSON extractor to use
+   * @param antiHallucinationDetector - The anti-hallucination detector utility
    */
   constructor(
-    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor
+    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor,
+    @inject(TYPES.AntiHallucinationDetector) antiHallucinationDetector: AntiHallucinationDetector
   ) {
     this.jsonExtractor = jsonExtractor;
+    this.antiHallucinationDetector = antiHallucinationDetector;
   }
 
   /**
@@ -163,8 +168,8 @@ IMPORTANT:
     // Make a copy to avoid modifying the original
     const normalized = { ...check };
     
-    // Detect potential hallucinations
-    this.detectHallucinations(normalized);
+    // Detect potential hallucinations using shared utility
+    this.antiHallucinationDetector.detectCheckHallucinations(normalized);
 
     // Ensure date is a Date object
     if (normalized.date && !(normalized.date instanceof Date)) {
@@ -275,61 +280,6 @@ IMPORTANT:
       if (checkNumberMatch && checkNumberMatch[1]) {
         check.checkNumber = checkNumberMatch[1];
       }
-    }
-  }
-  
-  /**
-   * Detects potential hallucinations in the extracted check data
-   * 
-   * @param check - The check data to validate
-   */
-  private detectHallucinations(check: Check): void {
-    // Common hallucinated values
-    const suspiciousPatterns = {
-      checkNumbers: ["1234", "5678", "0000"],
-      payees: ["John Doe", "Jane Doe", "John Smith"],
-      amounts: [100, 150.75, 200, 500],
-      dates: ["2023-10-05", "2024-01-05"]
-    };
-    
-    // Count suspicious matches
-    let suspicionScore = 0;
-    
-    // Check for suspicious check number
-    if (check.checkNumber && suspiciousPatterns.checkNumbers.includes(check.checkNumber)) {
-      suspicionScore++;
-    }
-    
-    // Check for suspicious payee
-    if (check.payee && suspiciousPatterns.payees.some(p => check.payee?.includes(p))) {
-      suspicionScore++;
-    }
-    
-    // Check for suspicious amount
-    if (check.amount && suspiciousPatterns.amounts.includes(check.amount)) {
-      suspicionScore++;
-    }
-    
-    // Check for suspicious date
-    if (check.date) {
-      const dateStr = typeof check.date === 'string' ? check.date : check.date.toISOString().split('T')[0];
-      if (suspiciousPatterns.dates.includes(dateStr)) {
-        suspicionScore++;
-      }
-    }
-    
-    // If multiple suspicious patterns match, likely hallucination
-    if (suspicionScore >= 2) {
-      // Mark as invalid input
-      check.isValidInput = false;
-      
-      // Reduce confidence significantly
-      check.confidence = Math.min(check.confidence || 0, 0.3);
-      
-      console.log(`Potential hallucination detected in check data (suspicion score: ${suspicionScore})`);
-    } else {
-      // Mark as valid unless explicitly set otherwise
-      check.isValidInput = check.isValidInput !== false;
     }
   }
 }

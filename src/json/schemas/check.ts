@@ -146,15 +146,15 @@ export interface CheckMetadata {
 }
 
 export interface Check {
-  checkNumber: string;
+  checkNumber?: string;
   /**
    * Date on the check
    * 
    * @type Date object representing the check date
    * Transmitted as ISO 8601 formatted string in the JSON schema
    */
-  date: Date;
-  payee: string;
+  date?: Date | string;
+  payee?: string;
   payer?: string;
   /**
    * Dollar amount of the check
@@ -164,6 +164,7 @@ export interface Check {
    * Default currency is USD unless specified otherwise
    */
   amount?: string;
+  amountText?: string;
   memo?: string;
   bankName?: string;
   routingNumber?: string;
@@ -176,6 +177,11 @@ export interface Check {
   micrLine?: string;
   metadata?: CheckMetadata;
   confidence: number;
+  /**
+   * Indicates if the input appears to be a valid check image
+   * False if the system has detected potential hallucinations
+   */
+  isValidInput?: boolean;
 }
 
 export default checkSchema;

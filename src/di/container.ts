@@ -5,6 +5,7 @@ import { MistralOCRProvider } from '../ocr/mistral';
 import { MistralJsonExtractorProvider } from '../json/mistral';
 import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
 import { CheckExtractor } from '../json/extractors/check-extractor';
+import { AntiHallucinationDetector } from '../json/utils/anti-hallucination-detector';
 import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
@@ -87,6 +88,7 @@ export class DIContainer {
     
     this.registerMistralClient();
     this.registerProviders();
+    this.registerUtilities();
     this.registerExtractors();
     this.registerScanners();
     
@@ -190,6 +192,15 @@ export class DIContainer {
   }
 
   /**
+   * Register shared utilities
+   * @protected
+   */
+  protected registerUtilities(): void {
+    // Register anti-hallucination detector
+    this.container.bind(TYPES.AntiHallucinationDetector).to(AntiHallucinationDetector).inSingletonScope();
+  }
+
+  /**
    * Register receipt and check extractors
    * @protected
    */
@@ -197,13 +208,15 @@ export class DIContainer {
     // Register receipt extractor
     this.container.bind(TYPES.ReceiptExtractor).toDynamicValue((context) => {
       const jsonExtractor = context.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
-      return new ReceiptExtractor(jsonExtractor);
+      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
+      return new ReceiptExtractor(jsonExtractor, antiHallucinationDetector);
     }).inSingletonScope();
     
     // Register check extractor
     this.container.bind(TYPES.CheckExtractor).toDynamicValue((context) => {
       const jsonExtractor = context.get<MistralJsonExtractorProvider>(TYPES.JsonExtractorProvider);
-      return new CheckExtractor(jsonExtractor);
+      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
+      return new CheckExtractor(jsonExtractor, antiHallucinationDetector);
     }).inSingletonScope();
   }
 

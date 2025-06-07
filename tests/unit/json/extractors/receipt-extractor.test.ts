@@ -1,6 +1,7 @@
 import { ReceiptExtractor } from '../../../../src/json/extractors/receipt-extractor';
 import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types';
 import { ReceiptExtractor as IReceiptExtractor } from '../../../../src/json/extractors/types';
+import { AntiHallucinationDetector } from '../../../../src/json/utils/anti-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 
 // Mock implementations
@@ -32,11 +33,13 @@ class FailingJsonExtractor implements JsonExtractor {
 
 describe('ReceiptExtractor', () => {
   let jsonExtractor: JsonExtractor;
+  let antiHallucinationDetector: AntiHallucinationDetector;
   let receiptExtractor: IReceiptExtractor;
 
   beforeEach(function(): void {
     jsonExtractor = new MockJsonExtractor();
-    receiptExtractor = new ReceiptExtractor(jsonExtractor);
+    antiHallucinationDetector = new AntiHallucinationDetector();
+    receiptExtractor = new ReceiptExtractor(jsonExtractor, antiHallucinationDetector);
   });
 
   it('should extract receipt data from OCR text', async () => {
@@ -61,7 +64,7 @@ describe('ReceiptExtractor', () => {
   it('should handle extraction failures', async () => {
     // Arrange
     const failingExtractor = new FailingJsonExtractor();
-    const extractor = new ReceiptExtractor(failingExtractor);
+    const extractor = new ReceiptExtractor(failingExtractor, antiHallucinationDetector);
     const ocrText = 'Invalid text';
     
     // Act
@@ -95,7 +98,7 @@ describe('ReceiptExtractor', () => {
       }
     };
     
-    const extractor = new ReceiptExtractor(jsonExtractor);
+    const extractor = new ReceiptExtractor(jsonExtractor, antiHallucinationDetector);
     const ocrText = 'Test Store\nTotal: $42.99\nDate: 2023-01-01';
     
     // Act

@@ -6,6 +6,7 @@ import { MistralJsonExtractorProvider } from '../json/mistral';
 import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
 import { CheckExtractor } from '../json/extractors/check-extractor';
 import { AntiHallucinationDetector } from '../json/utils/anti-hallucination-detector';
+import { JsonExtractionConfidenceCalculator } from '../json/utils/confidence-calculator';
 import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
@@ -187,7 +188,8 @@ export class DIContainer {
     this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue((context) => {
       const io = context.get<IoE>(TYPES.IoE);
       const mistralClient = context.get<Mistral>(TYPES.MistralClient);
-      return new MistralJsonExtractorProvider(io, mistralClient);
+      const confidenceCalculator = context.get<JsonExtractionConfidenceCalculator>(TYPES.JsonExtractionConfidenceCalculator);
+      return new MistralJsonExtractorProvider(io, mistralClient, confidenceCalculator);
     }).inSingletonScope();
   }
 
@@ -198,6 +200,9 @@ export class DIContainer {
   protected registerUtilities(): void {
     // Register anti-hallucination detector
     this.container.bind(TYPES.AntiHallucinationDetector).to(AntiHallucinationDetector).inSingletonScope();
+    
+    // Register confidence calculator
+    this.container.bind(TYPES.JsonExtractionConfidenceCalculator).to(JsonExtractionConfidenceCalculator).inSingletonScope();
   }
 
   /**

@@ -16,5 +16,6 @@ export const TYPES = {
   ReceiptScanner: Symbol.for('ReceiptScanner'),
   CheckScanner: Symbol.for('CheckScanner'),
   ValidationMiddleware: Symbol.for('ValidationMiddleware'),
-  AntiHallucinationDetector: Symbol.for('AntiHallucinationDetector')
+  AntiHallucinationDetector: Symbol.for('AntiHallucinationDetector'),
+  JsonExtractionConfidenceCalculator: Symbol.for('JsonExtractionConfidenceCalculator')
 };

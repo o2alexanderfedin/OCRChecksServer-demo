@@ -10,6 +10,7 @@ import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
 import { CheckExtractor } from '../json/extractors/check-extractor';
 import { AntiHallucinationDetector } from '../json/utils/anti-hallucination-detector';
 import { JsonExtractionConfidenceCalculator } from '../json/utils/confidence-calculator';
+import { JsonExtractorFactory } from '../json/factory/json-extractor-factory';
 import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
@@ -94,6 +95,7 @@ export class DIContainer {
     this.registerProviders();
     this.registerUtilities();
     this.registerExtractors();
+    this.registerFactory();
     this.registerScanners();
     
     return this;
@@ -267,6 +269,19 @@ export class DIContainer {
       const jsonExtractor = context.get<JsonExtractor>(TYPES.JsonExtractorProvider);
       const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
       return new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    }).inSingletonScope();
+  }
+
+  /**
+   * Register JSON extractor factory
+   * @protected
+   */
+  protected registerFactory(): void {
+    this.container.bind(TYPES.JsonExtractorFactory).toDynamicValue((context) => {
+      const io = context.get<IoE>(TYPES.IoE);
+      return new JsonExtractorFactory(io, {
+        container: this.container
+      });
     }).inSingletonScope();
   }
 

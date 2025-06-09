@@ -4,7 +4,9 @@ import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr
 import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
 import { ReceiptExtractor as IReceiptExtractor } from '../../../src/json/extractors/types';
 import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
-import { AntiHallucinationDetector } from '../../../src/json/utils/anti-hallucination-detector';
+import { HallucinationDetectorFactory } from '../../../src/json/utils/hallucination-detector-factory';
+import { CheckHallucinationDetector } from '../../../src/json/utils/check-hallucination-detector';
+import { ReceiptHallucinationDetector } from '../../../src/json/utils/receipt-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
 
@@ -46,14 +48,19 @@ describe('ReceiptScanner', () => {
   let jsonExtractor: JsonExtractor;
   let receiptExtractor: IReceiptExtractor;
   let inputValidator: IScannerInputValidator;
-  let antiHallucinationDetector: AntiHallucinationDetector;
+  let hallucinationDetectorFactory: HallucinationDetectorFactory;
   let processor: ReceiptScanner;
 
   beforeEach(function(): void {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
-    antiHallucinationDetector = new AntiHallucinationDetector();
-    receiptExtractor = new ReceiptExtractor(jsonExtractor, antiHallucinationDetector);
+    
+    // Create SOLID-compliant detector factory
+    const checkDetector = new CheckHallucinationDetector();
+    const receiptDetector = new ReceiptHallucinationDetector();
+    hallucinationDetectorFactory = new HallucinationDetectorFactory(checkDetector, receiptDetector);
+    
+    receiptExtractor = new ReceiptExtractor(jsonExtractor, hallucinationDetectorFactory);
     inputValidator = new MockScannerInputValidator();
     processor = new ReceiptScanner(ocrProvider, receiptExtractor, inputValidator);
   });

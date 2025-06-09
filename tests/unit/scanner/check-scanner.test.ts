@@ -3,7 +3,9 @@ import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr
 import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
 import { CheckExtractor as ICheckExtractor } from '../../../src/json/extractors/types';
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
-import { AntiHallucinationDetector } from '../../../src/json/utils/anti-hallucination-detector';
+import { HallucinationDetectorFactory } from '../../../src/json/utils/hallucination-detector-factory';
+import { CheckHallucinationDetector } from '../../../src/json/utils/check-hallucination-detector';
+import { ReceiptHallucinationDetector } from '../../../src/json/utils/receipt-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import type { Check } from '../../../src/json/schemas/check';
 import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
@@ -54,14 +56,19 @@ describe('CheckScanner', () => {
   let jsonExtractor: JsonExtractor;
   let checkExtractor: ICheckExtractor;
   let inputValidator: IScannerInputValidator;
-  let antiHallucinationDetector: AntiHallucinationDetector;
+  let hallucinationDetectorFactory: HallucinationDetectorFactory;
   let scanner: CheckScanner;
 
   beforeEach(function(): void {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
-    antiHallucinationDetector = new AntiHallucinationDetector();
-    checkExtractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    
+    // Create SOLID-compliant detector factory
+    const checkDetector = new CheckHallucinationDetector();
+    const receiptDetector = new ReceiptHallucinationDetector();
+    hallucinationDetectorFactory = new HallucinationDetectorFactory(checkDetector, receiptDetector);
+    
+    checkExtractor = new CheckExtractor(jsonExtractor, hallucinationDetectorFactory);
     inputValidator = new MockScannerInputValidator();
     scanner = new CheckScanner(ocrProvider, checkExtractor, inputValidator);
   });

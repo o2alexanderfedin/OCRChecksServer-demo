@@ -10,7 +10,7 @@ import type { Result } from 'functionalscript/types/result/module.f.js';
 import { ReceiptExtractor as IReceiptExtractor } from './types';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../types/di-types';
-import { AntiHallucinationDetector } from '../utils/anti-hallucination-detector';
+import { HallucinationDetectorFactory } from '../utils/hallucination-detector-factory';
 
 /**
  * Class for extracting receipt data from OCR text
@@ -19,20 +19,20 @@ import { AntiHallucinationDetector } from '../utils/anti-hallucination-detector'
 @injectable()
 export class ReceiptExtractor implements IReceiptExtractor {
   private jsonExtractor: JsonExtractor;
-  private antiHallucinationDetector: AntiHallucinationDetector;
+  private hallucinationDetectorFactory: HallucinationDetectorFactory;
 
   /**
    * Creates a new receipt extractor
    * 
    * @param jsonExtractor - The JSON extractor to use
-   * @param antiHallucinationDetector - The anti-hallucination detector utility
+   * @param hallucinationDetectorFactory - The hallucination detector factory
    */
   constructor(
     @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor,
-    @inject(TYPES.AntiHallucinationDetector) antiHallucinationDetector: AntiHallucinationDetector
+    @inject(TYPES.HallucinationDetectorFactory) hallucinationDetectorFactory: HallucinationDetectorFactory
   ) {
     this.jsonExtractor = jsonExtractor;
-    this.antiHallucinationDetector = antiHallucinationDetector;
+    this.hallucinationDetectorFactory = hallucinationDetectorFactory;
   }
 
   /**
@@ -242,8 +242,9 @@ IMPORTANT:
     // Make a copy to avoid modifying the original
     const normalized = { ...receipt };
     
-    // Detect potential hallucinations using shared utility
-    this.antiHallucinationDetector.detectReceiptHallucinations(normalized);
+    // Detect potential hallucinations using SOLID-compliant detector
+    const receiptDetector = this.hallucinationDetectorFactory.getReceiptDetector();
+    receiptDetector.detect(normalized);
 
     // Ensure currency is uppercase
     if (normalized.currency) {

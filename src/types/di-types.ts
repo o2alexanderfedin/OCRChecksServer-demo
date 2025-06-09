@@ -16,8 +16,11 @@ export const TYPES = {
   ReceiptScanner: Symbol.for('ReceiptScanner'),
   CheckScanner: Symbol.for('CheckScanner'),
   ValidationMiddleware: Symbol.for('ValidationMiddleware'),
-  AntiHallucinationDetector: Symbol.for('AntiHallucinationDetector'),
+  // AntiHallucinationDetector: Symbol.for('AntiHallucinationDetector'), // REMOVED - replaced with SOLID-compliant individual detectors
   JsonExtractionConfidenceCalculator: Symbol.for('JsonExtractionConfidenceCalculator'),
   CloudflareAI: Symbol.for('CloudflareAI'),
-  JsonExtractorFactory: Symbol.for('JsonExtractorFactory')
+  JsonExtractorFactory: Symbol.for('JsonExtractorFactory'),
+  CheckHallucinationDetector: Symbol.for('CheckHallucinationDetector'),
+  ReceiptHallucinationDetector: Symbol.for('ReceiptHallucinationDetector')
+  // HallucinationDetectorFactory: Symbol.for('HallucinationDetectorFactory') // REMOVED - no longer needed with scanner-based detection
 };

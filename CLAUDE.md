@@ -70,6 +70,7 @@
    - Example: [GitHub Project Management](./.claude/rules/github-project-management.md) establishes best practices for creating and managing GitHub Projects v2 with proper issue hierarchy, field configuration, and API usage
    - Example: [Kanban Execution Flow](./.claude/rules/kanban-execution-flow.md) defines task selection criteria, status transitions, and work-in-progress management for efficient project execution
    - Example: [Project Status Management](./.claude/rules/project-status-management.md) ensures correct hierarchical status management to prevent parent issues being marked "Done" while child dependencies remain incomplete
+   - Example: [GitFlow Release Management](./.claude/rules/gitflow-release-management.md) establishes comprehensive release process including version management, tagging, documentation, and GitHub project integration
 
 10. **Maintain Accurate Project Status**
    - Before marking any issue as "Done", verify ALL child dependencies are complete
@@ -78,7 +79,16 @@
    - Follow the [Project Status Management](./.claude/rules/project-status-management.md) rules to maintain consistency
    - Use verification scripts to check dependencies before status updates
 
-11. **Perform Post-Mortem Analysis**
+11. **Follow Proper Release Management**
+   - Use GitFlow release process for all version releases
+   - Update package.json version numbers following semantic versioning
+   - Create comprehensive release summaries documenting all changes
+   - Ensure all GitHub project issues are marked as "Done" before release
+   - Follow the [GitFlow Release Management](./.claude/rules/gitflow-release-management.md) process for complete workflow
+   - Tag releases with comprehensive descriptions including features and achievements
+   - Push all branches and tags to remote repository after successful release
+
+12. **Perform Post-Mortem Analysis**
    - After each feature completion, conduct a post-mortem analysis using the [post-mortem template](./.claude/templates/post-mortem.md)
    - Document all issues encountered, root causes, and solutions applied
    - Extract reusable lessons and create or update rule files

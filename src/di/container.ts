@@ -8,9 +8,11 @@ import { CloudflareLlama33JsonExtractor } from '../json/cloudflare-llama33-extra
 import { JsonExtractor } from '../json/types';
 import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
 import { CheckExtractor } from '../json/extractors/check-extractor';
-import { AntiHallucinationDetector } from '../json/utils/anti-hallucination-detector';
+// AntiHallucinationDetector removed - replaced with SOLID-compliant factory pattern
 import { JsonExtractionConfidenceCalculator } from '../json/utils/confidence-calculator';
 import { JsonExtractorFactory } from '../json/factory/json-extractor-factory';
+import { CheckHallucinationDetector } from '../json/utils/check-hallucination-detector';
+import { ReceiptHallucinationDetector } from '../json/utils/receipt-hallucination-detector';
 import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
@@ -222,15 +224,15 @@ export class DIContainer {
    */
   protected registerJsonExtractor(): void {
     this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue((context) => {
-      const extractorType = process.env.JSON_EXTRACTOR_TYPE || 'mistral';
+      const extractorType = (typeof process !== 'undefined' ? process.env.JSON_EXTRACTOR_TYPE : undefined) || 'mistral';
       const io = context.get<IoE>(TYPES.IoE);
-      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
+      // Legacy AntiHallucinationDetector removed - Mistral extractor works without it
       const confidenceCalculator = context.get<JsonExtractionConfidenceCalculator>(TYPES.JsonExtractionConfidenceCalculator);
       
       switch (extractorType.toLowerCase()) {
         case 'cloudflare':
           const cloudflareAI = context.get<CloudflareAI>(TYPES.CloudflareAI);
-          return new CloudflareLlama33JsonExtractor(io, cloudflareAI, antiHallucinationDetector, confidenceCalculator);
+          return new CloudflareLlama33JsonExtractor(io, cloudflareAI, confidenceCalculator);
           
         case 'mistral':
         default:
@@ -245,8 +247,9 @@ export class DIContainer {
    * @protected
    */
   protected registerUtilities(): void {
-    // Register anti-hallucination detector
-    this.container.bind(TYPES.AntiHallucinationDetector).to(AntiHallucinationDetector).inSingletonScope();
+    // Register SOLID-compliant hallucination detectors (now used directly by scanners)
+    this.container.bind(TYPES.CheckHallucinationDetector).to(CheckHallucinationDetector).inSingletonScope();
+    this.container.bind(TYPES.ReceiptHallucinationDetector).to(ReceiptHallucinationDetector).inSingletonScope();
     
     // Register confidence calculator
     this.container.bind(TYPES.JsonExtractionConfidenceCalculator).to(JsonExtractionConfidenceCalculator).inSingletonScope();
@@ -257,18 +260,16 @@ export class DIContainer {
    * @protected
    */
   protected registerExtractors(): void {
-    // Register receipt extractor
+    // Register receipt extractor (hallucination detection now handled by scanners)
     this.container.bind(TYPES.ReceiptExtractor).toDynamicValue((context) => {
       const jsonExtractor = context.get<JsonExtractor>(TYPES.JsonExtractorProvider);
-      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
-      return new ReceiptExtractor(jsonExtractor, antiHallucinationDetector);
+      return new ReceiptExtractor(jsonExtractor);
     }).inSingletonScope();
     
-    // Register check extractor
+    // Register check extractor (hallucination detection now handled by scanners)
     this.container.bind(TYPES.CheckExtractor).toDynamicValue((context) => {
       const jsonExtractor = context.get<JsonExtractor>(TYPES.JsonExtractorProvider);
-      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
-      return new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+      return new CheckExtractor(jsonExtractor);
     }).inSingletonScope();
   }
 
@@ -290,10 +291,11 @@ export class DIContainer {
    * @protected
    */
   protected registerScanners(): void {
-    // Register manual instances for scanners for tests
+    // Register scanners with hallucination detection
     this.container.bind(TYPES.ReceiptScanner).toDynamicValue(() => {
       const ocrProvider = this.container.get<MistralOCRProvider>(TYPES.OCRProvider);
       const receiptExtractor = this.container.get<ReceiptExtractor>(TYPES.ReceiptExtractor);
+      const hallucinationDetector = this.container.get<ReceiptHallucinationDetector>(TYPES.ReceiptHallucinationDetector);
       
       // Since there's no parent name available in the tests, we create a mock validator
       const mockValidator: IScannerInputValidator = {
@@ -301,12 +303,13 @@ export class DIContainer {
         validate: () => undefined
       };
       
-      return new ReceiptScanner(ocrProvider, receiptExtractor, mockValidator);
+      return new ReceiptScanner(ocrProvider, receiptExtractor, mockValidator, hallucinationDetector);
     }).inSingletonScope();
     
     this.container.bind(TYPES.CheckScanner).toDynamicValue(() => {
       const ocrProvider = this.container.get<MistralOCRProvider>(TYPES.OCRProvider);
       const checkExtractor = this.container.get<CheckExtractor>(TYPES.CheckExtractor);
+      const hallucinationDetector = this.container.get<CheckHallucinationDetector>(TYPES.CheckHallucinationDetector);
       
       // Since there's no parent name available in the tests, we create a mock validator
       const mockValidator: IScannerInputValidator = {
@@ -314,7 +317,7 @@ export class DIContainer {
         validate: () => undefined
       };
       
-      return new CheckScanner(ocrProvider, checkExtractor, mockValidator);
+      return new CheckScanner(ocrProvider, checkExtractor, mockValidator, hallucinationDetector);
     }).inSingletonScope();
   }
 
@@ -332,7 +335,8 @@ export class DIContainer {
     console.log(`Validating Mistral API key: ${maskedKey}`);
     
     // In integration tests, we may need to be less strict
-    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'integration') {
+    const nodeEnv = typeof process !== 'undefined' ? process.env.NODE_ENV : undefined;
+    if (nodeEnv === 'test' || nodeEnv === 'integration') {
       console.log('API Key length:', apiKey ? apiKey.length : 0);
       console.log('API Key first 4 chars:', maskedKey);
       

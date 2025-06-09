@@ -29,10 +29,18 @@ export const TYPES = {
   IoE: Symbol.for('IoE'),
   MistralApiKey: Symbol.for('MistralApiKey'),
   MistralClient: Symbol.for('MistralClient'),
+  CloudflareAi: Symbol.for('CloudflareAi'),
   OCRProvider: Symbol.for('OCRProvider'),
+  JsonExtractor: Symbol.for('JsonExtractor'),
   JsonExtractorProvider: Symbol.for('JsonExtractorProvider'),
   ReceiptExtractor: Symbol.for('ReceiptExtractor'),
-  ReceiptScanner: Symbol.for('ReceiptScanner')
+  CheckExtractor: Symbol.for('CheckExtractor'),
+  ReceiptScanner: Symbol.for('ReceiptScanner'),
+  CheckScanner: Symbol.for('CheckScanner'),
+  HallucinationDetectorFactory: Symbol.for('HallucinationDetectorFactory'),
+  CheckHallucinationDetector: Symbol.for('CheckHallucinationDetector'),
+  ReceiptHallucinationDetector: Symbol.for('ReceiptHallucinationDetector'),
+  ConfidenceCalculator: Symbol.for('ConfidenceCalculator')
 };
 ```
 
@@ -71,13 +79,53 @@ static createMistralProcessor(io: IoE, apiKey: string): ReceiptScanner {
 }
 ```
 
+## Scanner-Based Hallucination Detection Integration
+
+The DI system now supports cleaner scanner-based hallucination detection:
+
+```typescript
+// Register hallucination detection components
+container.bind<CheckHallucinationDetector>(TYPES.CheckHallucinationDetector)
+  .to(CheckHallucinationDetector)
+  .inSingletonScope();
+
+container.bind<ReceiptHallucinationDetector>(TYPES.ReceiptHallucinationDetector)
+  .to(ReceiptHallucinationDetector)
+  .inSingletonScope();
+```
+
+### Scanner Integration Pattern
+
+Scanners directly inject their specific detectors for better separation of concerns:
+
+```typescript
+@injectable()
+export class CheckScanner implements DocumentScanner {
+  constructor(
+    @inject(TYPES.OCRProvider) private ocrProvider: OCRProvider,
+    @inject(TYPES.CheckExtractor) private checkExtractor: CheckExtractor,
+    @inject(VALIDATOR_TYPES.ScannerInputValidator) @named('check') private inputValidator: IScannerInputValidator,
+    @inject(TYPES.CheckHallucinationDetector) private hallucinationDetector: CheckHallucinationDetector
+  ) {}
+
+  async processDocument(document: Document): Promise<Result<ProcessingResult, string>> {
+    // ... OCR and extraction logic ...
+    
+    // Apply check-specific hallucination detection
+    this.hallucinationDetector.detect(extractedData.json);
+    
+    // ... result processing ...
+  }
+}
+```
+
 ## Adding a New Dependency
 
 To add a new dependency:
 
 1. Add a new Symbol identifier in the TYPES object
 2. Create a binding in the registration method
-3. Inject the dependency where needed using `context.container.get()`
+3. Inject the dependency where needed using `@inject()` decorator or `context.container.get()`
 
 ## Testing with the DI Container
 
@@ -105,8 +153,44 @@ const scanner = container.get<ReceiptScanner>(TYPES.ReceiptScanner);
 // Test the scanner with the mock provider
 ```
 
+## SOLID Principles in DI Design
+
+The dependency injection system exemplifies SOLID principles:
+
+- **Single Responsibility**: Each service has one focused purpose
+- **Open/Closed**: New detectors can be added without modifying existing code
+- **Interface Segregation**: Focused interfaces like `HallucinationDetector<T>`
+- **Dependency Inversion**: High-level modules depend on abstractions
+
+## Multiple Extractor Support
+
+The system now supports multiple JSON extractors through configuration:
+
+```typescript
+// Register scanners with hallucination detection
+container.bind<CheckScanner>(TYPES.CheckScanner).toDynamicValue(() => {
+  const ocrProvider = container.get<OCRProvider>(TYPES.OCRProvider);
+  const checkExtractor = container.get<CheckExtractor>(TYPES.CheckExtractor);
+  const hallucinationDetector = container.get<CheckHallucinationDetector>(TYPES.CheckHallucinationDetector);
+  const inputValidator = /* ... validator setup ... */;
+  
+  return new CheckScanner(ocrProvider, checkExtractor, inputValidator, hallucinationDetector);
+}).inSingletonScope();
+
+// Similar for ReceiptScanner
+container.bind<ReceiptScanner>(TYPES.ReceiptScanner).toDynamicValue(() => {
+  const ocrProvider = container.get<OCRProvider>(TYPES.OCRProvider);
+  const receiptExtractor = container.get<ReceiptExtractor>(TYPES.ReceiptExtractor);
+  const hallucinationDetector = container.get<ReceiptHallucinationDetector>(TYPES.ReceiptHallucinationDetector);
+  const inputValidator = /* ... validator setup ... */;
+  
+  return new ReceiptScanner(ocrProvider, receiptExtractor, inputValidator, hallucinationDetector);
+}).inSingletonScope();
+```
+
 ## Future Improvements
 
 - Add decorator-based injection for class properties
 - Support for different container scopes (request-scoped, etc.)
 - Advanced container configuration for different environments
+- Runtime detector registration for extensibility

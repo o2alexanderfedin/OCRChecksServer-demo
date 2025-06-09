@@ -10,7 +10,6 @@ import { injectable, inject } from 'inversify';
 import { TYPES } from '../types/di-types';
 import type { IoE } from '../ocr/types';
 import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './types';
-import { AntiHallucinationDetector } from './utils/anti-hallucination-detector';
 import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculator';
 
 /**
@@ -29,25 +28,21 @@ export interface CloudflareAI {
 export class CloudflareLlama33JsonExtractor implements JsonExtractor {
   private readonly io: IoE;
   private readonly cloudflareAI: CloudflareAI;
-  private readonly antiHallucinationDetector: AntiHallucinationDetector;
   private readonly confidenceCalculator: JsonExtractionConfidenceCalculator;
 
   /**
    * Creates a new CloudflareLlama33JsonExtractor instance
    * @param io I/O interface for logging operations
    * @param cloudflareAI Cloudflare Workers AI binding
-   * @param antiHallucinationDetector Anti-hallucination detection utility
    * @param confidenceCalculator Confidence calculation utility
    */
   constructor(
     @inject(TYPES.IoE) io: IoE,
     @inject(TYPES.CloudflareAI) cloudflareAI: CloudflareAI,
-    @inject(TYPES.AntiHallucinationDetector) antiHallucinationDetector: AntiHallucinationDetector,
     @inject(TYPES.JsonExtractionConfidenceCalculator) confidenceCalculator: JsonExtractionConfidenceCalculator
   ) {
     this.io = io;
     this.cloudflareAI = cloudflareAI;
-    this.antiHallucinationDetector = antiHallucinationDetector;
     this.confidenceCalculator = confidenceCalculator;
 
     // Validate required dependencies
@@ -159,9 +154,7 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
           return ['error', new Error(`Invalid JSON response: ${parseError instanceof Error ? parseError.message : String(parseError)}`)];
         }
 
-        // Apply anti-hallucination detection
-        this.antiHallucinationDetector.detectCheckHallucinations(jsonContent as any);
-        this.antiHallucinationDetector.detectReceiptHallucinations(jsonContent as any);
+        // Note: Hallucination detection is now handled by scanners for better separation of concerns
 
         // Calculate confidence score using the shared utility
         // Create a mock response object for confidence calculation

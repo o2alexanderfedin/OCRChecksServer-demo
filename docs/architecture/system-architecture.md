@@ -13,6 +13,54 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 
 ### 1. Core Components
 
+#### Document Processing System
+
+The system uses a scanner-based architecture for complete document processing:
+
+```mermaid
+classDiagram
+    class DocumentScanner {
+        <<interface>>
+        +processDocument(document: Document) Promise~Result~ProcessingResult, string~~
+    }
+    
+    class CheckScanner {
+        -ocrProvider: OCRProvider
+        -checkExtractor: CheckExtractor
+        -inputValidator: IScannerInputValidator
+        -hallucinationDetector: CheckHallucinationDetector
+        +processDocument(document: Document) Promise~Result~ProcessingResult, string~~
+    }
+    
+    class ReceiptScanner {
+        -ocrProvider: OCRProvider
+        -receiptExtractor: ReceiptExtractor
+        -inputValidator: IScannerInputValidator
+        -hallucinationDetector: ReceiptHallucinationDetector
+        +processDocument(document: Document) Promise~Result~ProcessingResult, string~~
+    }
+    
+    class JsonExtractor {
+        <<interface>>
+        +extract(request: JsonExtractionRequest) Promise~Result~JsonExtractionResult, Error~~
+    }
+    
+    class CheckHallucinationDetector {
+        +detect(check: Check) void
+    }
+    
+    class ReceiptHallucinationDetector {
+        +detect(receipt: Receipt) void
+    }
+    
+    DocumentScanner <|-- CheckScanner
+    DocumentScanner <|-- ReceiptScanner
+    CheckScanner --> CheckHallucinationDetector
+    ReceiptScanner --> ReceiptHallucinationDetector
+    CheckScanner --> JsonExtractor
+    ReceiptScanner --> JsonExtractor
+```
+
 #### Worker Entry Point (`src/index.ts`)
 - Main Cloudflare Worker handler
 - Implements a RESTful API with dedicated endpoints:
@@ -23,11 +71,14 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 - Manages document processing pipeline
 - Implements CORS and robust request validation
 - Provides detailed error handling and reporting
+- Uses SOLID-compliant dependency injection for component management
 
 #### Processing Pipeline
-- Handles document processing
-- Manages API communication
+- Handles complete document processing workflow at scanner level
+- Manages OCR → JSON extraction → hallucination detection → result processing
 - Uses functional programming patterns with `IoE` interface
+- Implements direct dependency injection for document-specific components
+- Provides cleaner separation of concerns with scanner-based architecture
 
 ### 2. Type System
 
@@ -152,7 +203,9 @@ sequenceDiagram
 
 - `functionalscript`: Core functional programming utilities
 - `hono`: Web framework for Cloudflare Workers
+- `inversify`: Dependency injection container for TypeScript
 - `sharp`: Image processing (if needed for preprocessing)
+- `zod`: Runtime type validation for schemas
 
 ## Development Workflow
 
@@ -187,9 +240,12 @@ sequenceDiagram
 ## Security Considerations
 
 - API key management via environment variables
-- Input validation and sanitization
+- Input validation and sanitization through Zod schemas
 - CORS configuration
 - Rate limiting (if implemented)
+- Scanner-based hallucination detection prevents AI model exploitation
+- Document-type-specific validation patterns applied at processing level
+- Better separation of concerns between extraction and validation
 
 ## Future Considerations
 

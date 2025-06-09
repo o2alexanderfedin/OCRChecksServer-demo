@@ -4,7 +4,7 @@ import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr
 import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
 import { ReceiptExtractor as IReceiptExtractor } from '../../../src/json/extractors/types';
 import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
-import { AntiHallucinationDetector } from '../../../src/json/utils/anti-hallucination-detector';
+import { ReceiptHallucinationDetector } from '../../../src/json/utils/receipt-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
 
@@ -46,16 +46,19 @@ describe('ReceiptScanner', () => {
   let jsonExtractor: JsonExtractor;
   let receiptExtractor: IReceiptExtractor;
   let inputValidator: IScannerInputValidator;
-  let antiHallucinationDetector: AntiHallucinationDetector;
+  let hallucinationDetector: ReceiptHallucinationDetector;
   let processor: ReceiptScanner;
 
   beforeEach(function(): void {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
-    antiHallucinationDetector = new AntiHallucinationDetector();
-    receiptExtractor = new ReceiptExtractor(jsonExtractor, antiHallucinationDetector);
+    
+    // Create hallucination detector for scanner-based detection
+    hallucinationDetector = new ReceiptHallucinationDetector();
+    
+    receiptExtractor = new ReceiptExtractor(jsonExtractor);
     inputValidator = new MockScannerInputValidator();
-    processor = new ReceiptScanner(ocrProvider, receiptExtractor, inputValidator);
+    processor = new ReceiptScanner(ocrProvider, receiptExtractor, inputValidator, hallucinationDetector);
   });
 
   it('should process document and extract structured data', async () => {
@@ -87,7 +90,7 @@ describe('ReceiptScanner', () => {
       }
     };
     
-    processor = new ReceiptScanner(failingOcrProvider, receiptExtractor, inputValidator);
+    processor = new ReceiptScanner(failingOcrProvider, receiptExtractor, inputValidator, hallucinationDetector);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
@@ -111,7 +114,7 @@ describe('ReceiptScanner', () => {
       }
     };
     
-    processor = new ReceiptScanner(ocrProvider, failingReceiptExtractor, inputValidator);
+    processor = new ReceiptScanner(ocrProvider, failingReceiptExtractor, inputValidator, hallucinationDetector);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
@@ -139,7 +142,7 @@ describe('ReceiptScanner', () => {
       }
     };
     
-    processor = new ReceiptScanner(ocrProvider, receiptExtractor, failingValidator);
+    processor = new ReceiptScanner(ocrProvider, receiptExtractor, failingValidator, hallucinationDetector);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image

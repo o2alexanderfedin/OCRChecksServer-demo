@@ -5,6 +5,7 @@ import { CheckExtractor as ICheckExtractor } from '../json/extractors/types';
 import { injectable, inject, named } from 'inversify';
 import { TYPES as VALIDATOR_TYPES, IScannerInputValidator, ScannerInput } from '../validators';
 import { TYPES } from '../types/di-types';
+import { CheckHallucinationDetector } from '../json/utils/check-hallucination-detector';
 
 /**
  * CheckScanner - Encapsulates OCR and JSON extraction in a single process for check documents
@@ -19,6 +20,7 @@ export class CheckScanner implements DocumentScanner {
   private ocrProvider: OCRProvider;
   private checkExtractor: ICheckExtractor;
   private inputValidator: IScannerInputValidator;
+  private hallucinationDetector: CheckHallucinationDetector;
 
   /**
    * Creates a new CheckScanner
@@ -30,11 +32,13 @@ export class CheckScanner implements DocumentScanner {
   constructor(
     @inject(TYPES.OCRProvider) ocrProvider: OCRProvider,
     @inject(TYPES.CheckExtractor) checkExtractor: ICheckExtractor,
-    @inject(VALIDATOR_TYPES.ScannerInputValidator) @named('check') inputValidator: IScannerInputValidator
+    @inject(VALIDATOR_TYPES.ScannerInputValidator) @named('check') inputValidator: IScannerInputValidator,
+    @inject(TYPES.CheckHallucinationDetector) hallucinationDetector: CheckHallucinationDetector
   ) {
     this.ocrProvider = ocrProvider;
     this.checkExtractor = checkExtractor;
     this.inputValidator = inputValidator;
+    this.hallucinationDetector = hallucinationDetector;
   }
 
   /**
@@ -89,16 +93,19 @@ export class CheckScanner implements DocumentScanner {
     }
 
     const extractedData = extractionResult[1];
-    const extractionConfidence = extractedData.confidence;
 
-    // Step 3: Calculate overall confidence
-    const overallConfidence = this.calculateOverallConfidence(ocrConfidence, extractionConfidence);
+    // Step 3: Apply check-specific hallucination detection
+    this.hallucinationDetector.detect(extractedData.json);
+
+    // Step 4: Calculate overall confidence using potentially updated confidence
+    const finalExtractionConfidence = extractedData.json.confidence || extractedData.confidence;
+    const overallConfidence = this.calculateOverallConfidence(ocrConfidence, finalExtractionConfidence);
 
     // Return combined result
     return ['ok', {
       json: extractedData.json,
       ocrConfidence,
-      extractionConfidence,
+      extractionConfidence: finalExtractionConfidence,
       overallConfidence,
       rawText: ocrText
     }];

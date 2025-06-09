@@ -4,7 +4,6 @@
 
 import { CloudflareLlama33JsonExtractor } from '../../../src/json/cloudflare-llama33-extractor.js';
 import { JsonExtractionRequest } from '../../../src/json/types.js';
-import { AntiHallucinationDetector } from '../../../src/json/utils/anti-hallucination-detector.js';
 import { JsonExtractionConfidenceCalculator } from '../../../src/json/utils/confidence-calculator.js';
 import type { IoE } from '../../../src/ocr/types.js';
 
@@ -87,19 +86,17 @@ class MockFailingCloudflareAI {
 describe('CloudflareLlama33JsonExtractor', () => {
   let io: IoE;
   let cloudflareAI: MockCloudflareAI;
-  let antiHallucinationDetector: AntiHallucinationDetector;
   let confidenceCalculator: JsonExtractionConfidenceCalculator;
   let extractor: CloudflareLlama33JsonExtractor;
 
   beforeEach(() => {
     io = mockIoE;
     cloudflareAI = new MockCloudflareAI();
-    antiHallucinationDetector = new AntiHallucinationDetector();
+    
     confidenceCalculator = new JsonExtractionConfidenceCalculator();
     extractor = new CloudflareLlama33JsonExtractor(
       io,
       cloudflareAI as any,
-      antiHallucinationDetector,
       confidenceCalculator
     );
   });
@@ -141,7 +138,6 @@ describe('CloudflareLlama33JsonExtractor', () => {
       const failingExtractor = new CloudflareLlama33JsonExtractor(
         mockIoE,
         new MockFailingCloudflareAI() as any,
-        antiHallucinationDetector,
         confidenceCalculator
       );
 
@@ -176,10 +172,8 @@ describe('CloudflareLlama33JsonExtractor', () => {
       }
     });
 
-    it('should use anti-hallucination detection', async () => {
-      // Create a spy to verify the method is called
-      const detectSpy = spyOn(antiHallucinationDetector, 'detectCheckHallucinations');
-
+    it('should note hallucination detection is handled by scanners', async () => {
+      // Hallucination detection is now handled by scanner layer, not JSON extractors
       const request: JsonExtractionRequest = {
         markdown: 'Check #A123456789\nPay to: John Smith\nAmount: $1,234.56',
         schema: {
@@ -188,10 +182,10 @@ describe('CloudflareLlama33JsonExtractor', () => {
         }
       };
 
-      await extractor.extract(request);
+      const result = await extractor.extract(request);
 
-      // Should have called anti-hallucination detection
-      expect(detectSpy).toHaveBeenCalled();
+      // Should succeed without extractor-level hallucination detection
+      expect(result[0]).toBe('ok');
     });
 
     it('should use confidence calculator', async () => {
@@ -259,7 +253,6 @@ describe('CloudflareLlama33JsonExtractor', () => {
         new CloudflareLlama33JsonExtractor(
           io,
           null as any,
-          antiHallucinationDetector,
           confidenceCalculator
         );
       }).toThrow('CloudflareAI binding is required');

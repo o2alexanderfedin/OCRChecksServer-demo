@@ -3,7 +3,7 @@ import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr
 import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
 import { CheckExtractor as ICheckExtractor } from '../../../src/json/extractors/types';
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
-import { AntiHallucinationDetector } from '../../../src/json/utils/anti-hallucination-detector';
+import { CheckHallucinationDetector } from '../../../src/json/utils/check-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import type { Check } from '../../../src/json/schemas/check';
 import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
@@ -54,16 +54,19 @@ describe('CheckScanner', () => {
   let jsonExtractor: JsonExtractor;
   let checkExtractor: ICheckExtractor;
   let inputValidator: IScannerInputValidator;
-  let antiHallucinationDetector: AntiHallucinationDetector;
+  let hallucinationDetector: CheckHallucinationDetector;
   let scanner: CheckScanner;
 
   beforeEach(function(): void {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
-    antiHallucinationDetector = new AntiHallucinationDetector();
-    checkExtractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    
+    // Create hallucination detector for scanner-based detection
+    hallucinationDetector = new CheckHallucinationDetector();
+    
+    checkExtractor = new CheckExtractor(jsonExtractor);
     inputValidator = new MockScannerInputValidator();
-    scanner = new CheckScanner(ocrProvider, checkExtractor, inputValidator);
+    scanner = new CheckScanner(ocrProvider, checkExtractor, inputValidator, hallucinationDetector);
   });
 
   it('should process document and extract structured check data', async () => {
@@ -98,7 +101,7 @@ describe('CheckScanner', () => {
       }
     };
     
-    scanner = new CheckScanner(failingOcrProvider, checkExtractor, inputValidator);
+    scanner = new CheckScanner(failingOcrProvider, checkExtractor, inputValidator, hallucinationDetector);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
@@ -122,7 +125,7 @@ describe('CheckScanner', () => {
       }
     };
     
-    scanner = new CheckScanner(ocrProvider, failingCheckExtractor, inputValidator);
+    scanner = new CheckScanner(ocrProvider, failingCheckExtractor, inputValidator, hallucinationDetector);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
@@ -165,15 +168,16 @@ describe('CheckScanner', () => {
     }
   });
   
-  it('should calculate overall confidence correctly', async () => {
+  it('should calculate overall confidence correctly with hallucination detection', async () => {
     // Arrange
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
     };
     
-    // OCR confidence is 0.95, extraction confidence is 0.9
-    // Expected overall: (0.95 * 0.6) + (0.9 * 0.4) = 0.57 + 0.36 = 0.93
+    // OCR confidence is 0.95, extraction confidence starts at 0.9
+    // Hallucination detector reduces confidence to 0.3 (suspicious patterns detected)
+    // Expected overall: (0.95 * 0.6) + (0.3 * 0.4) = 0.57 + 0.12 = 0.69
     
     // Act
     const result = await scanner.processDocument(document);
@@ -182,8 +186,8 @@ describe('CheckScanner', () => {
     expect(result[0]).toBe('ok');
     if (result[0] === 'ok') {
       expect(result[1].ocrConfidence).toBe(0.95);
-      expect(result[1].extractionConfidence).toBe(0.9);
-      expect(result[1].overallConfidence).toBe(0.93);
+      expect(result[1].extractionConfidence).toBe(0.3); // Updated by hallucination detector
+      expect(result[1].overallConfidence).toBe(0.69); // Calculated using updated confidence
     }
   });
 
@@ -199,7 +203,7 @@ describe('CheckScanner', () => {
       }
     };
     
-    scanner = new CheckScanner(ocrProvider, checkExtractor, failingValidator);
+    scanner = new CheckScanner(ocrProvider, checkExtractor, failingValidator, hallucinationDetector);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image

@@ -2,7 +2,6 @@ import { CheckExtractor } from '../../../../src/json/extractors/check-extractor'
 import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types';
 import { CheckExtractor as ICheckExtractor } from '../../../../src/json/extractors/types';
 import { Check, CheckType, BankAccountType } from '../../../../src/json/schemas/check';
-import { AntiHallucinationDetector } from '../../../../src/json/utils/anti-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 
 // Mock implementations
@@ -36,13 +35,14 @@ class FailingJsonExtractor implements JsonExtractor {
 
 describe('CheckExtractor', () => {
   let jsonExtractor: JsonExtractor;
-  let antiHallucinationDetector: AntiHallucinationDetector;
   let checkExtractor: ICheckExtractor;
 
   beforeEach(function(): void {
     jsonExtractor = new MockJsonExtractor();
-    antiHallucinationDetector = new AntiHallucinationDetector();
-    checkExtractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    
+    // Note: Hallucination detection is now handled by the scanner layer
+    
+    checkExtractor = new CheckExtractor(jsonExtractor);
   });
 
   it('should extract check data from OCR text', async () => {
@@ -71,7 +71,7 @@ describe('CheckExtractor', () => {
   it('should handle extraction failures', async () => {
     // Arrange
     const failingExtractor = new FailingJsonExtractor();
-    const extractor = new CheckExtractor(failingExtractor, antiHallucinationDetector);
+    const extractor = new CheckExtractor(failingExtractor);
     const ocrText = 'Invalid text';
     
     // Act
@@ -103,7 +103,7 @@ describe('CheckExtractor', () => {
       }
     };
     
-    const extractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    const extractor = new CheckExtractor(jsonExtractor);
     const ocrText = 'Check #A123456789\nPay to: John Smith\nAmount: $1,234.56';
     
     // Act
@@ -141,7 +141,7 @@ describe('CheckExtractor', () => {
       }
     };
     
-    const extractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    const extractor = new CheckExtractor(jsonExtractor);
     const ocrText = 'Check MICR line: ⑆123456789⑆ ⑈9876543210⑈ ⑇1234⑇';
     
     // Act

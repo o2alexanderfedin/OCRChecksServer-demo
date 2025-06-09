@@ -3,9 +3,7 @@ import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr
 import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
 import { CheckExtractor as ICheckExtractor } from '../../../src/json/extractors/types';
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
-import { HallucinationDetectorFactory } from '../../../src/json/utils/hallucination-detector-factory';
 import { CheckHallucinationDetector } from '../../../src/json/utils/check-hallucination-detector';
-import { ReceiptHallucinationDetector } from '../../../src/json/utils/receipt-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import type { Check } from '../../../src/json/schemas/check';
 import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
@@ -56,21 +54,19 @@ describe('CheckScanner', () => {
   let jsonExtractor: JsonExtractor;
   let checkExtractor: ICheckExtractor;
   let inputValidator: IScannerInputValidator;
-  let hallucinationDetectorFactory: HallucinationDetectorFactory;
+  let hallucinationDetector: CheckHallucinationDetector;
   let scanner: CheckScanner;
 
   beforeEach(function(): void {
     ocrProvider = new MockOCRProvider();
     jsonExtractor = new MockJsonExtractor();
     
-    // Create SOLID-compliant detector factory
-    const checkDetector = new CheckHallucinationDetector();
-    const receiptDetector = new ReceiptHallucinationDetector();
-    hallucinationDetectorFactory = new HallucinationDetectorFactory(checkDetector, receiptDetector);
+    // Create hallucination detector for scanner-based detection
+    hallucinationDetector = new CheckHallucinationDetector();
     
-    checkExtractor = new CheckExtractor(jsonExtractor, hallucinationDetectorFactory);
+    checkExtractor = new CheckExtractor(jsonExtractor);
     inputValidator = new MockScannerInputValidator();
-    scanner = new CheckScanner(ocrProvider, checkExtractor, inputValidator);
+    scanner = new CheckScanner(ocrProvider, checkExtractor, inputValidator, hallucinationDetector);
   });
 
   it('should process document and extract structured check data', async () => {
@@ -105,7 +101,7 @@ describe('CheckScanner', () => {
       }
     };
     
-    scanner = new CheckScanner(failingOcrProvider, checkExtractor, inputValidator);
+    scanner = new CheckScanner(failingOcrProvider, checkExtractor, inputValidator, hallucinationDetector);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
@@ -129,7 +125,7 @@ describe('CheckScanner', () => {
       }
     };
     
-    scanner = new CheckScanner(ocrProvider, failingCheckExtractor, inputValidator);
+    scanner = new CheckScanner(ocrProvider, failingCheckExtractor, inputValidator, hallucinationDetector);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
@@ -206,7 +202,7 @@ describe('CheckScanner', () => {
       }
     };
     
-    scanner = new CheckScanner(ocrProvider, checkExtractor, failingValidator);
+    scanner = new CheckScanner(ocrProvider, checkExtractor, failingValidator, hallucinationDetector);
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image

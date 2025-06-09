@@ -10,7 +10,6 @@ import type { Result } from 'functionalscript/types/result/module.f.js';
 import { ReceiptExtractor as IReceiptExtractor } from './types';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../types/di-types';
-import { HallucinationDetectorFactory } from '../utils/hallucination-detector-factory';
 
 /**
  * Class for extracting receipt data from OCR text
@@ -19,20 +18,16 @@ import { HallucinationDetectorFactory } from '../utils/hallucination-detector-fa
 @injectable()
 export class ReceiptExtractor implements IReceiptExtractor {
   private jsonExtractor: JsonExtractor;
-  private hallucinationDetectorFactory: HallucinationDetectorFactory;
 
   /**
    * Creates a new receipt extractor
    * 
    * @param jsonExtractor - The JSON extractor to use
-   * @param hallucinationDetectorFactory - The hallucination detector factory
    */
   constructor(
-    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor,
-    @inject(TYPES.HallucinationDetectorFactory) hallucinationDetectorFactory: HallucinationDetectorFactory
+    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor
   ) {
     this.jsonExtractor = jsonExtractor;
-    this.hallucinationDetectorFactory = hallucinationDetectorFactory;
   }
 
   /**
@@ -242,9 +237,7 @@ IMPORTANT:
     // Make a copy to avoid modifying the original
     const normalized = { ...receipt };
     
-    // Detect potential hallucinations using SOLID-compliant detector
-    const receiptDetector = this.hallucinationDetectorFactory.getReceiptDetector();
-    receiptDetector.detect(normalized);
+    // Note: Hallucination detection is now handled by the scanner layer for better separation of concerns
 
     // Ensure currency is uppercase
     if (normalized.currency) {

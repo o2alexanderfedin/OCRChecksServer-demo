@@ -5,6 +5,7 @@ import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types'
 import { injectable, inject, named } from 'inversify';
 import { TYPES as VALIDATOR_TYPES, IScannerInputValidator, ScannerInput } from '../validators';
 import { TYPES } from '../types/di-types';
+import { ReceiptHallucinationDetector } from '../json/utils/receipt-hallucination-detector';
 
 /**
  * ReceiptScanner - Encapsulates OCR and JSON extraction in a single process
@@ -19,6 +20,7 @@ export class ReceiptScanner implements DocumentScanner {
   private ocrProvider: OCRProvider;
   private receiptExtractor: IReceiptExtractor;
   private inputValidator: IScannerInputValidator;
+  private hallucinationDetector: ReceiptHallucinationDetector;
 
   /**
    * Creates a new ReceiptScanner
@@ -30,11 +32,13 @@ export class ReceiptScanner implements DocumentScanner {
   constructor(
     @inject(TYPES.OCRProvider) ocrProvider: OCRProvider,
     @inject(TYPES.ReceiptExtractor) receiptExtractor: IReceiptExtractor,
-    @inject(VALIDATOR_TYPES.ScannerInputValidator) @named('receipt') inputValidator: IScannerInputValidator
+    @inject(VALIDATOR_TYPES.ScannerInputValidator) @named('receipt') inputValidator: IScannerInputValidator,
+    @inject(TYPES.ReceiptHallucinationDetector) hallucinationDetector: ReceiptHallucinationDetector
   ) {
     this.ocrProvider = ocrProvider;
     this.receiptExtractor = receiptExtractor;
     this.inputValidator = inputValidator;
+    this.hallucinationDetector = hallucinationDetector;
   }
 
   /**
@@ -91,7 +95,10 @@ export class ReceiptScanner implements DocumentScanner {
     const extractedData = extractionResult[1];
     const extractionConfidence = extractedData.confidence;
 
-    // Step 3: Calculate overall confidence
+    // Step 3: Apply receipt-specific hallucination detection
+    this.hallucinationDetector.detect(extractedData.json);
+
+    // Step 4: Calculate overall confidence
     const overallConfidence = this.calculateOverallConfidence(ocrConfidence, extractionConfidence);
 
     // Return combined result

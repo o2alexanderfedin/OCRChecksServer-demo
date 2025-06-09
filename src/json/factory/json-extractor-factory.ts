@@ -19,7 +19,7 @@ import {
 } from './types';
 import { MistralJsonExtractorProvider } from '../mistral';
 import { CloudflareLlama33JsonExtractor } from '../cloudflare-llama33-extractor';
-import { AntiHallucinationDetector } from '../utils/anti-hallucination-detector';
+import { HallucinationDetectorFactory } from '../utils/hallucination-detector-factory';
 import { JsonExtractionConfidenceCalculator } from '../utils/confidence-calculator';
 import { Mistral } from '@mistralai/mistralai';
 import { CloudflareAI } from '../cloudflare-llama33-extractor';
@@ -176,10 +176,10 @@ export class JsonExtractorFactory implements IJsonExtractorFactory {
 
     try {
       const cloudflareAI = this.container.get<CloudflareAI>(TYPES.CloudflareAI);
-      const antiHallucinationDetector = this.container.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
+      const hallucinationDetectorFactory = this.container.get<HallucinationDetectorFactory>(TYPES.HallucinationDetectorFactory);
       const confidenceCalculator = this.container.get<JsonExtractionConfidenceCalculator>(TYPES.JsonExtractionConfidenceCalculator);
       
-      return new CloudflareLlama33JsonExtractor(this.io, cloudflareAI, antiHallucinationDetector, confidenceCalculator);
+      return new CloudflareLlama33JsonExtractor(this.io, cloudflareAI, hallucinationDetectorFactory, confidenceCalculator);
     } catch (error) {
       throw new Error(`Failed to create Cloudflare extractor: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -243,10 +243,10 @@ export class JsonExtractorFactory implements IJsonExtractorFactory {
 
         // Check if Cloudflare AI binding is available
         const cloudflareAI = this.container.get<CloudflareAI>(TYPES.CloudflareAI);
-        const antiHallucinationDetector = this.container.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
+        const hallucinationDetectorFactory = this.container.get<HallucinationDetectorFactory>(TYPES.HallucinationDetectorFactory);
         const confidenceCalculator = this.container.get<JsonExtractionConfidenceCalculator>(TYPES.JsonExtractionConfidenceCalculator);
         
-        if (!cloudflareAI || !antiHallucinationDetector || !confidenceCalculator) {
+        if (!cloudflareAI || !hallucinationDetectorFactory || !confidenceCalculator) {
           return {
             available: false,
             reason: 'Cloudflare dependencies not properly configured',

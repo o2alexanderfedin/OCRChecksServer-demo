@@ -11,6 +11,9 @@ import { CheckExtractor } from '../json/extractors/check-extractor';
 import { AntiHallucinationDetector } from '../json/utils/anti-hallucination-detector';
 import { JsonExtractionConfidenceCalculator } from '../json/utils/confidence-calculator';
 import { JsonExtractorFactory } from '../json/factory/json-extractor-factory';
+import { CheckHallucinationDetector } from '../json/utils/check-hallucination-detector';
+import { ReceiptHallucinationDetector } from '../json/utils/receipt-hallucination-detector';
+import { HallucinationDetectorFactory } from '../json/utils/hallucination-detector-factory';
 import { ReceiptScanner } from '../scanner/receipt-scanner';
 import { CheckScanner } from '../scanner/check-scanner';
 import { Mistral } from '@mistralai/mistralai';
@@ -230,7 +233,8 @@ export class DIContainer {
       switch (extractorType.toLowerCase()) {
         case 'cloudflare':
           const cloudflareAI = context.get<CloudflareAI>(TYPES.CloudflareAI);
-          return new CloudflareLlama33JsonExtractor(io, cloudflareAI, antiHallucinationDetector, confidenceCalculator);
+          const hallucinationDetectorFactory = context.get<HallucinationDetectorFactory>(TYPES.HallucinationDetectorFactory);
+          return new CloudflareLlama33JsonExtractor(io, cloudflareAI, hallucinationDetectorFactory, confidenceCalculator);
           
         case 'mistral':
         default:
@@ -245,8 +249,13 @@ export class DIContainer {
    * @protected
    */
   protected registerUtilities(): void {
-    // Register anti-hallucination detector
+    // Register anti-hallucination detector (legacy, for backward compatibility)
     this.container.bind(TYPES.AntiHallucinationDetector).to(AntiHallucinationDetector).inSingletonScope();
+    
+    // Register new SOLID-compliant hallucination detectors
+    this.container.bind(TYPES.CheckHallucinationDetector).to(CheckHallucinationDetector).inSingletonScope();
+    this.container.bind(TYPES.ReceiptHallucinationDetector).to(ReceiptHallucinationDetector).inSingletonScope();
+    this.container.bind(TYPES.HallucinationDetectorFactory).to(HallucinationDetectorFactory).inSingletonScope();
     
     // Register confidence calculator
     this.container.bind(TYPES.JsonExtractionConfidenceCalculator).to(JsonExtractionConfidenceCalculator).inSingletonScope();
@@ -260,15 +269,15 @@ export class DIContainer {
     // Register receipt extractor
     this.container.bind(TYPES.ReceiptExtractor).toDynamicValue((context) => {
       const jsonExtractor = context.get<JsonExtractor>(TYPES.JsonExtractorProvider);
-      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
-      return new ReceiptExtractor(jsonExtractor, antiHallucinationDetector);
+      const hallucinationDetectorFactory = context.get<HallucinationDetectorFactory>(TYPES.HallucinationDetectorFactory);
+      return new ReceiptExtractor(jsonExtractor, hallucinationDetectorFactory);
     }).inSingletonScope();
     
     // Register check extractor
     this.container.bind(TYPES.CheckExtractor).toDynamicValue((context) => {
       const jsonExtractor = context.get<JsonExtractor>(TYPES.JsonExtractorProvider);
-      const antiHallucinationDetector = context.get<AntiHallucinationDetector>(TYPES.AntiHallucinationDetector);
-      return new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+      const hallucinationDetectorFactory = context.get<HallucinationDetectorFactory>(TYPES.HallucinationDetectorFactory);
+      return new CheckExtractor(jsonExtractor, hallucinationDetectorFactory);
     }).inSingletonScope();
   }
 

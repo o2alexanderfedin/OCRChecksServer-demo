@@ -2,7 +2,9 @@ import { CheckExtractor } from '../../../../src/json/extractors/check-extractor'
 import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types';
 import { CheckExtractor as ICheckExtractor } from '../../../../src/json/extractors/types';
 import { Check, CheckType, BankAccountType } from '../../../../src/json/schemas/check';
-import { AntiHallucinationDetector } from '../../../../src/json/utils/anti-hallucination-detector';
+import { HallucinationDetectorFactory } from '../../../../src/json/utils/hallucination-detector-factory';
+import { CheckHallucinationDetector } from '../../../../src/json/utils/check-hallucination-detector';
+import { ReceiptHallucinationDetector } from '../../../../src/json/utils/receipt-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 
 // Mock implementations
@@ -36,13 +38,18 @@ class FailingJsonExtractor implements JsonExtractor {
 
 describe('CheckExtractor', () => {
   let jsonExtractor: JsonExtractor;
-  let antiHallucinationDetector: AntiHallucinationDetector;
+  let hallucinationDetectorFactory: HallucinationDetectorFactory;
   let checkExtractor: ICheckExtractor;
 
   beforeEach(function(): void {
     jsonExtractor = new MockJsonExtractor();
-    antiHallucinationDetector = new AntiHallucinationDetector();
-    checkExtractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    
+    // Create SOLID-compliant detector factory
+    const checkDetector = new CheckHallucinationDetector();
+    const receiptDetector = new ReceiptHallucinationDetector();
+    hallucinationDetectorFactory = new HallucinationDetectorFactory(checkDetector, receiptDetector);
+    
+    checkExtractor = new CheckExtractor(jsonExtractor, hallucinationDetectorFactory);
   });
 
   it('should extract check data from OCR text', async () => {
@@ -71,7 +78,7 @@ describe('CheckExtractor', () => {
   it('should handle extraction failures', async () => {
     // Arrange
     const failingExtractor = new FailingJsonExtractor();
-    const extractor = new CheckExtractor(failingExtractor, antiHallucinationDetector);
+    const extractor = new CheckExtractor(failingExtractor, hallucinationDetectorFactory);
     const ocrText = 'Invalid text';
     
     // Act
@@ -103,7 +110,7 @@ describe('CheckExtractor', () => {
       }
     };
     
-    const extractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    const extractor = new CheckExtractor(jsonExtractor, hallucinationDetectorFactory);
     const ocrText = 'Check #A123456789\nPay to: John Smith\nAmount: $1,234.56';
     
     // Act
@@ -141,7 +148,7 @@ describe('CheckExtractor', () => {
       }
     };
     
-    const extractor = new CheckExtractor(jsonExtractor, antiHallucinationDetector);
+    const extractor = new CheckExtractor(jsonExtractor, hallucinationDetectorFactory);
     const ocrText = 'Check MICR line: ⑆123456789⑆ ⑈9876543210⑈ ⑇1234⑇';
     
     // Act

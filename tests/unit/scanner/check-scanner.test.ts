@@ -168,15 +168,16 @@ describe('CheckScanner', () => {
     }
   });
   
-  it('should calculate overall confidence correctly', async () => {
+  it('should calculate overall confidence correctly with hallucination detection', async () => {
     // Arrange
     const document: Document = {
       content: new ArrayBuffer(10),
       type: DocumentType.Image
     };
     
-    // OCR confidence is 0.95, extraction confidence is 0.9
-    // Expected overall: (0.95 * 0.6) + (0.9 * 0.4) = 0.57 + 0.36 = 0.93
+    // OCR confidence is 0.95, extraction confidence starts at 0.9
+    // Hallucination detector reduces confidence to 0.3 (suspicious patterns detected)
+    // Expected overall: (0.95 * 0.6) + (0.3 * 0.4) = 0.57 + 0.12 = 0.69
     
     // Act
     const result = await scanner.processDocument(document);
@@ -185,8 +186,8 @@ describe('CheckScanner', () => {
     expect(result[0]).toBe('ok');
     if (result[0] === 'ok') {
       expect(result[1].ocrConfidence).toBe(0.95);
-      expect(result[1].extractionConfidence).toBe(0.9);
-      expect(result[1].overallConfidence).toBe(0.93);
+      expect(result[1].extractionConfidence).toBe(0.3); // Updated by hallucination detector
+      expect(result[1].overallConfidence).toBe(0.69); // Calculated using updated confidence
     }
   });
 

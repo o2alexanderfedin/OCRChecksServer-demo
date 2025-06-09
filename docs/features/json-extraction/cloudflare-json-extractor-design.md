@@ -29,7 +29,7 @@ graph TB
         B2 --> C2[Cloudflare Workers AI]
         C2 --> D2[JSON Schema Mode]
         D2 --> E2[Native JSON Response]
-        E2 --> F2[Anti-hallucination Processing]
+        E2 --> F2[SOLID Hallucination Detection]
         F2 --> G2[Result]
     end
 
@@ -182,7 +182,8 @@ sequenceDiagram
     participant Extractor as CloudflareLlama33JsonExtractor
     participant AI as Cloudflare Workers AI
     participant Schema as JSON Schema Validator
-    participant Anti as Anti-hallucination Detector
+    participant Factory as HallucinationDetectorFactory
+    participant Detector as Specific Detector
     
     Client->>Extractor: extract(request)
     
@@ -199,7 +200,9 @@ sequenceDiagram
     
     Note over Extractor: Response Processing
     Extractor->>Schema: validateJsonStructure(response)
-    Extractor->>Anti: detectHallucinations(response)
+    Extractor->>Factory: detectHallucinations(response)
+    Factory->>Factory: DocumentTypeDetector.getDocumentType()
+    Factory->>Detector: detector.detect(response)
     Extractor->>Extractor: calculateConfidence(response)
     
     Note over Extractor: Result Assembly
@@ -296,28 +299,49 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
 }
 ```
 
-## Anti-hallucination Integration
+## SOLID Hallucination Detection System
 
-The new implementation maintains all existing anti-hallucination measures:
+The implementation now uses a SOLID-compliant hallucination detection architecture:
 
 ```mermaid
-graph LR
-    A[Raw JSON Response] --> B[Structure Validation]
-    B --> C[Suspicious Pattern Detection]
-    C --> D[Confidence Calculation]
-    D --> E[isValidInput Flag]
+graph TB
+    A[Raw JSON Response] --> B[HallucinationDetectorFactory]
+    B --> C{Document Type Detection}
+    C -->|Check| D[CheckHallucinationDetector]
+    C -->|Receipt| E[ReceiptHallucinationDetector]
+    D --> F[Check-Specific Pattern Detection]
+    E --> G[Receipt-Specific Pattern Detection]
+    F --> H[Confidence Calculation]
+    G --> H
+    H --> I[isValidInput Flag]
     
-    subgraph "Detection Patterns"
-        F[Check Numbers: 1234, 5678, 0000]
-        G[Payees: John Doe, Jane Doe]
-        H[Amounts: 100, 150.75, 200]
-        I[Dates: 2023-10-05, 2024-01-05]
+    subgraph "SOLID Principles Applied"
+        J[Single Responsibility: Separate detectors per document type]
+        K[Open/Closed: Extensible via new detector implementations]
+        L[Interface Segregation: Focused HallucinationDetector interface]
+        M[Dependency Inversion: Factory abstracts detector selection]
     end
     
-    C --> F
-    C --> G
-    C --> H
-    C --> I
+    subgraph "Check Detection Patterns"
+        N[Check Numbers: 1234, 5678, 0000]
+        O[Payees: John Doe, Jane Doe]
+        P[Amounts: 100, 150.75, 200]
+        Q[Dates: 2023-10-05, 2024-01-05]
+    end
+    
+    subgraph "Receipt Detection Patterns"
+        R[Merchants: Store Name, Shop]
+        S[Items: Item 1, Product A]
+        T[Totals: $10.00, $25.50]
+    end
+    
+    F --> N
+    F --> O
+    F --> P
+    F --> Q
+    G --> R
+    G --> S
+    G --> T
 ```
 
 ## Migration Strategy

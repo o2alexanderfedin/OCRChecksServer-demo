@@ -13,6 +13,53 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 
 ### 1. Core Components
 
+#### JSON Extraction System
+
+The system uses a SOLID-compliant architecture for JSON extraction:
+
+```mermaid
+classDiagram
+    class JsonExtractor {
+        <<interface>>
+        +extract(request: JsonExtractionRequest) Promise~Result~JsonExtractionResult, Error~~
+    }
+    
+    class CloudflareLlama33JsonExtractor {
+        -ai: Ai
+        -io: IoE
+        -hallucinationDetectorFactory: HallucinationDetectorFactory
+        +extract(request: JsonExtractionRequest) Promise~Result~JsonExtractionResult, Error~~
+    }
+    
+    class MistralJsonExtractorProvider {
+        -client: Mistral
+        -io: IoE
+        -hallucinationDetectorFactory: HallucinationDetectorFactory
+        +extract(request: JsonExtractionRequest) Promise~Result~JsonExtractionResult, Error~~
+    }
+    
+    class HallucinationDetectorFactory {
+        -checkDetector: CheckHallucinationDetector
+        -receiptDetector: ReceiptHallucinationDetector
+        +detectHallucinations(data: any) void
+    }
+    
+    class CheckHallucinationDetector {
+        +detect(check: Check) void
+    }
+    
+    class ReceiptHallucinationDetector {
+        +detect(receipt: Receipt) void
+    }
+    
+    JsonExtractor <|-- CloudflareLlama33JsonExtractor
+    JsonExtractor <|-- MistralJsonExtractorProvider
+    CloudflareLlama33JsonExtractor --> HallucinationDetectorFactory
+    MistralJsonExtractorProvider --> HallucinationDetectorFactory
+    HallucinationDetectorFactory --> CheckHallucinationDetector
+    HallucinationDetectorFactory --> ReceiptHallucinationDetector
+```
+
 #### Worker Entry Point (`src/index.ts`)
 - Main Cloudflare Worker handler
 - Implements a RESTful API with dedicated endpoints:
@@ -23,11 +70,14 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 - Manages document processing pipeline
 - Implements CORS and robust request validation
 - Provides detailed error handling and reporting
+- Uses SOLID-compliant dependency injection for component management
 
 #### Processing Pipeline
-- Handles document processing
-- Manages API communication
+- Handles document processing with SOLID principles
+- Manages API communication through dependency injection
 - Uses functional programming patterns with `IoE` interface
+- Implements factory pattern for intelligent component selection
+- Provides document-type-specific processing through specialized services
 
 ### 2. Type System
 
@@ -152,7 +202,9 @@ sequenceDiagram
 
 - `functionalscript`: Core functional programming utilities
 - `hono`: Web framework for Cloudflare Workers
+- `inversify`: Dependency injection container for TypeScript
 - `sharp`: Image processing (if needed for preprocessing)
+- `zod`: Runtime type validation for schemas
 
 ## Development Workflow
 
@@ -187,9 +239,11 @@ sequenceDiagram
 ## Security Considerations
 
 - API key management via environment variables
-- Input validation and sanitization
+- Input validation and sanitization through Zod schemas
 - CORS configuration
 - Rate limiting (if implemented)
+- SOLID-compliant hallucination detection prevents AI model exploitation
+- Document-type-specific validation patterns
 
 ## Future Considerations
 

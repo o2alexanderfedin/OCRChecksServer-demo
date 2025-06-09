@@ -29,10 +29,18 @@ export const TYPES = {
   IoE: Symbol.for('IoE'),
   MistralApiKey: Symbol.for('MistralApiKey'),
   MistralClient: Symbol.for('MistralClient'),
+  CloudflareAi: Symbol.for('CloudflareAi'),
   OCRProvider: Symbol.for('OCRProvider'),
+  JsonExtractor: Symbol.for('JsonExtractor'),
   JsonExtractorProvider: Symbol.for('JsonExtractorProvider'),
   ReceiptExtractor: Symbol.for('ReceiptExtractor'),
-  ReceiptScanner: Symbol.for('ReceiptScanner')
+  CheckExtractor: Symbol.for('CheckExtractor'),
+  ReceiptScanner: Symbol.for('ReceiptScanner'),
+  CheckScanner: Symbol.for('CheckScanner'),
+  HallucinationDetectorFactory: Symbol.for('HallucinationDetectorFactory'),
+  CheckHallucinationDetector: Symbol.for('CheckHallucinationDetector'),
+  ReceiptHallucinationDetector: Symbol.for('ReceiptHallucinationDetector'),
+  ConfidenceCalculator: Symbol.for('ConfidenceCalculator')
 };
 ```
 
@@ -71,13 +79,55 @@ static createMistralProcessor(io: IoE, apiKey: string): ReceiptScanner {
 }
 ```
 
+## SOLID Hallucination Detection Integration
+
+The DI system now supports SOLID-compliant hallucination detection:
+
+```typescript
+// Register hallucination detection components
+container.bind<CheckHallucinationDetector>(TYPES.CheckHallucinationDetector)
+  .to(CheckHallucinationDetector)
+  .inSingletonScope();
+
+container.bind<ReceiptHallucinationDetector>(TYPES.ReceiptHallucinationDetector)
+  .to(ReceiptHallucinationDetector)
+  .inSingletonScope();
+
+container.bind<HallucinationDetectorFactory>(TYPES.HallucinationDetectorFactory)
+  .to(HallucinationDetectorFactory)
+  .inSingletonScope();
+```
+
+### Factory Pattern Implementation
+
+The factory automatically selects the appropriate detector based on document type:
+
+```typescript
+@injectable()
+export class HallucinationDetectorFactory {
+  constructor(
+    @inject(TYPES.CheckHallucinationDetector) 
+    private checkDetector: CheckHallucinationDetector,
+    @inject(TYPES.ReceiptHallucinationDetector) 
+    private receiptDetector: ReceiptHallucinationDetector
+  ) {}
+
+  detectHallucinations(data: any): void {
+    const detector = this.getDetectorForData(data);
+    if (detector) {
+      detector.detect(data);
+    }
+  }
+}
+```
+
 ## Adding a New Dependency
 
 To add a new dependency:
 
 1. Add a new Symbol identifier in the TYPES object
 2. Create a binding in the registration method
-3. Inject the dependency where needed using `context.container.get()`
+3. Inject the dependency where needed using `@inject()` decorator or `context.container.get()`
 
 ## Testing with the DI Container
 
@@ -105,8 +155,34 @@ const scanner = container.get<ReceiptScanner>(TYPES.ReceiptScanner);
 // Test the scanner with the mock provider
 ```
 
+## SOLID Principles in DI Design
+
+The dependency injection system exemplifies SOLID principles:
+
+- **Single Responsibility**: Each service has one focused purpose
+- **Open/Closed**: New detectors can be added without modifying existing code
+- **Interface Segregation**: Focused interfaces like `HallucinationDetector<T>`
+- **Dependency Inversion**: High-level modules depend on abstractions
+
+## Multiple Extractor Support
+
+The system now supports multiple JSON extractors through configuration:
+
+```typescript
+// Cloudflare configuration
+container.bind<JsonExtractor>(TYPES.JsonExtractor)
+  .to(CloudflareLlama33JsonExtractor)
+  .whenTargetNamed('cloudflare');
+
+// Mistral configuration  
+container.bind<JsonExtractor>(TYPES.JsonExtractor)
+  .to(MistralJsonExtractorProvider)
+  .whenTargetNamed('mistral');
+```
+
 ## Future Improvements
 
 - Add decorator-based injection for class properties
 - Support for different container scopes (request-scoped, etc.)
 - Advanced container configuration for different environments
+- Runtime detector registration for extensibility

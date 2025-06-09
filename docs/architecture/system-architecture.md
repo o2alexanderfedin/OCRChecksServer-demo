@@ -13,35 +13,36 @@ The OCR Checks Server is a Cloudflare Worker application that processes images o
 
 ### 1. Core Components
 
-#### JSON Extraction System
+#### Document Processing System
 
-The system uses a SOLID-compliant architecture for JSON extraction:
+The system uses a scanner-based architecture for complete document processing:
 
 ```mermaid
 classDiagram
+    class DocumentScanner {
+        <<interface>>
+        +processDocument(document: Document) Promise~Result~ProcessingResult, string~~
+    }
+    
+    class CheckScanner {
+        -ocrProvider: OCRProvider
+        -checkExtractor: CheckExtractor
+        -inputValidator: IScannerInputValidator
+        -hallucinationDetector: CheckHallucinationDetector
+        +processDocument(document: Document) Promise~Result~ProcessingResult, string~~
+    }
+    
+    class ReceiptScanner {
+        -ocrProvider: OCRProvider
+        -receiptExtractor: ReceiptExtractor
+        -inputValidator: IScannerInputValidator
+        -hallucinationDetector: ReceiptHallucinationDetector
+        +processDocument(document: Document) Promise~Result~ProcessingResult, string~~
+    }
+    
     class JsonExtractor {
         <<interface>>
         +extract(request: JsonExtractionRequest) Promise~Result~JsonExtractionResult, Error~~
-    }
-    
-    class CloudflareLlama33JsonExtractor {
-        -ai: Ai
-        -io: IoE
-        -hallucinationDetectorFactory: HallucinationDetectorFactory
-        +extract(request: JsonExtractionRequest) Promise~Result~JsonExtractionResult, Error~~
-    }
-    
-    class MistralJsonExtractorProvider {
-        -client: Mistral
-        -io: IoE
-        -hallucinationDetectorFactory: HallucinationDetectorFactory
-        +extract(request: JsonExtractionRequest) Promise~Result~JsonExtractionResult, Error~~
-    }
-    
-    class HallucinationDetectorFactory {
-        -checkDetector: CheckHallucinationDetector
-        -receiptDetector: ReceiptHallucinationDetector
-        +detectHallucinations(data: any) void
     }
     
     class CheckHallucinationDetector {
@@ -52,12 +53,12 @@ classDiagram
         +detect(receipt: Receipt) void
     }
     
-    JsonExtractor <|-- CloudflareLlama33JsonExtractor
-    JsonExtractor <|-- MistralJsonExtractorProvider
-    CloudflareLlama33JsonExtractor --> HallucinationDetectorFactory
-    MistralJsonExtractorProvider --> HallucinationDetectorFactory
-    HallucinationDetectorFactory --> CheckHallucinationDetector
-    HallucinationDetectorFactory --> ReceiptHallucinationDetector
+    DocumentScanner <|-- CheckScanner
+    DocumentScanner <|-- ReceiptScanner
+    CheckScanner --> CheckHallucinationDetector
+    ReceiptScanner --> ReceiptHallucinationDetector
+    CheckScanner --> JsonExtractor
+    ReceiptScanner --> JsonExtractor
 ```
 
 #### Worker Entry Point (`src/index.ts`)
@@ -73,11 +74,11 @@ classDiagram
 - Uses SOLID-compliant dependency injection for component management
 
 #### Processing Pipeline
-- Handles document processing with SOLID principles
-- Manages API communication through dependency injection
+- Handles complete document processing workflow at scanner level
+- Manages OCR → JSON extraction → hallucination detection → result processing
 - Uses functional programming patterns with `IoE` interface
-- Implements factory pattern for intelligent component selection
-- Provides document-type-specific processing through specialized services
+- Implements direct dependency injection for document-specific components
+- Provides cleaner separation of concerns with scanner-based architecture
 
 ### 2. Type System
 
@@ -242,8 +243,9 @@ sequenceDiagram
 - Input validation and sanitization through Zod schemas
 - CORS configuration
 - Rate limiting (if implemented)
-- SOLID-compliant hallucination detection prevents AI model exploitation
-- Document-type-specific validation patterns
+- Scanner-based hallucination detection prevents AI model exploitation
+- Document-type-specific validation patterns applied at processing level
+- Better separation of concerns between extraction and validation
 
 ## Future Considerations
 

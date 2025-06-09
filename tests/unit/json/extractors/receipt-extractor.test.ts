@@ -1,9 +1,6 @@
 import { ReceiptExtractor } from '../../../../src/json/extractors/receipt-extractor';
 import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types';
 import { ReceiptExtractor as IReceiptExtractor } from '../../../../src/json/extractors/types';
-import { HallucinationDetectorFactory } from '../../../../src/json/utils/hallucination-detector-factory';
-import { CheckHallucinationDetector } from '../../../../src/json/utils/check-hallucination-detector';
-import { ReceiptHallucinationDetector } from '../../../../src/json/utils/receipt-hallucination-detector';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 
 // Mock implementations
@@ -35,18 +32,14 @@ class FailingJsonExtractor implements JsonExtractor {
 
 describe('ReceiptExtractor', () => {
   let jsonExtractor: JsonExtractor;
-  let hallucinationDetectorFactory: HallucinationDetectorFactory;
   let receiptExtractor: IReceiptExtractor;
 
   beforeEach(function(): void {
     jsonExtractor = new MockJsonExtractor();
     
-    // Create SOLID-compliant detector factory
-    const checkDetector = new CheckHallucinationDetector();
-    const receiptDetector = new ReceiptHallucinationDetector();
-    hallucinationDetectorFactory = new HallucinationDetectorFactory(checkDetector, receiptDetector);
+    // Note: Hallucination detection is now handled by the scanner layer
     
-    receiptExtractor = new ReceiptExtractor(jsonExtractor, hallucinationDetectorFactory);
+    receiptExtractor = new ReceiptExtractor(jsonExtractor);
   });
 
   it('should extract receipt data from OCR text', async () => {
@@ -71,7 +64,7 @@ describe('ReceiptExtractor', () => {
   it('should handle extraction failures', async () => {
     // Arrange
     const failingExtractor = new FailingJsonExtractor();
-    const extractor = new ReceiptExtractor(failingExtractor, hallucinationDetectorFactory);
+    const extractor = new ReceiptExtractor(failingExtractor);
     const ocrText = 'Invalid text';
     
     // Act
@@ -105,7 +98,7 @@ describe('ReceiptExtractor', () => {
       }
     };
     
-    const extractor = new ReceiptExtractor(jsonExtractor, hallucinationDetectorFactory);
+    const extractor = new ReceiptExtractor(jsonExtractor);
     const ocrText = 'Test Store\nTotal: $42.99\nDate: 2023-01-01';
     
     // Act

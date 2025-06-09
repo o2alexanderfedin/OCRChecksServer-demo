@@ -29,7 +29,7 @@ graph TB
         B2 --> C2[Cloudflare Workers AI]
         C2 --> D2[JSON Schema Mode]
         D2 --> E2[Native JSON Response]
-        E2 --> F2[SOLID Hallucination Detection]
+        E2 --> F2[Scanner-Based Detection]
         F2 --> G2[Result]
     end
 
@@ -182,8 +182,6 @@ sequenceDiagram
     participant Extractor as CloudflareLlama33JsonExtractor
     participant AI as Cloudflare Workers AI
     participant Schema as JSON Schema Validator
-    participant Factory as HallucinationDetectorFactory
-    participant Detector as Specific Detector
     
     Client->>Extractor: extract(request)
     
@@ -200,9 +198,8 @@ sequenceDiagram
     
     Note over Extractor: Response Processing
     Extractor->>Schema: validateJsonStructure(response)
-    Extractor->>Factory: detectHallucinations(response)
-    Factory->>Factory: DocumentTypeDetector.getDocumentType()
-    Factory->>Detector: detector.detect(response)
+    Note over Extractor: Hallucination detection now handled by scanners
+    Extractor-->>Client: JSON extraction complete
     Extractor->>Extractor: calculateConfidence(response)
     
     Note over Extractor: Result Assembly
@@ -299,49 +296,58 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
 }
 ```
 
-## SOLID Hallucination Detection System
+## Scanner-Based Hallucination Detection
 
-The implementation now uses a SOLID-compliant hallucination detection architecture:
+The implementation now uses a cleaner scanner-based hallucination detection architecture:
 
 ```mermaid
 graph TB
-    A[Raw JSON Response] --> B[HallucinationDetectorFactory]
-    B --> C{Document Type Detection}
-    C -->|Check| D[CheckHallucinationDetector]
-    C -->|Receipt| E[ReceiptHallucinationDetector]
-    D --> F[Check-Specific Pattern Detection]
-    E --> G[Receipt-Specific Pattern Detection]
-    F --> H[Confidence Calculation]
-    G --> H
-    H --> I[isValidInput Flag]
+    A[JSON Extraction Complete] --> B[Scanner Processing]
+    B --> C[Document-Specific Detection]
+    C --> D[Confidence Adjustment]
+    D --> E[Final Result]
+    
+    subgraph "Scanner Architecture"
+        F[CheckScanner]
+        G[ReceiptScanner]
+    end
+    
+    subgraph "Injected Detectors"
+        H[CheckHallucinationDetector]
+        I[ReceiptHallucinationDetector]
+    end
+    
+    F --> H
+    G --> I
     
     subgraph "SOLID Principles Applied"
-        J[Single Responsibility: Separate detectors per document type]
-        K[Open/Closed: Extensible via new detector implementations]
-        L[Interface Segregation: Focused HallucinationDetector interface]
-        M[Dependency Inversion: Factory abstracts detector selection]
+        J[Single Responsibility: Scanners handle complete document workflow]
+        K[Open/Closed: New scanners can be added for new document types]
+        L[Interface Segregation: Focused detector interfaces per document type]
+        M[Dependency Inversion: Scanners depend on detector abstractions]
+        N[Separation of Concerns: Detection moved from extractors to scanners]
     end
     
     subgraph "Check Detection Patterns"
-        N[Check Numbers: 1234, 5678, 0000]
-        O[Payees: John Doe, Jane Doe]
-        P[Amounts: 100, 150.75, 200]
-        Q[Dates: 2023-10-05, 2024-01-05]
+        O[Check Numbers: 1234, 5678, 0000]
+        P[Payees: John Doe, Jane Doe]
+        Q[Amounts: 100, 150.75, 200]
+        R[Dates: 2023-10-05, 2024-01-05]
     end
     
     subgraph "Receipt Detection Patterns"
-        R[Merchants: Store Name, Shop]
-        S[Items: Item 1, Product A]
-        T[Totals: $10.00, $25.50]
+        S[Merchants: Store Name, Shop]
+        T[Items: Item 1, Product A]
+        U[Totals: $10.00, $25.50]
     end
     
-    F --> N
-    F --> O
-    F --> P
-    F --> Q
-    G --> R
-    G --> S
-    G --> T
+    H --> O
+    H --> P
+    H --> Q
+    H --> R
+    I --> S
+    I --> T
+    I --> U
 ```
 
 ## Migration Strategy

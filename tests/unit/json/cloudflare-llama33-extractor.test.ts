@@ -4,9 +4,6 @@
 
 import { CloudflareLlama33JsonExtractor } from '../../../src/json/cloudflare-llama33-extractor.js';
 import { JsonExtractionRequest } from '../../../src/json/types.js';
-import { HallucinationDetectorFactory } from '../../../src/json/utils/hallucination-detector-factory.js';
-import { CheckHallucinationDetector } from '../../../src/json/utils/check-hallucination-detector.js';
-import { ReceiptHallucinationDetector } from '../../../src/json/utils/receipt-hallucination-detector.js';
 import { JsonExtractionConfidenceCalculator } from '../../../src/json/utils/confidence-calculator.js';
 import type { IoE } from '../../../src/ocr/types.js';
 
@@ -89,23 +86,17 @@ class MockFailingCloudflareAI {
 describe('CloudflareLlama33JsonExtractor', () => {
   let io: IoE;
   let cloudflareAI: MockCloudflareAI;
-  let hallucinationDetectorFactory: HallucinationDetectorFactory;
   let confidenceCalculator: JsonExtractionConfidenceCalculator;
   let extractor: CloudflareLlama33JsonExtractor;
 
   beforeEach(() => {
     io = mockIoE;
     cloudflareAI = new MockCloudflareAI();
-    // Create mock detectors
-    const checkDetector = new CheckHallucinationDetector();
-    const receiptDetector = new ReceiptHallucinationDetector();
-    hallucinationDetectorFactory = new HallucinationDetectorFactory(checkDetector, receiptDetector);
     
     confidenceCalculator = new JsonExtractionConfidenceCalculator();
     extractor = new CloudflareLlama33JsonExtractor(
       io,
       cloudflareAI as any,
-      hallucinationDetectorFactory,
       confidenceCalculator
     );
   });
@@ -147,7 +138,6 @@ describe('CloudflareLlama33JsonExtractor', () => {
       const failingExtractor = new CloudflareLlama33JsonExtractor(
         mockIoE,
         new MockFailingCloudflareAI() as any,
-        hallucinationDetectorFactory,
         confidenceCalculator
       );
 
@@ -182,10 +172,8 @@ describe('CloudflareLlama33JsonExtractor', () => {
       }
     });
 
-    it('should use SOLID-compliant hallucination detection', async () => {
-      // Create a spy to verify the factory method is called
-      const detectSpy = spyOn(hallucinationDetectorFactory, 'detectHallucinations');
-
+    it('should note hallucination detection is handled by scanners', async () => {
+      // Hallucination detection is now handled by scanner layer, not JSON extractors
       const request: JsonExtractionRequest = {
         markdown: 'Check #A123456789\nPay to: John Smith\nAmount: $1,234.56',
         schema: {
@@ -194,10 +182,10 @@ describe('CloudflareLlama33JsonExtractor', () => {
         }
       };
 
-      await extractor.extract(request);
+      const result = await extractor.extract(request);
 
-      // Should have called anti-hallucination detection
-      expect(detectSpy).toHaveBeenCalled();
+      // Should succeed without extractor-level hallucination detection
+      expect(result[0]).toBe('ok');
     });
 
     it('should use confidence calculator', async () => {
@@ -265,7 +253,6 @@ describe('CloudflareLlama33JsonExtractor', () => {
         new CloudflareLlama33JsonExtractor(
           io,
           null as any,
-          hallucinationDetectorFactory,
           confidenceCalculator
         );
       }).toThrow('CloudflareAI binding is required');

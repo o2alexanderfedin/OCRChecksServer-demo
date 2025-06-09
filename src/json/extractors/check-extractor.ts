@@ -10,7 +10,6 @@ import type { Result } from 'functionalscript/types/result/module.f.js';
 import { CheckExtractor as ICheckExtractor } from './types';
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../types/di-types';
-import { HallucinationDetectorFactory } from '../utils/hallucination-detector-factory';
 
 /**
  * Class for extracting check data from OCR text
@@ -19,20 +18,16 @@ import { HallucinationDetectorFactory } from '../utils/hallucination-detector-fa
 @injectable()
 export class CheckExtractor implements ICheckExtractor {
   private jsonExtractor: JsonExtractor;
-  private hallucinationDetectorFactory: HallucinationDetectorFactory;
 
   /**
    * Creates a new check extractor
    * 
    * @param jsonExtractor - The JSON extractor to use
-   * @param hallucinationDetectorFactory - The hallucination detector factory
    */
   constructor(
-    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor,
-    @inject(TYPES.HallucinationDetectorFactory) hallucinationDetectorFactory: HallucinationDetectorFactory
+    @inject(TYPES.JsonExtractorProvider) jsonExtractor: JsonExtractor
   ) {
     this.jsonExtractor = jsonExtractor;
-    this.hallucinationDetectorFactory = hallucinationDetectorFactory;
   }
 
   /**
@@ -168,9 +163,7 @@ IMPORTANT:
     // Make a copy to avoid modifying the original
     const normalized = { ...check };
     
-    // Detect potential hallucinations using SOLID-compliant detector
-    const checkDetector = this.hallucinationDetectorFactory.getCheckDetector();
-    checkDetector.detect(normalized);
+    // Note: Hallucination detection is now handled by the scanner layer for better separation of concerns
 
     // Ensure date is a Date object
     if (normalized.date && !(normalized.date instanceof Date)) {

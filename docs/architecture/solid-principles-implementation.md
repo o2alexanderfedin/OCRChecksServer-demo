@@ -7,7 +7,7 @@
 
 ## Overview
 
-This document details how SOLID principles are implemented throughout the OCR Checks Server architecture, with particular focus on the recent hallucination detection system refactoring.
+This document details how SOLID principles are implemented throughout the OCR Checks Server architecture, with particular focus on the recent scanner-based hallucination detection refactoring that eliminated the factory pattern in favor of direct injection.
 
 ## SOLID Principles Applied
 
@@ -24,15 +24,30 @@ class AntiHallucinationDetector {
 }
 ```
 
-#### After SOLID Refactoring
+#### After Scanner-Based Refactoring
 ```typescript
-// COMPLIANT: Separate detectors for each document type
+// COMPLIANT: Separate detectors for each document type, used by scanners
 class CheckHallucinationDetector implements HallucinationDetector<Check> {
   detect(check: Check): void { /* Check-specific logic only */ }
 }
 
 class ReceiptHallucinationDetector implements HallucinationDetector<Receipt> {
   detect(receipt: Receipt): void { /* Receipt-specific logic only */ }
+}
+
+// COMPLIANT: Scanners handle complete document processing workflow
+class CheckScanner implements DocumentScanner {
+  constructor(
+    private ocrProvider: OCRProvider,
+    private checkExtractor: CheckExtractor,
+    private inputValidator: IScannerInputValidator,
+    private hallucinationDetector: CheckHallucinationDetector  // Direct injection
+  ) {}
+  
+  async processDocument(document: Document): Promise<Result<ProcessingResult, string>> {
+    // OCR → Extraction → Detection → Result
+    this.hallucinationDetector.detect(extractedData.json);
+  }
 }
 ```
 
@@ -50,9 +65,13 @@ class ReceiptHallucinationDetector implements HallucinationDetector<Receipt> {
 
 Classes are open for extension but closed for modification:
 
-#### Extensible Detector System
+#### Extensible Scanner System
 ```typescript
 // Base interface is closed for modification
+interface DocumentScanner {
+  processDocument(document: Document): Promise<Result<ProcessingResult, string>>;
+}
+
 interface HallucinationDetector<T> {
   detect(data: T): void;
 }
@@ -64,15 +83,15 @@ class InvoiceHallucinationDetector implements HallucinationDetector<Invoice> {
   }
 }
 
-// Factory automatically supports new detectors
-class HallucinationDetectorFactory {
-  // Add new detector without modifying existing code
-  private getDetectorForData(data: any): HallucinationDetector<any> | null {
-    if (DocumentTypeDetector.isInvoiceData(data)) {
-      return this.invoiceDetector; // New detector support
-    }
-    // Existing logic unchanged
-  }
+class InvoiceScanner implements DocumentScanner {
+  constructor(
+    private ocrProvider: OCRProvider,
+    private invoiceExtractor: InvoiceExtractor,
+    private inputValidator: IScannerInputValidator,
+    private hallucinationDetector: InvoiceHallucinationDetector  // New detector
+  ) {}
+  
+  // Implements complete invoice processing workflow
 }
 ```
 
@@ -90,21 +109,21 @@ class OpenAiJsonExtractor implements JsonExtractor {
 
 Derived classes are fully substitutable for their base types:
 
-#### Interchangeable JSON Extractors
+#### Interchangeable Scanners
 ```typescript
-// All extractors are fully substitutable
-function processDocument(extractor: JsonExtractor, request: JsonExtractionRequest) {
-  // Works with any JsonExtractor implementation
-  return extractor.extract(request);
+// All scanners are fully substitutable
+function processDocument(scanner: DocumentScanner, document: Document) {
+  // Works with any DocumentScanner implementation
+  return scanner.processDocument(document);
 }
 
-// Both work identically
-const cloudflareExtractor: JsonExtractor = new CloudflareLlama33JsonExtractor(ai, io);
-const mistralExtractor: JsonExtractor = new MistralJsonExtractorProvider(client, io);
+// Both work identically for their document types
+const checkScanner: DocumentScanner = container.get<CheckScanner>(TYPES.CheckScanner);
+const receiptScanner: DocumentScanner = container.get<ReceiptScanner>(TYPES.ReceiptScanner);
 
 // Substitutable without behavior changes
-processDocument(cloudflareExtractor, request);
-processDocument(mistralExtractor, request);
+processDocument(checkScanner, checkDocument);
+processDocument(receiptScanner, receiptDocument);
 ```
 
 #### Substitutable Hallucination Detectors
@@ -160,25 +179,24 @@ High-level modules depend on abstractions, not concretions:
 
 #### Abstraction Dependencies
 ```typescript
-// High-level module depends on abstractions
+// High-level scanners depend on abstractions
+@injectable()
+export class CheckScanner implements DocumentScanner {
+  constructor(
+    @inject(TYPES.OCRProvider) private ocrProvider: OCRProvider, // Abstraction
+    @inject(TYPES.CheckExtractor) private checkExtractor: CheckExtractor, // Abstraction
+    @inject(VALIDATOR_TYPES.ScannerInputValidator) @named('check') private inputValidator: IScannerInputValidator, // Abstraction
+    @inject(TYPES.CheckHallucinationDetector) private hallucinationDetector: CheckHallucinationDetector // Abstraction
+  ) {}
+}
+
+// JSON extractors remain focused on extraction only
 @injectable()
 export class CloudflareLlama33JsonExtractor implements JsonExtractor {
   constructor(
     @inject(TYPES.CloudflareAi) private ai: Ai, // Abstraction
     @inject(TYPES.IoE) private io: IoE, // Abstraction
-    @inject(TYPES.HallucinationDetectorFactory) 
-    private hallucinationDetectorFactory: HallucinationDetectorFactory // Abstraction
-  ) {}
-}
-
-// Factory depends on abstractions
-@injectable()
-export class HallucinationDetectorFactory {
-  constructor(
-    @inject(TYPES.CheckHallucinationDetector) 
-    private checkDetector: HallucinationDetector<Check>, // Abstraction
-    @inject(TYPES.ReceiptHallucinationDetector) 
-    private receiptDetector: HallucinationDetector<Receipt> // Abstraction
+    @inject(TYPES.JsonExtractionConfidenceCalculator) private confidenceCalculator: JsonExtractionConfidenceCalculator // Abstraction
   ) {}
 }
 ```
@@ -186,38 +204,50 @@ export class HallucinationDetectorFactory {
 #### Dependency Injection Configuration
 ```typescript
 // Low-level modules are bound to abstractions
-container.bind<HallucinationDetector<Check>>(TYPES.CheckHallucinationDetector)
-  .to(CheckHallucinationDetector);
+container.bind<CheckHallucinationDetector>(TYPES.CheckHallucinationDetector)
+  .to(CheckHallucinationDetector)
+  .inSingletonScope();
 
-container.bind<HallucinationDetector<Receipt>>(TYPES.ReceiptHallucinationDetector)
-  .to(ReceiptHallucinationDetector);
+container.bind<ReceiptHallucinationDetector>(TYPES.ReceiptHallucinationDetector)
+  .to(ReceiptHallucinationDetector)
+  .inSingletonScope();
 
-// High-level modules receive abstractions
-container.bind<JsonExtractor>(TYPES.JsonExtractor)
-  .to(CloudflareLlama33JsonExtractor);
+// Scanners receive all their dependencies as abstractions
+container.bind<CheckScanner>(TYPES.CheckScanner).toDynamicValue((context) => {
+  const ocrProvider = context.get<OCRProvider>(TYPES.OCRProvider);
+  const checkExtractor = context.get<CheckExtractor>(TYPES.CheckExtractor);
+  const hallucinationDetector = context.get<CheckHallucinationDetector>(TYPES.CheckHallucinationDetector);
+  const inputValidator = context.get<IScannerInputValidator>(VALIDATOR_TYPES.ScannerInputValidator);
+  
+  return new CheckScanner(ocrProvider, checkExtractor, inputValidator, hallucinationDetector);
+}).inSingletonScope();
 ```
 
-## Architecture Benefits from SOLID Compliance
+## Architecture Benefits from Scanner-Based SOLID Compliance
 
 ### Maintainability
-- Each component has a single, clear purpose
-- Changes to one detector don't affect others
-- New document types can be added without modifying existing code
+- Each scanner handles a complete document processing workflow
+- Hallucination detection is co-located with document processing logic
+- Changes to detection logic are isolated to specific scanners
+- New document types can be added without modifying existing scanners
 
 ### Testability
-- Components can be easily mocked and tested in isolation
-- Dependencies are injected, making unit testing straightforward
-- Each detector can be tested independently
+- Scanners can be easily tested with mock dependencies
+- Hallucination detection can be tested independently within scanner context
+- Clear separation allows focused unit and integration testing
+- Each detector can be tested independently and as part of scanner workflow
 
 ### Extensibility
-- New hallucination detectors can be added without system changes
-- New JSON extractors integrate seamlessly
-- Document types can be extended through new detector implementations
+- New scanners can be added for new document types without system changes
+- JSON extractors remain focused and reusable across document types
+- Document-specific processing can be extended independently
+- Detection logic can be enhanced without affecting extraction logic
 
-### Code Reusability
-- Detectors can be reused across different extraction systems
-- Factory pattern enables detector sharing
-- Interfaces allow component substitution
+### Better Separation of Concerns
+- JSON extractors focus solely on extraction, not validation
+- Scanners handle the complete document processing pipeline
+- Detection logic is co-located with document-specific processing
+- Cleaner architecture with fewer cross-cutting concerns
 
 ## SOLID Violations Prevention
 
@@ -234,9 +264,10 @@ class GodExtractor {
   formatOutput(): void {}
 }
 
-// APPLIED: Focused, single-responsibility classes
-class CloudflareLlama33JsonExtractor {} // Extraction only
-class HallucinationDetectorFactory {} // Detection orchestration only
+// APPLIED: Focused, single-responsibility classes with clear workflow
+class CheckScanner {} // Complete check processing workflow
+class CloudflareLlama33JsonExtractor {} // JSON extraction only
+class CheckHallucinationDetector {} // Check-specific detection only
 class ConfidenceCalculator {} // Confidence calculation only
 ```
 
@@ -248,10 +279,10 @@ class BadExtractor {
 }
 
 // APPLIED: Dependency injection enables loose coupling
-class GoodExtractor {
+class CheckScanner {
   constructor(
-    @inject(TYPES.HallucinationDetectorFactory) 
-    private detectorFactory: HallucinationDetectorFactory // Loose coupling
+    @inject(TYPES.CheckHallucinationDetector) 
+    private hallucinationDetector: CheckHallucinationDetector // Direct, loose coupling
   ) {}
 }
 ```
@@ -346,14 +377,38 @@ class HallucinationDetectorFactory {
 - Custom validation rules through `ValidationRuleFactory`
 - Performance monitoring via `MetricsCollector` abstractions
 
+## Scanner-Based Architecture Summary
+
+The recent refactoring eliminated the factory pattern in favor of scanner-based hallucination detection, providing several key improvements:
+
+### Before: Factory Pattern
+- `HallucinationDetectorFactory` abstracted detector selection
+- JSON extractors included hallucination detection responsibilities
+- Complex document type detection logic in factory
+- Indirect coupling through factory abstraction
+
+### After: Scanner-Based Detection
+- Direct injection of specific detectors into scanners
+- JSON extractors focus solely on extraction
+- Hallucination detection co-located with document processing
+- Cleaner, more direct dependency relationships
+
+### Key Benefits Achieved
+- **Eliminated Unnecessary Abstraction**: Removed factory that added complexity without value
+- **Better Separation of Concerns**: Extractors extract, scanners process, detectors detect
+- **Improved Clarity**: Clear, direct relationships between components
+- **Enhanced Testability**: Easier to test each component in isolation
+- **Simplified Architecture**: Fewer moving parts, more straightforward flow
+
 ## Conclusion
 
-The SOLID principles implementation in the OCR Checks Server provides:
+The scanner-based SOLID principles implementation in the OCR Checks Server provides:
 
-1. **Maintainable Architecture**: Clear separation of concerns and focused responsibilities
-2. **Extensible Design**: Easy addition of new document types and extraction methods
+1. **Maintainable Architecture**: Clear separation of concerns with scanners orchestrating complete workflows
+2. **Extensible Design**: Easy addition of new document types through new scanner implementations
 3. **Testable Components**: Isolated, mockable dependencies for comprehensive testing
-4. **Flexible Configuration**: Runtime component selection through dependency injection
-5. **Performance Optimization**: Efficient factory patterns and focused interfaces
+4. **Simplified Configuration**: Direct dependency injection without unnecessary abstractions
+5. **Performance Optimization**: Streamlined processing pipeline with focused interfaces
+6. **Better Separation of Concerns**: Each layer has a clear, focused responsibility
 
-This architecture ensures the system can evolve and scale while maintaining code quality and development velocity.
+This architecture ensures the system can evolve and scale while maintaining code quality and development velocity, with a cleaner and more intuitive design.

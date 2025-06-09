@@ -2,11 +2,13 @@
  * End-to-End Integration Tests for CloudflareLlama33JsonExtractor
  * 
  * Tests the complete JSON extraction workflow including:
- * - Factory pattern integration
- * - Anti-hallucination detection
+ * - Scanner-based architecture integration
+ * - Document-specific processing
  * - Confidence calculation
  * - Error handling and fallback scenarios
  * - Real-world data processing
+ * 
+ * Note: Hallucination detection is now handled at the scanner level
  */
 
 import { JsonExtractorFactory } from '../../../src/json/factory/json-extractor-factory';

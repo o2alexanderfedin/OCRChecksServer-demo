@@ -79,9 +79,9 @@ static createMistralProcessor(io: IoE, apiKey: string): ReceiptScanner {
 }
 ```
 
-## SOLID Hallucination Detection Integration
+## Scanner-Based Hallucination Detection Integration
 
-The DI system now supports SOLID-compliant hallucination detection:
+The DI system now supports cleaner scanner-based hallucination detection:
 
 ```typescript
 // Register hallucination detection components
@@ -92,31 +92,29 @@ container.bind<CheckHallucinationDetector>(TYPES.CheckHallucinationDetector)
 container.bind<ReceiptHallucinationDetector>(TYPES.ReceiptHallucinationDetector)
   .to(ReceiptHallucinationDetector)
   .inSingletonScope();
-
-container.bind<HallucinationDetectorFactory>(TYPES.HallucinationDetectorFactory)
-  .to(HallucinationDetectorFactory)
-  .inSingletonScope();
 ```
 
-### Factory Pattern Implementation
+### Scanner Integration Pattern
 
-The factory automatically selects the appropriate detector based on document type:
+Scanners directly inject their specific detectors for better separation of concerns:
 
 ```typescript
 @injectable()
-export class HallucinationDetectorFactory {
+export class CheckScanner implements DocumentScanner {
   constructor(
-    @inject(TYPES.CheckHallucinationDetector) 
-    private checkDetector: CheckHallucinationDetector,
-    @inject(TYPES.ReceiptHallucinationDetector) 
-    private receiptDetector: ReceiptHallucinationDetector
+    @inject(TYPES.OCRProvider) private ocrProvider: OCRProvider,
+    @inject(TYPES.CheckExtractor) private checkExtractor: CheckExtractor,
+    @inject(VALIDATOR_TYPES.ScannerInputValidator) @named('check') private inputValidator: IScannerInputValidator,
+    @inject(TYPES.CheckHallucinationDetector) private hallucinationDetector: CheckHallucinationDetector
   ) {}
 
-  detectHallucinations(data: any): void {
-    const detector = this.getDetectorForData(data);
-    if (detector) {
-      detector.detect(data);
-    }
+  async processDocument(document: Document): Promise<Result<ProcessingResult, string>> {
+    // ... OCR and extraction logic ...
+    
+    // Apply check-specific hallucination detection
+    this.hallucinationDetector.detect(extractedData.json);
+    
+    // ... result processing ...
   }
 }
 ```
@@ -169,15 +167,25 @@ The dependency injection system exemplifies SOLID principles:
 The system now supports multiple JSON extractors through configuration:
 
 ```typescript
-// Cloudflare configuration
-container.bind<JsonExtractor>(TYPES.JsonExtractor)
-  .to(CloudflareLlama33JsonExtractor)
-  .whenTargetNamed('cloudflare');
+// Register scanners with hallucination detection
+container.bind<CheckScanner>(TYPES.CheckScanner).toDynamicValue(() => {
+  const ocrProvider = container.get<OCRProvider>(TYPES.OCRProvider);
+  const checkExtractor = container.get<CheckExtractor>(TYPES.CheckExtractor);
+  const hallucinationDetector = container.get<CheckHallucinationDetector>(TYPES.CheckHallucinationDetector);
+  const inputValidator = /* ... validator setup ... */;
+  
+  return new CheckScanner(ocrProvider, checkExtractor, inputValidator, hallucinationDetector);
+}).inSingletonScope();
 
-// Mistral configuration  
-container.bind<JsonExtractor>(TYPES.JsonExtractor)
-  .to(MistralJsonExtractorProvider)
-  .whenTargetNamed('mistral');
+// Similar for ReceiptScanner
+container.bind<ReceiptScanner>(TYPES.ReceiptScanner).toDynamicValue(() => {
+  const ocrProvider = container.get<OCRProvider>(TYPES.OCRProvider);
+  const receiptExtractor = container.get<ReceiptExtractor>(TYPES.ReceiptExtractor);
+  const hallucinationDetector = container.get<ReceiptHallucinationDetector>(TYPES.ReceiptHallucinationDetector);
+  const inputValidator = /* ... validator setup ... */;
+  
+  return new ReceiptScanner(ocrProvider, receiptExtractor, inputValidator, hallucinationDetector);
+}).inSingletonScope();
 ```
 
 ## Future Improvements

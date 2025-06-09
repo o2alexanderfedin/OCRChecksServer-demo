@@ -11,7 +11,6 @@ import { TYPES } from '../types/di-types';
 import type { IoE } from '../ocr/types';
 import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './types';
 import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculator';
-import { HallucinationDetectorFactory } from './utils/hallucination-detector-factory';
 
 /**
  * Cloudflare Workers AI binding interface
@@ -29,25 +28,21 @@ export interface CloudflareAI {
 export class CloudflareLlama33JsonExtractor implements JsonExtractor {
   private readonly io: IoE;
   private readonly cloudflareAI: CloudflareAI;
-  private readonly hallucinationDetectorFactory: HallucinationDetectorFactory;
   private readonly confidenceCalculator: JsonExtractionConfidenceCalculator;
 
   /**
    * Creates a new CloudflareLlama33JsonExtractor instance
    * @param io I/O interface for logging operations
    * @param cloudflareAI Cloudflare Workers AI binding
-   * @param hallucinationDetectorFactory Factory for creating appropriate hallucination detectors
    * @param confidenceCalculator Confidence calculation utility
    */
   constructor(
     @inject(TYPES.IoE) io: IoE,
     @inject(TYPES.CloudflareAI) cloudflareAI: CloudflareAI,
-    @inject(TYPES.HallucinationDetectorFactory) hallucinationDetectorFactory: HallucinationDetectorFactory,
     @inject(TYPES.JsonExtractionConfidenceCalculator) confidenceCalculator: JsonExtractionConfidenceCalculator
   ) {
     this.io = io;
     this.cloudflareAI = cloudflareAI;
-    this.hallucinationDetectorFactory = hallucinationDetectorFactory;
     this.confidenceCalculator = confidenceCalculator;
 
     // Validate required dependencies
@@ -159,8 +154,7 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
           return ['error', new Error(`Invalid JSON response: ${parseError instanceof Error ? parseError.message : String(parseError)}`)];
         }
 
-        // Apply SOLID-compliant hallucination detection
-        this.hallucinationDetectorFactory.detectHallucinations(jsonContent);
+        // Note: Hallucination detection is now handled by scanners for better separation of concerns
 
         // Calculate confidence score using the shared utility
         // Create a mock response object for confidence calculation

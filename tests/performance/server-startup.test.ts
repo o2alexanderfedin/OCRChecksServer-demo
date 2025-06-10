@@ -26,7 +26,7 @@ const SERVER_READY_MESSAGE = 'Ready on http://localhost';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = pathResolve(__dirname, '..', '..');
-const serverScript = pathResolve(projectRoot, 'scripts', 'start-server.js');
+const serverScript = pathResolve(projectRoot, 'scripts', 'start-server.ts');
 const PID_FILE_PATH = pathResolve(projectRoot, '.server-startup-test-pid');
 
 describe('Server Startup Performance', function() {
@@ -77,7 +77,7 @@ describe('Server Startup Performance', function() {
       
       // Start the server
       console.log('Starting server for performance test...');
-      serverProcess = spawn('node', [serverScript], {
+      serverProcess = spawn('npx', ['tsx', serverScript], {
         env: { 
           ...process.env,
           // Skip lengthy health checks for faster startup measurement

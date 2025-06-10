@@ -26,7 +26,7 @@ const SERVER_READY_MESSAGE = 'Ready on http://localhost';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = pathResolve(__dirname, '..', '..');
-const serverScript = pathResolve(projectRoot, 'scripts', 'start-server.js');
+const serverScript = pathResolve(projectRoot, 'scripts', 'start-server.ts');
 const PID_FILE_PATH = pathResolve(projectRoot, '.server-perf-stats-pid');
 
 /**
@@ -191,7 +191,7 @@ describe('Server Performance Statistics', function() {
       
       // Start the server
       process.stdout.write(`Running iteration ${iteration}/${ITERATIONS}: Starting server... `);
-      const serverProcess = spawn('node', [serverScript], {
+      const serverProcess = spawn('npx', ['tsx', serverScript], {
         env: { 
           ...process.env,
           // Add a unique identifier to prevent port conflicts

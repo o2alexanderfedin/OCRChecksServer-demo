@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { ReceiptOCRResponse, ProcessDocumentResponse } from '../../src/types/api-responses';
-import { Receipt } from '../../src/json/schemas/receipt';
+import { ReceiptOCRResponse, ProcessDocumentResponse } from '../../src/types/api-responses.js';
+import { Receipt } from '../../src/json/schemas/receipt.js';
 import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
 
 // Create dirname equivalent for ES modules

@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { CheckOCRResponse, ProcessDocumentResponse } from '../../src/types/api-responses';
-import { Check } from '../../src/json/schemas/check';
+import { CheckOCRResponse, ProcessDocumentResponse } from '../../src/types/api-responses.js';
+import { Check } from '../../src/json/schemas/check.js';
 import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);

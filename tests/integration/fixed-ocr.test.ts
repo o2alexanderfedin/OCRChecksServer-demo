@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { OCRResult } from '../../src/ocr/types';
+import { OCRResult } from '../../src/ocr/types.js';
 import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
 
 const __filename = fileURLToPath(import.meta.url);

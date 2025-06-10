@@ -39,7 +39,7 @@ describe('AbstractValidator', () => {
   
   it('should reject invalid values', () => {
     const invalidValue = 'shrt';
-    expect(() => validator.assertValid(invalidValue)).toThrow(jasmine.any(ValidationError));
+    expect(() => validator.assertValid(invalidValue)).toThrowError(ValidationError);
   });
   
   it('should return undefined for valid values with validate()', () => {
@@ -65,7 +65,7 @@ describe('AbstractValidator', () => {
     expect(objectValidator.assertValid(validObject)).toEqual(validObject);
     
     // Invalid object
-    expect(() => objectValidator.assertValid(invalidObject)).toThrow(jasmine.any(ValidationError));
+    expect(() => objectValidator.assertValid(invalidObject)).toThrowError(ValidationError);
     const result = objectValidator.validate(invalidObject);
     
     expect(result).toBeInstanceOf(ValidationError);

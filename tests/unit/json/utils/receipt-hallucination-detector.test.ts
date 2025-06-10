@@ -25,8 +25,8 @@ describe('ReceiptHallucinationDetector', () => {
         timestamp: new Date('2024-03-15T14:30:00Z'),
         receiptNumber: 'TXN789012',
         items: [
-          { description: 'Organic Bananas', quantity: 2, price: 3.98 },
-          { description: 'Bread Loaf', quantity: 1, price: 2.49 }
+          { description: 'Organic Bananas', quantity: 2, totalPrice: '3.98' },
+          { description: 'Bread Loaf', quantity: 1, totalPrice: '2.49' }
         ],
         confidence: 0.9
       };

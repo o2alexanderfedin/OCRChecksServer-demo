@@ -33,14 +33,14 @@ jobs:
       - name: Set Cloudflare Worker secrets
         run: |
           echo "${{ secrets.MISTRAL_API_KEY }}" | wrangler secret put MISTRAL_API_KEY --env staging
-          echo "${{ secrets.CF_API_TOKEN }}" | wrangler secret put CF_API_TOKEN --env staging
+          echo "${{ secrets.CLOUDFLARE_API_TOKEN }}" | wrangler secret put CLOUDFLARE_API_TOKEN --env staging
         env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       
       - name: Publish to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           environment: staging
           preCommands: |
             echo "Deploying to staging environment..."

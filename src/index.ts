@@ -12,6 +12,7 @@ import pkg from '../package.json';
 
 interface Env {
   MISTRAL_API_KEY: string;
+  CLOUDFLARE_API_TOKEN: string;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -288,7 +289,9 @@ app.get('/health', (c) => {
       status: 'ok',
       timestamp: new Date().toISOString(),
       version: pkg.version,
-      apiKey: apiKey ? apiKey.slice(0, 4) + '...' : `Invalid Mistral API Key: ${apiKey}`
+      apiKey: apiKey ? apiKey.slice(0, 4) + '...' : `Invalid Mistral API Key: ${apiKey}`,
+      mistralApiKey: c.env.MISTRAL_API_KEY ? c.env.MISTRAL_API_KEY.slice(0, 4) + '...' : 'Not set',
+      cloudflareApiToken: c.env.CLOUDFLARE_API_TOKEN ? c.env.CLOUDFLARE_API_TOKEN.slice(0, 4) + '...' : 'Not set'
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }

@@ -63,48 +63,76 @@ app.get('/openapi.json', (c) => {
 
 // New unified endpoint for processing documents
 app.post('/process', async (c) => {
+  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const startTime = Date.now();
+  
+  console.log(`[${requestId}] ===== PROCESS ENDPOINT START =====`);
+  console.log(`[${requestId}] Request started at: ${new Date().toISOString()}`);
+  
   try {
+    console.log(`[${requestId}] Step 1: Checking content type`);
     // Check content type
     const contentType = c.req.header('Content-Type');
+    console.log(`[${requestId}] Content-Type header: ${contentType}`);
+    
     if (!contentType?.startsWith('image/')) {
+      console.log(`[${requestId}] EARLY RETURN: Invalid content type`);
       return new Response(JSON.stringify({ error: 'Invalid content type. Expected image/*' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
+    console.log(`[${requestId}] Step 2: Parsing query parameters`);
     // Get document format (image/pdf) from query
     const documentFormat = c.req.query('format') || 'image';
     const documentType = documentFormat === 'pdf' ? DocumentType.PDF : DocumentType.Image;
+    console.log(`[${requestId}] Document format: ${documentFormat}, type: ${documentType}`);
     
     // Get document content type (check/receipt) from query
     const contentTypeParam = c.req.query('type') || 'receipt';
+    console.log(`[${requestId}] Document content type: ${contentTypeParam}`);
+    
     if (!['check', 'receipt'].includes(contentTypeParam)) {
+      console.log(`[${requestId}] EARLY RETURN: Invalid document type`);
       return new Response(JSON.stringify({ error: 'Invalid document type. Supported types: check, receipt' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
+    console.log(`[${requestId}] Step 3: Reading image data`);
     // Get image data
     const imageBuffer = await c.req.arrayBuffer();
+    console.log(`[${requestId}] Image buffer size: ${imageBuffer.byteLength} bytes`);
     
+    console.log(`[${requestId}] Step 4: Creating scanner`);
     // Create appropriate scanner based on document content type
     const scanner = ScannerFactory.createScannerByType(
       workerIoE, 
       c.env.MISTRAL_API_KEY, 
       contentTypeParam as 'check' | 'receipt'
     );
+    console.log(`[${requestId}] Scanner created successfully`);
 
+    console.log(`[${requestId}] Step 5: Creating document object`);
     // Create document
     const document: Document = {
       content: imageBuffer,
       type: documentType,
       name: c.req.query('filename') || 'uploaded-document'
     };
+    console.log(`[${requestId}] Document object created: ${document.name}`);
 
+    console.log(`[${requestId}] Step 6: Starting document processing - THIS IS THE CRITICAL STEP`);
+    console.log(`[${requestId}] About to call scanner.processDocument() at ${new Date().toISOString()}`);
+    
     // Process document
     const result = await scanner.processDocument(document);
+    
+    console.log(`[${requestId}] Step 7: Document processing completed`);
+    console.log(`[${requestId}] Processing result type: ${result[0]}`);
+    console.log(`[${requestId}] Time since start: ${Date.now() - startTime}ms`);
 
     // Handle result
     if (result[0] === 'error') {
@@ -142,35 +170,60 @@ app.post('/process', async (c) => {
 
 // Dedicated endpoint for check processing
 app.post('/check', async (c) => {
+  const requestId = `check_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const startTime = Date.now();
+  
+  console.log(`[${requestId}] ===== CHECK ENDPOINT START =====`);
+  console.log(`[${requestId}] Check request started at: ${new Date().toISOString()}`);
+  
   try {
+    console.log(`[${requestId}] Step 1: Checking content type`);
     // Check content type
     const contentType = c.req.header('Content-Type');
+    console.log(`[${requestId}] Content-Type header: ${contentType}`);
+    
     if (!contentType?.startsWith('image/')) {
+      console.log(`[${requestId}] EARLY RETURN: Invalid content type`);
       return new Response(JSON.stringify({ error: 'Invalid content type. Expected image/*' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
+    console.log(`[${requestId}] Step 2: Parsing document format`);
     // Get document format (image/pdf) from query
     const documentFormat = c.req.query('format') || 'image';
     const documentType = documentFormat === 'pdf' ? DocumentType.PDF : DocumentType.Image;
+    console.log(`[${requestId}] Document format: ${documentFormat}, type: ${documentType}`);
     
+    console.log(`[${requestId}] Step 3: Reading image data`);
     // Get image data
     const imageBuffer = await c.req.arrayBuffer();
+    console.log(`[${requestId}] Image buffer size: ${imageBuffer.byteLength} bytes`);
 
+    console.log(`[${requestId}] Step 4: Creating check scanner`);
     // Create check scanner
     const scanner = ScannerFactory.createMistralCheckScanner(workerIoE, c.env.MISTRAL_API_KEY);
+    console.log(`[${requestId}] Check scanner created successfully`);
 
+    console.log(`[${requestId}] Step 5: Creating document object`);
     // Create document
     const document: Document = {
       content: imageBuffer,
       type: documentType,
       name: c.req.query('filename') || 'check-document'
     };
+    console.log(`[${requestId}] Document object created: ${document.name}`);
 
+    console.log(`[${requestId}] Step 6: Starting check processing - THIS IS THE CRITICAL STEP`);
+    console.log(`[${requestId}] About to call scanner.processDocument() at ${new Date().toISOString()}`);
+    
     // Process document
     const result = await scanner.processDocument(document);
+    
+    console.log(`[${requestId}] Step 7: Check processing completed`);
+    console.log(`[${requestId}] Processing result type: ${result[0]}`);
+    console.log(`[${requestId}] Time since start: ${Date.now() - startTime}ms`);
 
     // Handle result
     if (result[0] === 'error') {

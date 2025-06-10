@@ -108,7 +108,7 @@ export { CheckScannerInputValidator } from './scanner/check-scanner.ts';
 export { ReceiptScannerInputValidator } from './scanner/receipt-scanner.ts';
 export * from './scanner/types.ts';
 export * from './types.ts';
-export * from './api/index';
+export * from './api/index.ts';
 
 // Factory functions for creating validators
 export function createApiKeyValidator(config: ValidationConfig): IApiKeyValidator {

@@ -1,4 +1,4 @@
-import { swaggerUI } from '@hono/swagger-ui.js';
+import { swaggerUI } from '@hono/swagger-ui';
 import pkg from '../../package.json.ts';
 import openApiSpec from './openapi-spec.ts';
 

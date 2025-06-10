@@ -1,22 +1,22 @@
 import 'reflect-metadata';
 import { Container } from 'inversify';
 import { IoE } from '../ocr/types.ts';
-import { CloudflareAI } from '../json/cloudflare-llama33-extractor';
+import { CloudflareAI } from '../json/cloudflare-llama33-extractor.ts';
 import { MistralOCRProvider } from '../ocr/mistral.ts';
 import { MistralJsonExtractorProvider } from '../json/mistral.ts';
-import { CloudflareLlama33JsonExtractor } from '../json/cloudflare-llama33-extractor';
+import { CloudflareLlama33JsonExtractor } from '../json/cloudflare-llama33-extractor.ts';
 import { JsonExtractor } from '../json/types.ts';
-import { ReceiptExtractor } from '../json/extractors/receipt-extractor';
-import { CheckExtractor } from '../json/extractors/check-extractor';
+import { ReceiptExtractor } from '../json/extractors/receipt-extractor.ts';
+import { CheckExtractor } from '../json/extractors/check-extractor.ts';
 // AntiHallucinationDetector removed - replaced with SOLID-compliant factory pattern
 import { JsonExtractionConfidenceCalculator } from '../json/utils/confidence-calculator.ts';
-import { JsonExtractorFactory } from '../json/factory/json-extractor-factory';
+import { JsonExtractorFactory } from '../json/factory/json-extractor-factory.ts';
 import { CheckHallucinationDetector } from '../json/utils/check-hallucination-detector.ts';
 import { ReceiptHallucinationDetector } from '../json/utils/receipt-hallucination-detector.ts';
 import { ReceiptScanner } from '../scanner/receipt-scanner.ts';
 import { CheckScanner } from '../scanner/check-scanner.ts';
-import { Mistral } from '@mistralai/mistralai.js';
-import { RetryConfig } from '@mistralai/mistralai/lib/retries.js';
+import { Mistral } from '@mistralai/mistralai';
+import { RetryConfig } from '@mistralai/mistralai/lib/retries';
 import { 
   registerValidators,
   validateApiKey,

@@ -18,10 +18,10 @@ import {
   JsonExtractorFactoryOptions
 } from './types.ts';
 import { MistralJsonExtractorProvider } from '../mistral.ts';
-import { CloudflareLlama33JsonExtractor } from '../cloudflare-llama33-extractor';
+import { CloudflareLlama33JsonExtractor } from '../cloudflare-llama33-extractor.ts';
 import { JsonExtractionConfidenceCalculator } from '../utils/confidence-calculator.ts';
-import { Mistral } from '@mistralai/mistralai.js';
-import { CloudflareAI } from '../cloudflare-llama33-extractor';
+import { Mistral } from '@mistralai/mistralai';
+import { CloudflareAI } from '../cloudflare-llama33-extractor.ts';
 
 /**
  * Factory for creating JsonExtractor instances based on runtime configuration

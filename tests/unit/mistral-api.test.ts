@@ -1,4 +1,4 @@
-import { Mistral } from '@mistralai/mistralai.js';
+import { Mistral } from '@mistralai/mistralai';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

@@ -4,19 +4,12 @@ import { fileURLToPath } from 'url';
 import { CheckOCRResponse, ProcessDocumentResponse } from '../../src/types/api-responses';
 import { Check } from '../../src/json/schemas/check';
 import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
-import { setupServerCleanup } from '../helpers/server-cleanup.js';
-
 // Create dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Get API URL from environment
 const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
-
-// Set up proper server cleanup
-setupServerCleanup().catch(error => {
-  console.error('Failed to set up server cleanup:', error);
-});
 
 // Configure throttled fetch with recommended settings
 setupThrottledFetch({

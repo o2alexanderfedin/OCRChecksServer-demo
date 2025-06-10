@@ -2,18 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
-import { setupServerCleanup } from '../helpers/server-cleanup.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..', '..');
 const checksDir = path.join(projectRoot, 'tests', 'fixtures', 'images');
 const resultsPath = path.join(projectRoot, 'integration-test-results.json');
-
-// Set up proper server cleanup
-setupServerCleanup().catch(error => {
-  console.error('Failed to set up server cleanup:', error);
-});
 
 // Configure throttled fetch with recommended settings
 setupThrottledFetch({

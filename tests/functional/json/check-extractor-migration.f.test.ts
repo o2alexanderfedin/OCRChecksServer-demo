@@ -74,7 +74,7 @@ describe('Check Extractor Migration Tests', () => {
       const check = result[1].json;
       expect(check.checkNumber).toBe('12345');
       expect(check.date).toBeInstanceOf(Date);
-      expect(check.date.toISOString().startsWith('2025-05-15')).toBeTruthy();
+      expect((check.date as Date).toISOString().startsWith('2025-05-15')).toBeTruthy();
       expect(check.payee).toBe('John Smith');
       expect(check.amount).toBe('500.00');
       expect(check.bankName).toBe('First National Bank');

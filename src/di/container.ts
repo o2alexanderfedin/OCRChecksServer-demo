@@ -22,13 +22,10 @@ import {
   validateApiKey,
   ApiKey,
   MistralConfig,
-  MistralConfigValidator,
   IMistralConfigValidator,
   ValidationMiddleware,
   TYPES as VALIDATOR_TYPES,
-  IScannerInputValidator,
-  CheckScannerInputValidator,
-  ReceiptScannerInputValidator
+  IScannerInputValidator
 } from '../validators';
 // Import config as a static file
 // Optimized retry strategy based on AWS best practices for distributed systems
@@ -205,13 +202,13 @@ export class DIContainer {
   protected registerCloudflareAI(): void {
     this.container.bind(TYPES.CloudflareAI).toDynamicValue(() => {
       // Check if we're in Cloudflare Workers environment
-      if (typeof globalThis !== 'undefined' && (globalThis as any).AI) {
-        return (globalThis as any).AI;
+      if (typeof globalThis !== 'undefined' && (globalThis as unknown as { AI: unknown }).AI) {
+        return (globalThis as unknown as { AI: CloudflareAI }).AI;
       }
       
       // Provide mock implementation for non-Cloudflare environments
       return {
-        run: async (model: string, inputs: any): Promise<any> => {
+        run: async (_model: string, _inputs: unknown): Promise<unknown> => {
           throw new Error('CloudflareAI is not available in this environment. Please run in Cloudflare Workers or configure a mock.');
         }
       };
@@ -230,14 +227,16 @@ export class DIContainer {
       const confidenceCalculator = context.get<JsonExtractionConfidenceCalculator>(TYPES.JsonExtractionConfidenceCalculator);
       
       switch (extractorType.toLowerCase()) {
-        case 'cloudflare':
+        case 'cloudflare': {
           const cloudflareAI = context.get<CloudflareAI>(TYPES.CloudflareAI);
           return new CloudflareLlama33JsonExtractor(io, cloudflareAI, confidenceCalculator);
+        }
           
         case 'mistral':
-        default:
+        default: {
           const mistralClient = context.get<Mistral>(TYPES.MistralClient);
           return new MistralJsonExtractorProvider(io, mistralClient, confidenceCalculator);
+        }
       }
     }).inSingletonScope();
   }
@@ -346,7 +345,7 @@ export class DIContainer {
           apiKeyMinLength: 10, // More lenient for test tokens
           forbiddenPatterns: []
         });
-      } catch (error) {
+      } catch (_error) {
         // Fall back to basic validation for tests
         if (!apiKey) {
           throw new Error('[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty');

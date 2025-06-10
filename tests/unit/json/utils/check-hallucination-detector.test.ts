@@ -19,10 +19,10 @@ describe('CheckHallucinationDetector', () => {
       const check: Check = {
         checkNumber: '7890',
         payee: 'Acme Corporation',
-        payer: 'Jane Smith',
+        payer: 'Alice Johnson',
         amount: '250.00',
         date: new Date('2024-03-15'),
-        bankName: 'First National Bank',
+        bankName: 'Acme Credit Union',
         confidence: 0.9
       };
 
@@ -193,7 +193,7 @@ describe('CheckHallucinationDetector', () => {
       detector.detect(check);
 
       expect(check.isValidInput).toBe(false);
-      expect(check.confidence).toBe(0.3); // Should use Math.min with 0
+      expect(check.confidence).toBe(0); // Should use Math.min(0, 0.3) = 0
     });
 
     it('should handle partial suspicious patterns', () => {

@@ -268,6 +268,7 @@ export class TestDIContainer extends DIContainer {
     // Register the standard components
     this.registerMistralClient();
     this.registerProviders();
+    this.registerUtilities();
     this.registerExtractors();
     this.registerScanners();
     

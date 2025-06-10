@@ -17,7 +17,7 @@ import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculato
  * This represents the AI binding provided by Cloudflare Workers runtime
  */
 export interface CloudflareAI {
-  run(model: string, inputs: any): Promise<any>;
+  run(model: string, inputs: Record<string, unknown>): Promise<unknown>;
 }
 
 /**
@@ -69,7 +69,10 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
       if (request.schema) {
         console.log('- Schema type:', typeof request.schema);
         if (typeof request.schema === 'object' && request.schema !== null) {
-          console.log('- Schema properties:', Object.keys((request.schema as any).schemaDefinition?.properties || {}).join(', '));
+          const schema = request.schema as Record<string, unknown>;
+          const schemaDefinition = schema.schemaDefinition as Record<string, unknown> | undefined;
+          const properties = (schemaDefinition?.properties as Record<string, unknown>) || {};
+          console.log('- Schema properties:', Object.keys(properties).join(', '));
         }
       }
 
@@ -133,10 +136,10 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
           
           if (typeof response === 'string') {
             responseText = response;
-          } else if (response && typeof response.response === 'string') {
-            responseText = response.response;
-          } else if (response && typeof response.result === 'string') {
-            responseText = response.result;
+          } else if (response && typeof (response as Record<string, unknown>).response === 'string') {
+            responseText = (response as Record<string, unknown>).response as string;
+          } else if (response && typeof (response as Record<string, unknown>).result === 'string') {
+            responseText = (response as Record<string, unknown>).result as string;
           } else {
             console.log('- WARNING: Unexpected response format, attempting to stringify');
             responseText = JSON.stringify(response);

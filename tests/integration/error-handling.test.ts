@@ -23,7 +23,7 @@ setupThrottledFetch({
 
 describe('API Error Handling', function() {
   // Set a longer timeout for API calls
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000; // 30 seconds
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000; // 2 minutes for integration tests
   
   it('should handle invalid content type for receipt endpoint', async function() {
     // Skip this test if running in an environment without fetch

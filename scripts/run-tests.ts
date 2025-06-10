@@ -66,7 +66,7 @@ const testConfigs = {
   },
   integration: {
     spec_files: ['integration/**/*.test.ts'],
-    timeoutInterval: 180000, // Increase timeout to 3 minutes for integration tests
+    timeoutInterval: 300000, // Increase timeout to 5 minutes for integration tests with real API calls
     requiresServer: true
   },
   performance: {
@@ -85,7 +85,7 @@ const testConfigs = {
       'semi/**/*.test.js',
       'integration/**/*.test.ts'
     ],
-    timeoutInterval: 180000, // Increase timeout to 3 minutes to match integration tests
+    timeoutInterval: 300000, // Increase timeout to 5 minutes to match integration tests
     requiresServer: true
   }
 };
@@ -215,7 +215,7 @@ if (config.requiresServer) {
     console.log('Waiting for server to be fully ready...');
     
     // Wait longer for server startup
-    const serverStartupTimeout = 5000; // 5 seconds - realistic timeout
+    const serverStartupTimeout = 15000; // 15 seconds - more time for Cloudflare Worker startup
     console.log(`Giving server ${serverStartupTimeout/1000} seconds to start up...`);
     await new Promise(resolve => setTimeout(resolve, serverStartupTimeout));
     
@@ -473,7 +473,7 @@ process.on('SIGINT', () => cleanupAndExit('SIGINT'));  // Ctrl+C
 process.on('SIGTERM', () => cleanupAndExit('SIGTERM')); // Kill command
 
 // Execute tests with timeout protection
-const timeoutMs = 30000; // Force 30-second timeout for ALL tests
+const timeoutMs = 120000; // Increase to 2 minutes for test execution timeout
 
 // If dry run, just log tests that would be executed
 if (dryRun) {

@@ -1,6 +1,6 @@
-import js from '@eslint/js.js';
-import * as tseslint from 'typescript-eslint.js';
-import globals from 'globals.js';
+import js from '@eslint/js';
+import * as tseslint from 'typescript-eslint';
+import globals from 'globals';
 
 export default tseslint.config(
   js.configs.recommended,
@@ -67,6 +67,9 @@ export default tseslint.config(
       'debug-test/**/*',
       'examples/dist/**/*',
       'coverage/**/*',
+      'swift-proxy/**/*',
+      'auth-service/**/*',
+      'nolock-capture/**/*',
       '*.js',
       '*.cjs',
       '*.mjs',

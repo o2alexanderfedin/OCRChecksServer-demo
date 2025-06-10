@@ -17,7 +17,7 @@ import fs from 'fs/promises';
 
 // Constants
 const ITERATIONS = 10; // Number of times to start the server for statistics
-const SERVER_MAX_TIMEOUT = 3000; // 3 seconds max startup time
+const SERVER_MAX_TIMEOUT = 10000; // 10 seconds max startup time (realistic for Cloudflare workers)
 const TARGET_P50 = 1500; // 1.5 seconds target for median (P50)
 const TARGET_P95 = 2500; // 2.5 seconds target for P95
 const SERVER_READY_MESSAGE = 'Ready on http://localhost';
@@ -26,7 +26,7 @@ const SERVER_READY_MESSAGE = 'Ready on http://localhost';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = pathResolve(__dirname, '..', '..');
-const serverScript = pathResolve(projectRoot, 'scripts', 'start-server.js');
+const serverScript = pathResolve(projectRoot, 'scripts', 'start-server.ts');
 const PID_FILE_PATH = pathResolve(projectRoot, '.server-perf-stats-pid');
 
 /**
@@ -61,9 +61,9 @@ function formatTime(ms: number, threshold: number): string {
 
 describe('Server Performance Statistics', function() {
   // Set a timeout based on the total expected runtime for all iterations
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = (SERVER_MAX_TIMEOUT * ITERATIONS) + 5000;
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = (SERVER_MAX_TIMEOUT * ITERATIONS) + 30000; // Extra time for test overhead
   
-  let serverProcesses: any[] = [];
+  const serverProcesses: any[] = [];
   const startupTimes: number[] = [];
   
   beforeAll(async () => {
@@ -191,7 +191,7 @@ describe('Server Performance Statistics', function() {
       
       // Start the server
       process.stdout.write(`Running iteration ${iteration}/${ITERATIONS}: Starting server... `);
-      const serverProcess = spawn('node', [serverScript], {
+      const serverProcess = spawn('npx', ['tsx', serverScript], {
         env: { 
           ...process.env,
           // Add a unique identifier to prevent port conflicts

@@ -42,7 +42,7 @@ export class JsonExtractionConfidenceCalculator {
     // Check if the extracted JSON has an isValidInput flag set to false,
     // which indicates potential hallucination
     let validInputMultiplier = 1.0;
-    if ('isValidInput' in extractedJson && extractedJson.isValidInput === false) {
+    if (extractedJson && 'isValidInput' in extractedJson && extractedJson.isValidInput === false) {
         // If input is flagged as invalid, reduce confidence significantly
         validInputMultiplier = 0.3;
         console.log('- Input flagged as potentially invalid, reducing confidence');
@@ -55,7 +55,7 @@ export class JsonExtractionConfidenceCalculator {
     confidenceScore = confidenceScore * validInputMultiplier;
     
     // If there's an explicit confidence in the extracted JSON, weigh it as well
-    if ('confidence' in extractedJson && 
+    if (extractedJson && 'confidence' in extractedJson && 
         typeof extractedJson.confidence === 'number' && 
         extractedJson.confidence >= 0 && 
         extractedJson.confidence <= 1) {

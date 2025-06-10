@@ -14,19 +14,16 @@ import { registerValidators } from '../validators';
 export function createMockMistral(options: {
   apiKey: string;
   io: IoE;
-  mockOcrProcess?: (params: any) => Promise<any>;
-  mockChatComplete?: (params: any) => Promise<any>;
+  mockOcrProcess?: (params: unknown) => Promise<unknown>;
+  mockChatComplete?: (params: unknown) => Promise<unknown>;
 }): Mistral {
   const { apiKey, io, mockOcrProcess, mockChatComplete } = options;
   
   // Create a real Mistral instance that will pass instanceof checks
   const mistralInstance = new Mistral({ apiKey });
   
-  // Explicitly set the apiKey property for access in MistralOCRProvider
-  (mistralInstance as any).apiKey = apiKey;
-  
   // Default OCR process implementation
-  const defaultOcrProcess = async () => ({
+  const defaultOcrProcess = async (): Promise<unknown> => ({
     model: 'mistral-ocr-latest',
     pages: [
       {
@@ -39,9 +36,9 @@ export function createMockMistral(options: {
   });
   
   // Default chat complete implementation
-  const defaultChatComplete = async (params: any) => {
+  const defaultChatComplete = async (params: unknown): Promise<unknown> => {
     // Extract specific data parameters from the request to provide targeted mocks
-    const content = params.messages[1]?.content || '';
+    const content = (params as { messages?: { content?: string }[] })?.messages?.[1]?.content || '';
     
     io.debug(`Mock Mistral API received request with message: ${content.substring(0, 100)}...`);
     
@@ -181,7 +178,7 @@ export function createMockMistral(options: {
       io.debug('Using mock OCR implementation');
       
       return {
-        process: async (params: any) => {
+        process: async (params: unknown): Promise<unknown> => {
           io.debug('Mock Mistral.ocr.process called with:', params);
           const processImpl = mockOcrProcess || defaultOcrProcess;
           return processImpl(params);
@@ -196,7 +193,7 @@ export function createMockMistral(options: {
       io.debug('Using mock chat implementation');
       
       return {
-        complete: async (params: any) => {
+        complete: async (params: unknown): Promise<unknown> => {
           io.debug('Mock Mistral.chat.complete called with params');
           const completeImpl = mockChatComplete || defaultChatComplete;
           return completeImpl(params);
@@ -268,6 +265,7 @@ export class TestDIContainer extends DIContainer {
     // Register the standard components
     this.registerMistralClient();
     this.registerProviders();
+    this.registerUtilities();
     this.registerExtractors();
     this.registerScanners();
     
@@ -289,8 +287,8 @@ export class TestDIContainer extends DIContainer {
     apiKey: string, 
     caller?: string,
     mockOptions?: {
-      ocrProcess?: (params: any) => Promise<any>;
-      chatComplete?: (params: any) => Promise<any>;
+      ocrProcess?: (params: unknown) => Promise<unknown>;
+      chatComplete?: (params: unknown) => Promise<unknown>;
     }
   ): TestDIContainer {
     // First register dependencies with our overridden method
@@ -326,8 +324,8 @@ export class TestDIContainer extends DIContainer {
     io: IoE, 
     apiKey: string = 'test_valid_api_key_123456789012345678901234567890',
     mockOptions?: {
-      ocrProcess?: (params: any) => Promise<any>;
-      chatComplete?: (params: any) => Promise<any>;
+      ocrProcess?: (params: unknown) => Promise<unknown>;
+      chatComplete?: (params: unknown) => Promise<unknown>;
     }
   ): TestDIContainer {
     const container = new TestDIContainer();

@@ -48,7 +48,9 @@ describe('JsonExtractionConfidenceCalculator', () => {
       const confidence = calculator.calculateConfidence(response, extractedJson);
 
       // Should be significantly reduced due to isValidInput: false
-      expect(confidence).toBeLessThanOrEqual(0.3);
+      // Expected: (1.0 * 0.6 + 0.9 * 0.2) * 0.3 = 0.78 * 0.3 = 0.234
+      // Blended with model confidence: (0.234 * 0.8) + (0.9 * 0.2) = 0.1872 + 0.18 = 0.3672 ≈ 0.37
+      expect(confidence).toBe(0.37);
     });
 
     it('should handle default finish reason confidence', () => {

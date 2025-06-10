@@ -68,17 +68,17 @@ describe('Check Schema Validation', () => {
 
   it('should reject a check missing required fields', () => {
     const invalidCheck: Partial<Check> = {
-      // Missing checkNumber
+      // Missing required confidence field
+      checkNumber: '12345',
       date: new Date('2025-05-01'),
       payee: 'John Smith',
-      amount: '100',
-      confidence: 0.8
+      amount: '100'
     };
 
     const serializedInvalidCheck = prepareForValidation(invalidCheck as Check);
     const valid = validate(serializedInvalidCheck);
     expect(valid).toBeFalsy();
-    expect(ajv.errorsText(validate.errors)).toContain("required property 'checkNumber'");
+    expect(ajv.errorsText(validate.errors)).toContain("required property 'confidence'");
   });
 
   it('should reject negative amount', () => {

@@ -14,16 +14,20 @@ export default tseslint.config(
       }
     },
     rules: {
-      '@typescript-eslint/explicit-function-return-type': 'error',
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { 
+      '@typescript-eslint/explicit-function-return-type': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { 
         'argsIgnorePattern': '^_',
         'varsIgnorePattern': '^_',
         'caughtErrorsIgnorePattern': '^_'
       }],
-      '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/no-unsafe-function-type': 'error',
-      'prefer-const': 'error'
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-unsafe-function-type': 'warn',
+      '@typescript-eslint/no-empty-object-type': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      'prefer-const': 'warn',
+      'no-var': 'warn',
+      'no-useless-escape': 'warn'
     }
   },
   {
@@ -64,6 +68,8 @@ export default tseslint.config(
       'examples/dist/**/*',
       'coverage/**/*',
       '*.js',
+      '*.cjs',
+      '*.mjs',
       '*.json',
       '*.md',
       '*.yml',

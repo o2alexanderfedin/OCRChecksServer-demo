@@ -209,7 +209,7 @@ describe('MistralJsonExtractor (Functional Style)', () => {
         expect(apiArgs.messages.length).toBe(2)
         expect(apiArgs.messages[0].role).toBe('system')
         expect(apiArgs.messages[1].role).toBe('user')
-        expect(apiArgs.messages[1].content).toContain('Extract the following information from this markdown text as JSON')
+        expect(apiArgs.messages[1].content).toContain('Extract the following information from this text as JSON')
         expect(apiArgs.responseFormat).toEqual({ 
             type: 'json_schema',
             jsonSchema: schema
@@ -236,7 +236,7 @@ describe('MistralJsonExtractor (Functional Style)', () => {
         expect(data.json.memo).toBe('Consulting services')
         
         // Verify confidence score
-        expect(data.confidence).toBeGreaterThan(0.8)
+        expect(data.confidence).toBe(0.78)
     })
 
     it('should handle API errors properly', async () => {

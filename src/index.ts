@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
 import { serveStatic } from 'hono/cloudflare-workers';
 import { workerIoE } from './io.ts';
 import { ScannerFactory } from './scanner/factory.ts';
@@ -17,7 +16,7 @@ interface Env {
 
 const app = new Hono<{ Bindings: Env }>();
 // Apply CORS middleware to all routes
-app.options('*', (c) => {
+app.options('*', (_c) => {
   return new Response(null, {
     status: 204,
     headers: {
@@ -327,7 +326,7 @@ app.post('/receipt', async (c) => {
 app.get('/health', (c) => {
   try {
     // Validate DI
-    var diContainer = ScannerFactory.createDIContainer(workerIoE, c.env.MISTRAL_API_KEY);
+    const diContainer = ScannerFactory.createDIContainer(workerIoE, c.env.MISTRAL_API_KEY);
 
     ScannerFactory.createMistralCheckScanner(workerIoE, c.env.MISTRAL_API_KEY);
     ScannerFactory.createScannerByType(workerIoE, c.env.MISTRAL_API_KEY, 'check');
@@ -335,7 +334,7 @@ app.get('/health', (c) => {
     ScannerFactory.createMistralReceiptScanner(workerIoE, c.env.MISTRAL_API_KEY);
     ScannerFactory.createScannerByType(workerIoE, c.env.MISTRAL_API_KEY, 'receipt');
 
-    var apiKey = diContainer.getMistralApiKey();
+    const apiKey = diContainer.getMistralApiKey();
 
     // Create health response with ISO formatted date string as per HealthResponse interface
     return new Response(JSON.stringify({

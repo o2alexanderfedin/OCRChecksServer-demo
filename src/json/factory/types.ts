@@ -89,7 +89,7 @@ export interface JsonExtractorFactory {
  */
 export interface JsonExtractorFactoryOptions {
   /** Dependency injection container reference */
-  container?: any;
+  container?: unknown;
   /** Override environment-based configuration */
   environmentOverride?: boolean;
   /** Custom availability checkers */

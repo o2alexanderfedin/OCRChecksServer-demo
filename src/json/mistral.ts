@@ -3,7 +3,6 @@ import { Mistral } from '@mistralai/mistralai'
 import type { IoE } from '../ocr/types'
 import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './types'
 import { injectable, inject } from 'inversify';
-import { TYPES as VALIDATOR_TYPES } from '../validators';
 import { TYPES } from '../types/di-types.ts';
 import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculator.ts';
 
@@ -55,7 +54,9 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
             if (request.schema) {
                 console.log('- Schema type:', typeof request.schema);
                 if (typeof request.schema === 'object' && request.schema !== null) {
-                    console.log('- Schema properties:', Object.keys((request.schema as any).properties || {}).join(', '));
+                    const schema = request.schema as Record<string, unknown>;
+                    const properties = (schema.properties as Record<string, unknown>) || {};
+                    console.log('- Schema properties:', Object.keys(properties).join(', '));
                 }
             }
             
@@ -64,7 +65,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                 console.log('- Mistral client info:');
                 console.log('  - Client type:', this.client.constructor.name);
                 console.log('  - API Key: Available (cannot access from client for security)');
-                // @ts-ignore - for debugging
+                // @ts-expect-error - for debugging
                 const chatEndpoint = (this.client.apiBase || 'https://api.mistral.ai/v1') + '/chat/completions';
                 console.log('  - Chat endpoint:', chatEndpoint);
             } catch (debugError) {
@@ -206,7 +207,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                     if ('cause' in apiError) {
                         console.log('- Error cause:', apiError.cause);
                         if (apiError.cause && typeof apiError.cause === 'object') {
-                            const cause = apiError.cause as any;
+                            const cause = apiError.cause as Record<string, unknown>;
                             if (cause.code) {
                                 console.log('- Network error code:', cause.code);
                             }
@@ -218,7 +219,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                     
                     // Try to get response details if this is a Mistral API error
                     if ('response' in apiError && apiError.response) {
-                        const response = (apiError as any).response;
+                        const response = (apiError as Record<string, unknown>).response as Record<string, unknown>;
                         console.log('- Response status:', response.status);
                         console.log('- Response status text:', response.statusText);
                         
@@ -249,7 +250,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                                 try {
                                     const jsonFromText = JSON.parse(responseText);
                                     console.log('- Parsed JSON from text response:', JSON.stringify(jsonFromText, null, 2));
-                                } catch (jsonParseError) {
+                                } catch (_jsonParseError) {
                                     // Not JSON, that's fine
                                 }
                             }
@@ -264,7 +265,7 @@ export class MistralJsonExtractorProvider implements JsonExtractor {
                     console.log('- Cloudflare Worker specific diagnostics:');
                     try {
                         // Check if we can access the Mistral API key (without logging it)
-                        // @ts-ignore - for debugging
+                        // @ts-expect-error - for debugging
                         console.log('  - API key available:', this.client.apiKey ? 'Yes (length: ' + this.client.apiKey.length + ')' : 'No');
                         
                         // Try to detect any Worker-specific issues

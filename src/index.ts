@@ -8,12 +8,13 @@ import { Document, DocumentType } from './ocr/types.ts';
 import { createSwaggerUI, getOpenAPISpecWithCurrentVersion } from './swagger/index.ts';
 // Get package version (used in health check)
 import pkg from '../package.json' with { type: 'json' };
+import { CloudflareAI } from './json/cloudflare-llama33-extractor.ts';
 
 interface Env {
   MISTRAL_API_KEY: string;
   CLOUDFLARE_API_TOKEN: string;
   JSON_EXTRACTOR_TYPE?: string;
-  AI: any; // Cloudflare Workers AI binding
+  AI: CloudflareAI; // Cloudflare Workers AI binding
 }
 
 const app = new Hono<{ Bindings: Env }>();

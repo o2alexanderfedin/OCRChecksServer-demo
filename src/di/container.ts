@@ -66,7 +66,7 @@ export class DIContainer {
    * @returns The container instance for method chaining
    * @throws Error if io or apiKey is not provided
    */
-  registerDependencies(io: IoE, apiKey: string, caller?: string, extractorType?: string, aiBinding?: any): DIContainer {
+  registerDependencies(io: IoE, apiKey: string, caller?: string, extractorType?: string, aiBinding?: CloudflareAI): DIContainer {
     // Validate required parameters
     if (!io) {
       throw new Error(`[DIContainer.${caller ?? 'registerDependencies'}] CRITICAL ERROR: IO interface is missing or undefined`);

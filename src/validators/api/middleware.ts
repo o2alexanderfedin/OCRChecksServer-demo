@@ -56,10 +56,10 @@ export class ValidationMiddleware {
     return (req: Request, res: Response, next: NextFunction) => {
       try {
         // Validate param
-        const validParam = validator.assertValid(req.params[paramName] as any);
+        const validParam = validator.assertValid(req.params[paramName] as T);
         
         // Replace param with validated version
-        req.params[paramName] = validParam as any;
+        req.params[paramName] = validParam as string;
         
         // Continue to next middleware
         next();
@@ -86,10 +86,10 @@ export class ValidationMiddleware {
     return (req: Request, res: Response, next: NextFunction) => {
       try {
         // Validate query parameter
-        const validQuery = validator.assertValid(req.query[queryName] as any);
+        const validQuery = validator.assertValid(req.query[queryName] as T);
         
         // Replace query with validated version
-        req.query[queryName] = validQuery as any;
+        req.query[queryName] = validQuery as string;
         
         // Continue to next middleware
         next();

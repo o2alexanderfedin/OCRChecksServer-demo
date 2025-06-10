@@ -5,7 +5,7 @@
 
 // Polyfill Buffer for environments that don't have it (like Cloudflare Workers)
 if (typeof globalThis !== 'undefined' && !globalThis.Buffer) {
-  (globalThis.Buffer as any) = {
+  (globalThis as Record<string, unknown>).Buffer = {
     from: (data: string | Uint8Array, encoding?: string) => {
       // Simple implementation that supports string->base64 and Uint8Array->base64
       return {
@@ -25,7 +25,7 @@ if (typeof globalThis !== 'undefined' && !globalThis.Buffer) {
         byteLength: typeof data === 'string' ? data.length : data.byteLength || 0
       };
     },
-    isBuffer: (obj: any): boolean => false
+    isBuffer: (obj: unknown): boolean => false
   };
 }
 
@@ -34,7 +34,7 @@ if (typeof globalThis !== 'undefined' && !globalThis.Buffer) {
  * @param obj Object to check
  * @returns True if the object is a Buffer
  */
-export function isBuffer(obj: any): obj is Buffer {
+export function isBuffer(obj: unknown): obj is Buffer {
   return Buffer.isBuffer?.(obj) || false;
 }
 
@@ -43,7 +43,7 @@ export function isBuffer(obj: any): obj is Buffer {
  * @param content The content (ArrayBuffer, File, Buffer, or string path)
  * @returns The byte length or -1 if can't be determined
  */
-export function getContentByteLength(content: ArrayBuffer | File | any | string): number {
+export function getContentByteLength(content: ArrayBuffer | File | Buffer | string): number {
   if (content instanceof ArrayBuffer) {
     return content.byteLength;
   } else if (typeof content === 'string') {
@@ -62,7 +62,7 @@ export function getContentByteLength(content: ArrayBuffer | File | any | string)
  * @param content The content (ArrayBuffer, File, Buffer, or string path)
  * @returns ArrayBuffer
  */
-export function contentToArrayBuffer(content: ArrayBuffer | File | any | string): ArrayBuffer {
+export function contentToArrayBuffer(content: ArrayBuffer | File | Buffer | string): ArrayBuffer {
   if (content instanceof ArrayBuffer) {
     return content;
   } else if (isBuffer(content)) {
@@ -108,6 +108,6 @@ export function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
  * @param base64 Base64 string
  * @returns Buffer-like object
  */
-export function base64ToBuffer(base64: string): any {
+export function base64ToBuffer(base64: string): Buffer {
   return Buffer.from(base64, 'base64');
 }

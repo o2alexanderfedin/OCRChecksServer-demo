@@ -12,11 +12,12 @@ workers_dev = true
 cpu_ms = 50  # Default CPU time limit in milliseconds
 duration_ms = 30000  # Default maximum execution time (30 seconds)
 
-# Development environment
+# Development environment (remote Workers deployment)
 [env.dev]
 name = "ocr-checks-worker-dev"
 workers_dev = true
-vars = { ENVIRONMENT = "development", MISTRAL_DEBUG = true }
+vars = { ENVIRONMENT = "development", MISTRAL_DEBUG = true, JSON_EXTRACTOR_TYPE = "cloudflare" }
+ai = { binding = "AI" }
 
 # With the paid plan, we can now set higher limits
 [env.dev.limits]
@@ -29,7 +30,8 @@ name = "ocr-checks-worker-staging"
 # Removing custom domain route to use workers.dev subdomain only
 # route = "staging-api.nolock.social/*"
 workers_dev = true
-vars = { ENVIRONMENT = "staging", MISTRAL_DEBUG = true }
+vars = { ENVIRONMENT = "staging", MISTRAL_DEBUG = true, JSON_EXTRACTOR_TYPE = "cloudflare" }
+ai = { binding = "AI" }
 
 # Staging environment limits
 [env.staging.limits]
@@ -58,3 +60,7 @@ enabled = true
 # Use Cloudflare Worker secrets instead: wrangler secret put MISTRAL_API_KEY
 # Example: echo "your-api-key" | wrangler secret put MISTRAL_API_KEY
 # Global variables that apply to all environments have been moved to the environment-specific sections
+
+# JSON Extractor Configuration:
+# - Remote environments (dev, staging, production): Use Cloudflare Llama 3.3 (JSON_EXTRACTOR_TYPE=cloudflare)
+# - Local development (wrangler dev): Uses Mistral API (no JSON_EXTRACTOR_TYPE set, defaults to 'mistral')

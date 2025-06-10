@@ -1,16 +1,21 @@
 # Release Summary v1.63.0
 
 ## Overview
-Version 1.63.0 introduces **Cloudflare Workers AI (Llama 3.3) integration** for JSON extraction in the production environment, representing a major architectural advancement in our AI processing pipeline.
+Version 1.63.0 introduces **API transparency through markdown field exposure**, **extends Cloudflare Workers AI (Llama 3.3) integration to all remote environments**, and **fixes critical CI/CD deployment issues**. This represents a major advancement in API usability and infrastructure reliability.
 
 ## Key Improvements
 
-### 🚀 Cloudflare Workers AI Integration
-- **Production JSON Extraction**: Now uses Cloudflare's Llama 3.3 (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) instead of external Mistral API
-- **Edge-Native Processing**: JSON extraction happens within Cloudflare Workers runtime, eliminating external API dependencies
+### 🚀 API Transparency Enhancement
+- **Markdown Field Addition**: Added `markdown` field to all API endpoints (`/process`, `/check`, `/receipt`)
+- **Raw OCR Text Exposure**: Users can now access the original OCR text alongside structured JSON data
+- **Enhanced API Documentation**: Updated OpenAPI specification with comprehensive examples and field descriptions
+
+### 🌐 Multi-Environment AI Integration
+- **Cloudflare Llama 3.3 Extension**: Extended from production-only to all remote environments (dev, staging, production)
+- **Local Development Preservation**: Maintained Mistral usage for local development workflow
 - **Environment-Specific AI Selection**: 
-  - **Production**: Cloudflare Llama 3.3 for JSON extraction
-  - **Dev/Staging**: Mistral API for JSON extraction (unchanged)
+  - **Remote Environments**: Cloudflare Llama 3.3 for JSON extraction
+  - **Local Development**: Mistral API for JSON extraction
   - **All Environments**: Mistral API for OCR processing (unchanged)
 
 ### 🏗️ Architecture Enhancements
@@ -19,24 +24,32 @@ Version 1.63.0 introduces **Cloudflare Workers AI (Llama 3.3) integration** for 
 - **Proper Dependency Injection**: AI bindings threaded through entire DI container system
 - **Environment Variable Support**: `JSON_EXTRACTOR_TYPE=cloudflare` enables Llama 3.3 usage
 
+### 🔧 CI/CD Infrastructure Fixes
+- **Automated Deployment Restoration**: Fixed GitHub Actions deployment workflows that were failing with "wrangler: command not found"
+- **npm Script Integration**: Replaced direct wrangler commands with proper npm deployment scripts
+- **Environment Variable Management**: Improved secret handling and .dev.vars file creation
+- **Workflow Consistency**: Aligned all deployment workflows with working CD pipeline approach
+
 ### 🔧 Technical Implementation
-- **CloudflareAI Binding Configuration**: Proper `ai = { binding = "AI" }` in wrangler.toml
+- **CloudflareAI Binding Configuration**: Proper `ai = { binding = "AI" }` in wrangler.toml for all remote environments
 - **DI Container Updates**: Support for environment-specific extractor type selection
 - **Scanner Factory Enhancements**: All factory methods now support AI binding parameters
 - **Environment Interface Updates**: Added AI binding to Cloudflare Workers Env interface
+- **Test Suite Stability**: Fixed ExtractorType binding issues and API key validation
 
 ## Performance Characteristics
 
 ### JSON Extraction Performance
-- **Cloudflare Llama 3.3**: ~4.7 seconds (edge-native, no external calls)
+- **Cloudflare Llama 3.3**: ~4.7 seconds (edge-native, no external calls, optimized with temperature=0)
 - **Mistral API**: ~3-4 seconds (external API call)
-- **Cost Efficiency**: Reduced external API costs in production environment
+- **Cost Efficiency**: Reduced external API costs across all remote environments
 
 ### Processing Pipeline
 1. **OCR Stage**: Mistral API (`mistral-ocr-latest`) - 350-400ms
 2. **JSON Extraction Stage**: 
-   - Production: Cloudflare Llama 3.3 - ~4.7 seconds
-   - Dev/Staging: Mistral API - ~3-4 seconds
+   - Remote Environments: Cloudflare Llama 3.3 - ~4.7 seconds
+   - Local Development: Mistral API - ~3-4 seconds
+3. **API Response**: Now includes both structured JSON and raw markdown text
 
 ## Root Cause Resolution
 
@@ -100,10 +113,11 @@ Your worker has access to the following bindings:
 - Document performance benchmarks and cost analysis
 
 ---
-**Release Date**: January 10, 2025  
+**Release Date**: June 10, 2025  
 **Git Tag**: v1.63.0  
 **Previous Version**: v1.62.0  
 **Branch**: release/1.63.0 → main  
 
 **Key Contributors**: Claude Code AI Assistant  
-**Deployment Type**: Production-Ready with Cloudflare Workers AI Integration
+**Deployment Type**: Production-Ready with API Transparency and Multi-Environment AI Integration  
+**CI/CD Status**: ✅ Fully automated and operational

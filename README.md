@@ -324,6 +324,49 @@ The project uses a comprehensive testing approach with multiple distinct test ty
    npm run test:swift-e2e
    ```
 
+7. **Version Testing**: Verify deployed versions match source code across all environments
+   ```bash
+   # Test all environments with auto-discovery
+   npm run test:version:dynamic
+   
+   # Test specific environments
+   npm run test:version:production
+   npm run test:version:staging
+   npm run test:version:dev
+   ```
+
+8. **Smoke Tests**: Quick health checks and basic functionality verification
+   ```bash
+   # Enhanced smoke tests with dynamic version checking
+   npm run test:smoke
+   
+   # Environment-specific smoke tests
+   npm run test:smoke:production
+   npm run test:smoke:dev
+   ```
+
+#### Dynamic URL Discovery
+
+The testing infrastructure includes automatic Cloudflare Worker URL discovery:
+
+```bash
+# Discover all environment URLs from Cloudflare
+npx tsx scripts/get-cloudflare-urls.ts
+
+# Test version across all discovered environments
+npm run test:version:dynamic
+
+# Output discovered URLs in different formats
+npx tsx scripts/get-cloudflare-urls.ts --format json
+npx tsx scripts/get-cloudflare-urls.ts --format env
+```
+
+**Features:**
+- **Automatic URL Discovery**: No hardcoded URLs needed
+- **Multi-Environment Testing**: Test local, dev, staging, and production simultaneously
+- **Version Verification**: Ensures deployed version matches `package.json`
+- **Health Monitoring**: Checks service status and API key configuration
+
 Run all tests together:
 ```bash
 npm test

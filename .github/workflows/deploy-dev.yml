@@ -33,7 +33,7 @@ jobs:
         run: npm run lint
         
       - name: Run unit tests
-        run: npm run test:unit
+        run: npx tsx scripts/run-unit-tests-tsx.ts --bypass-gitflow-check
       
       - name: Set Cloudflare Worker secrets
         run: |

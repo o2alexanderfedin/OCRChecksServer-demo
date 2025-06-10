@@ -1,6 +1,7 @@
 /**
  * Unit tests for the IO utilities
  */
+import '../../test-setup.ts';
 import { workerIo, workerIoE } from '../../src/io.ts';
 
 // Create our own simplified mock function since jasmine.createSpy might not be available

@@ -1,3 +1,4 @@
+import '../../../../test-setup.ts';
 import { CheckExtractor } from '../../../../src/json/extractors/check-extractor';
 import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types.ts';
 import { CheckExtractor as ICheckExtractor } from '../../../../src/json/extractors/types';

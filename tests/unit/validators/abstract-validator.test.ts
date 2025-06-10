@@ -1,6 +1,7 @@
 /**
  * Unit tests for AbstractValidator class
  */
+import '../../../test-setup.ts';
 import { z } from 'zod';
 import { AbstractValidator, ValidationError } from '../../../src/validators/index.ts';
 

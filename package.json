@@ -12,7 +12,7 @@
     "deploy:with-secrets": "bash scripts/deploy-with-secrets.sh",
     "test": "node --loader ts-node/esm --experimental-specifier-resolution=node scripts/run-tests.ts all",
     "test:all": "bash scripts/run-all-tests.sh",
-    "test:unit": "node --experimental-strip-types scripts/run-unit-tests.ts",
+    "test:unit": "node --experimental-strip-types scripts/run-unit-tests-tsx.ts",
     "test:functional": "node --experimental-strip-types scripts/run-functional-tests.ts",
     "test:semi": "node --experimental-strip-types scripts/run-semi-tests.ts",
     "test:integration": "node --experimental-strip-types scripts/run-tests.ts integration",

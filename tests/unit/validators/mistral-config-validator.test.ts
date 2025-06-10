@@ -1,7 +1,7 @@
 /**
  * Unit tests for Mistral Config validator
  */
-import 'jasmine';
+import '../../../test-setup.ts';
 import { 
   MistralConfigValidator,
   ApiKeyValidator,

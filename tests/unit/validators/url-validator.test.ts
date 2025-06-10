@@ -1,6 +1,7 @@
 /**
  * Unit tests for URL validator
  */
+import '../../../test-setup.ts';
 import { UrlValidator, ValidationError } from '../../../src/validators/index.ts';
 
 describe('UrlValidator', () => {

@@ -1,6 +1,6 @@
+import '../../../test-setup.ts';
 import type { IoE } from '../../../src/ocr/types'
 import { JsonExtractionRequest } from '../../../src/json/types'
-import 'jasmine'
 import { Mistral } from '@mistralai/mistralai'
 
 // Import our testing tools

@@ -1,8 +1,68 @@
+import '../../test-setup.ts';
 import { Mistral } from '@mistralai/mistralai';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createMockMistral } from '../../src/di/test-container.ts';
+
+// Create our own simplified mock function since jasmine.createSpy might not be available
+interface MockFunction {
+    (...args: any[]): any;
+    calls: {
+        count: number;
+        args: any[][];
+        reset(): void;
+    };
+    mockReturnValue(val: any): MockFunction;
+    mockImplementation(fn: Function): MockFunction;
+    and: {
+        callFake(fn: Function): MockFunction;
+        returnValue(val: any): MockFunction;
+    };
+}
+
+function createSpy(name: string): MockFunction {
+    const fn = function(...args: any[]) {
+        fn.calls.count++;
+        fn.calls.args.push(args);
+        if (fn._implementation) {
+            return fn._implementation(...args);
+        }
+        return fn._returnValue;
+    } as MockFunction & { _implementation?: Function; _returnValue?: any; };
+    
+    fn.calls = {
+        count: 0,
+        args: [],
+        reset() {
+            this.count = 0;
+            this.args = [];
+        }
+    };
+    
+    fn.mockReturnValue = function(val: any) {
+        fn._returnValue = val;
+        return fn;
+    };
+    
+    fn.mockImplementation = function(impl: Function) {
+        fn._implementation = impl;
+        return fn;
+    };
+    
+    fn.and = {
+        callFake(impl: Function) {
+            fn._implementation = impl;
+            return fn;
+        },
+        returnValue(val: any) {
+            fn._returnValue = val;
+            return fn;
+        }
+    };
+    
+    return fn;
+}
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
@@ -71,8 +131,8 @@ describe('Mistral API Direct Test', () => {
     originalConsoleDebug = console.debug;
     
     // Mock console methods to suppress output during tests
-    console.log = jasmine.createSpy('console.log');
-    console.debug = jasmine.createSpy('console.debug');
+    console.log = createSpy('console.log') as any;
+    console.debug = createSpy('console.debug') as any;
     
     // Set test API key for environment if not already set
     if (!process.env.MISTRAL_API_KEY) {

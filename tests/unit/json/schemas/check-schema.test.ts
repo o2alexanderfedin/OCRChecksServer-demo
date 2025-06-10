@@ -1,3 +1,4 @@
+import '../../../../test-setup.ts';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { checkSchema } from '../../../../src/json/schemas/check.ts';

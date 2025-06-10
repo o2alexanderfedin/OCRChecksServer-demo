@@ -1,3 +1,4 @@
+import '../../../test-setup.ts';
 import { ReceiptScanner } from '../../../src/scanner/receipt-scanner.ts';
 import 'reflect-metadata';
 import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr/types.ts';

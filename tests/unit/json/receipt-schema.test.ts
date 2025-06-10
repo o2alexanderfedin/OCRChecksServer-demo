@@ -1,3 +1,4 @@
+import '../../../test-setup.ts';
 import { 
   receiptSchema, 
   Receipt, 

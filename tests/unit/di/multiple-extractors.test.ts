@@ -2,6 +2,7 @@
  * Unit tests for DI container configuration with multiple JSON extractors
  */
 
+import '../../../test-setup.ts';
 import { Container } from 'inversify';
 import { DIContainer } from '../../../src/di/container.ts';
 import { TYPES } from '../../../src/types/di-types.ts';

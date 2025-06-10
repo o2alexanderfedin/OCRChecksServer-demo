@@ -233,9 +233,10 @@ export class DIContainer {
         }
           
         case 'mistral':
-        default:
+        default: {
           const mistralClient = context.get<Mistral>(TYPES.MistralClient);
           return new MistralJsonExtractorProvider(io, mistralClient, confidenceCalculator);
+        }
       }
     }).inSingletonScope();
   }
@@ -344,7 +345,7 @@ export class DIContainer {
           apiKeyMinLength: 10, // More lenient for test tokens
           forbiddenPatterns: []
         });
-      } catch (error) {
+      } catch (_error) {
         // Fall back to basic validation for tests
         if (!apiKey) {
           throw new Error('[DIContainer] CRITICAL ERROR: Mistral API key is missing or empty');

@@ -64,6 +64,8 @@ export default tseslint.config(
       'examples/dist/**/*',
       'coverage/**/*',
       '*.js',
+      '*.cjs',
+      '*.mjs',
       '*.json',
       '*.md',
       '*.yml',

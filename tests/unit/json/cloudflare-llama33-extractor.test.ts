@@ -255,7 +255,7 @@ describe('CloudflareLlama33JsonExtractor', () => {
           null as any,
           confidenceCalculator
         );
-      }).toThrow('CloudflareAI binding is required');
+      }).toThrowError('CloudflareAI binding is required');
     });
   });
 });

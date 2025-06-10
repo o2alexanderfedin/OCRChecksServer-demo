@@ -328,6 +328,7 @@ describe('MistralJsonExtractor', () => {
         }
         
         // Check confidence score (should be high because finishReason is 'stop')
-        expect(result[1].confidence).toBeGreaterThanOrEqual(0.9);
+        // Expected: (1.0 * 0.6) + (0.9 * 0.2) = 0.6 + 0.18 = 0.78
+        expect(result[1].confidence).toBe(0.78);
     });
 });

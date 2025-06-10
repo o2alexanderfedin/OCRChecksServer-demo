@@ -120,9 +120,8 @@ describe('Receipt Schema Validation', () => {
         name: "ACME Store"
       },
       timestamp: new Date("2025-04-28T15:30:45Z"),
-      // Missing totals
-      currency: "USD",
-      confidence: 0.92
+      // Missing required confidence field
+      currency: "USD"
     };
 
     const serializedInvalidReceipt = prepareForValidation(invalidReceipt as Receipt);
@@ -130,9 +129,9 @@ describe('Receipt Schema Validation', () => {
     expect(valid).toBe(false);
     expect(validate.errors).not.toBeNull();
     
-    // Check that the error is about the missing totalAmount
-    const errorPaths = validate.errors?.map((e: any) => e.instancePath);
-    expect(errorPaths).toContain("");
+    // Check that the error is about the missing confidence field
+    const errorMessages = validate.errors?.map((e: any) => e.message);
+    expect(errorMessages?.some((msg: string) => msg.includes('confidence'))).toBe(true);
   });
 
   it('should validate when currency is missing (optional field)', () => {

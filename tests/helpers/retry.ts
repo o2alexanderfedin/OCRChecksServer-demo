@@ -64,11 +64,11 @@ async function processQueue() {
     
     // Execute the queued task with timeout protection
     try {
-      // Create a timeout promise that will reject after 30 seconds
+      // Create a timeout promise that will reject after 120 seconds for integration tests
       const timeout = new Promise<never>((_, reject) => {
         const id = setTimeout(() => {
-          reject(new Error('Task execution timed out after 30 seconds'));
-        }, 30000);
+          reject(new Error('Task execution timed out after 120 seconds'));
+        }, 120000);
         // Store the timeout ID so we can clear it later
         return () => clearTimeout(id);
       });

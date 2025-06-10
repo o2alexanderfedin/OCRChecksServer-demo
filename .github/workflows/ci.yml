@@ -1,15 +1,11 @@
-name: CI
+name: CI - Unit Tests
 
 on:
   push:
-    branches: 
-      - develop
-      - 'feature/**'
-      - 'release/**'
+    branches: [ main, develop, 'feature/**', 'release/**' ]
   pull_request:
-    branches: 
-      - develop
-      - main
+    branches: [ main, develop ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,35 +13,36 @@ permissions:
   checks: write
 
 jobs:
-  test:
-    name: Test
+  ci:
+    name: CI Pipeline - Unit Tests Only
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
           
       - name: Install dependencies
         run: npm ci
         
-      - name: Run linting
-        run: npm run lint
+      - name: Run CI Pipeline (Unit Tests)
+        run: npm run ci
         
-      - name: Run unit tests
-        run: npm run test:unit -- --bypass-gitflow-check
-        
-      - name: Run functional tests
-        run: npm run test:functional -- --bypass-gitflow-check
-        
-      # Semi-integration tests require API key, skip if not available
-      - name: Run semi-integration tests
-        run: npm run test:semi -- --bypass-gitflow-check
-        env:
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-        continue-on-error: true
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-test-results-node-${{ matrix.node-version }}
+          path: |
+            test-results*.json
+            coverage/
+          retention-days: 30

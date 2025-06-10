@@ -30,7 +30,13 @@
     "start-server": "npx tsx scripts/start-server.ts",
     "start-server:test": "NODE_ENV=test npx tsx scripts/start-server.ts",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix"
+    "lint:fix": "eslint . --ext .ts --fix",
+    "ci": "bash scripts/ci-cd-pipeline.sh --ci-only",
+    "cd": "bash scripts/ci-cd-pipeline.sh --cd-only",
+    "ci-cd": "bash scripts/ci-cd-pipeline.sh",
+    "deploy:dev": "bash scripts/ci-cd-pipeline.sh --env dev",
+    "deploy:staging": "bash scripts/ci-cd-pipeline.sh --env staging", 
+    "deploy:production": "bash scripts/ci-cd-pipeline.sh --env production"
   },
   "keywords": [
     "cloudflare",

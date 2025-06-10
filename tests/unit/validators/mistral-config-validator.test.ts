@@ -1,6 +1,7 @@
 /**
  * Unit tests for Mistral Config validator
  */
+import 'jasmine';
 import { 
   MistralConfigValidator,
   ApiKeyValidator,
@@ -11,17 +12,87 @@ import {
   Url
 } from '../../../src/validators/index.ts';
 
+// Create our own simplified mock function since jasmine.createSpy might not be available
+interface MockFunction {
+    (...args: any[]): any;
+    calls: {
+        count: number;
+        args: any[][];
+        reset(): void;
+    };
+    mockReturnValue(val: any): MockFunction;
+    mockImplementation(fn: Function): MockFunction;
+    and: {
+        callFake(fn: Function): MockFunction;
+        returnValue(val: any): MockFunction;
+    };
+}
+
+function createSpy(name: string): MockFunction {
+    const fn = function(...args: any[]) {
+        fn.calls.count++;
+        fn.calls.args.push(args);
+        if (fn._implementation) {
+            return fn._implementation(...args);
+        }
+        return fn._returnValue;
+    } as MockFunction & { _implementation?: Function; _returnValue?: any; };
+    
+    fn.calls = {
+        count: 0,
+        args: [],
+        reset() {
+            this.count = 0;
+            this.args = [];
+        }
+    };
+    
+    fn.mockReturnValue = function(val: any) {
+        fn._returnValue = val;
+        return fn;
+    };
+    
+    fn.mockImplementation = function(impl: Function) {
+        fn._implementation = impl;
+        return fn;
+    };
+    
+    fn.and = {
+        callFake(impl: Function) {
+            fn._implementation = impl;
+            return fn;
+        },
+        returnValue(val: any) {
+            fn._returnValue = val;
+            return fn;
+        }
+    };
+    
+    return fn;
+}
+
 describe('MistralConfigValidator', () => {
   let validator: MistralConfigValidator;
-  let mockApiKeyValidator: jasmine.SpyObj<ApiKeyValidator>;
-  let mockUrlValidator: jasmine.SpyObj<UrlValidator>;
-  let mockNumberValidator: jasmine.SpyObj<NumberValidator>;
+  let mockApiKeyValidator: any;
+  let mockUrlValidator: any;
+  let mockNumberValidator: any;
   
   beforeEach(() => {
-    // Create mock validators using Jasmine spies
-    mockApiKeyValidator = jasmine.createSpyObj('ApiKeyValidator', ['assertValid', 'validate']);
-    mockUrlValidator = jasmine.createSpyObj('UrlValidator', ['assertValid', 'validate']);
-    mockNumberValidator = jasmine.createSpyObj('NumberValidator', ['assertValid', 'validate']);
+    // Create mock validators manually using our custom spy function
+    mockApiKeyValidator = {
+      assertValid: createSpy('assertValid'),
+      validate: createSpy('validate')
+    };
+    
+    mockUrlValidator = {
+      assertValid: createSpy('assertValid'),
+      validate: createSpy('validate')
+    };
+    
+    mockNumberValidator = {
+      assertValid: createSpy('assertValid'),
+      validate: createSpy('validate')
+    };
     
     // Configure mock behavior for valid values
     mockApiKeyValidator.assertValid.and.callFake((key) => {
@@ -75,9 +146,13 @@ describe('MistralConfigValidator', () => {
     };
     
     expect(() => validator.assertValid(config)).not.toThrow();
-    expect(mockApiKeyValidator.assertValid).toHaveBeenCalledWith('valid-api-key-12345678901234');
-    expect(mockUrlValidator.assertValid).toHaveBeenCalledWith('https://api.mistral.ai');
-    expect(mockNumberValidator.assertValid).toHaveBeenCalledWith(30000);
+    // Verify the mock was called with correct arguments
+    expect(mockApiKeyValidator.assertValid.calls.count).toBe(1);
+    expect(mockApiKeyValidator.assertValid.calls.args[0][0]).toBe('valid-api-key-12345678901234');
+    expect(mockUrlValidator.assertValid.calls.count).toBe(1);
+    expect(mockUrlValidator.assertValid.calls.args[0][0]).toBe('https://api.mistral.ai');
+    expect(mockNumberValidator.assertValid.calls.count).toBe(1);
+    expect(mockNumberValidator.assertValid.calls.args[0][0]).toBe(30000);
   });
   
   it('should reject configurations with invalid API keys', () => {

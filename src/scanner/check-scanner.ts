@@ -48,16 +48,29 @@ export class CheckScanner implements DocumentScanner {
    * @returns A Result tuple with either a processing result or error message
    */
   async processDocument(document: Document): Promise<Result<ProcessingResult, string>> {
+    const scannerRequestId = `scanner_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const scannerStartTime = Date.now();
+    
+    console.log(`[${scannerRequestId}] ===== CHECK SCANNER PROCESSING START =====`);
+    console.log(`[${scannerRequestId}] Scanner started at: ${new Date().toISOString()}`);
+    console.log(`[${scannerRequestId}] Document type: ${document.type}, name: ${document.name}`);
+    console.log(`[${scannerRequestId}] Document content size: ${document.content.byteLength} bytes`);
+    
     let ocrText: string;
     let ocrConfidence: number;
     
     try {
+      console.log(`[${scannerRequestId}] Step 1: Validating input document`);
       // Validate input document
       const validatedInput: ScannerInput = this.inputValidator.assertValid({
         file: document.content,
         mimeType: document.mimeType,
         options: document.options
       });
+      console.log(`[${scannerRequestId}] Input validation successful`);
+      
+      console.log(`[${scannerRequestId}] Step 2: Starting OCR processing - POTENTIAL HANG POINT`);
+      console.log(`[${scannerRequestId}] About to call ocrProvider.processDocuments() at ${new Date().toISOString()}`);
       
       // Step 1: Perform OCR on the document
       const ocrResult = await this.ocrProvider.processDocuments([{
@@ -67,33 +80,55 @@ export class CheckScanner implements DocumentScanner {
         options: validatedInput.options || document.options
       }]);
       
+      console.log(`[${scannerRequestId}] Step 3: OCR processing completed`);
+      console.log(`[${scannerRequestId}] OCR result type: ${ocrResult[0]}`);
+      console.log(`[${scannerRequestId}] Time since scanner start: ${Date.now() - scannerStartTime}ms`);
+      
       if (ocrResult[0] === 'error') {
+        console.log(`[${scannerRequestId}] OCR ERROR: ${ocrResult[1].message}`);
         return ['error', `OCR processing failed: ${ocrResult[1].message}`];
       }
 
+      console.log(`[${scannerRequestId}] Step 4: Processing OCR results`);
       // The OCR result is an array of results for each page/image
       // For simplicity, we'll use the first result if available
       if (!ocrResult[1][0] || ocrResult[1][0].length === 0) {
+        console.log(`[${scannerRequestId}] OCR ERROR: Empty results`);
         return ['error', 'OCR processing returned empty results'];
       }
       
       const ocrData = ocrResult[1][0][0]; // First document, first result
       ocrText = ocrData.text;
       ocrConfidence = ocrData.confidence;
+      console.log(`[${scannerRequestId}] OCR text length: ${ocrText.length} characters`);
+      console.log(`[${scannerRequestId}] OCR confidence: ${ocrConfidence}`);
+      console.log(`[${scannerRequestId}] OCR text sample: ${ocrText.substring(0, 100)}...`);
     } catch (error) {
+      console.log(`[${scannerRequestId}] VALIDATION ERROR: ${error}`);
       // Handle validation errors
       const errorMessage = error instanceof Error ? error.message : String(error);
       return ['error', `Validation failed: ${errorMessage}`];
     }
 
+    console.log(`[${scannerRequestId}] Step 5: Starting JSON extraction - POTENTIAL HANG POINT`);
+    console.log(`[${scannerRequestId}] About to call checkExtractor.extractFromText() at ${new Date().toISOString()}`);
+    
     // Step 2: Extract structured data from OCR text
     const extractionResult = await this.checkExtractor.extractFromText(ocrText);
+    
+    console.log(`[${scannerRequestId}] Step 6: JSON extraction completed`);
+    console.log(`[${scannerRequestId}] Extraction result type: ${extractionResult[0]}`);
+    console.log(`[${scannerRequestId}] Time since scanner start: ${Date.now() - scannerStartTime}ms`);
+    
     if (extractionResult[0] === 'error') {
+      console.log(`[${scannerRequestId}] EXTRACTION ERROR: ${extractionResult[1]}`);
       return ['error', `Data extraction failed: ${extractionResult[1]}`];
     }
 
     const extractedData = extractionResult[1];
+    console.log(`[${scannerRequestId}] Extracted data keys: ${Object.keys(extractedData.json || {}).join(', ')}`);
 
+    console.log(`[${scannerRequestId}] Step 7: Starting hallucination detection`);
     // Step 3: Apply check-specific hallucination detection
     this.hallucinationDetector.detect(extractedData.json);
 

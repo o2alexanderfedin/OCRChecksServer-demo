@@ -1,6 +1,6 @@
 import type { Result } from 'functionalscript/types/result/module.f.js';
-import type { Receipt } from '../schemas/receipt';
-import type { Check } from '../schemas/check';
+import type { Receipt } from '../schemas/receipt.ts';
+import type { Check } from '../schemas/check.ts';
 
 /**
  * Interface for receipt data extractors

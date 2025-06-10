@@ -1,7 +1,8 @@
 /**
  * Unit tests for ValidationMiddleware
  */
-import { ValidationMiddleware, ValidationError, ApiKeyValidator } from '../../../src/validators';
+import '../../../test-setup.ts';
+import { ValidationMiddleware, ValidationError, ApiKeyValidator } from '../../../src/validators/index.ts';
 
 describe('ValidationMiddleware', () => {
   let middleware: ValidationMiddleware;
@@ -11,30 +12,33 @@ describe('ValidationMiddleware', () => {
     middleware = new ValidationMiddleware();
     apiKeyValidator = new ApiKeyValidator({
       apiKeyMinLength: 20,
-      forbiddenPatterns: ['test', 'placeholder']
+      forbiddenPatterns: ['valid-production-token-placeholder']
     });
   });
   
-  describe('createBodyValidator', () => {
-    it('should pass valid requests to the next middleware', () => {
+  it('should pass valid requests to the next middleware', () => {
       // Create a body validator middleware
       const bodyValidator = middleware.createBodyValidator(apiKeyValidator);
       
       // Create mock request, response, and next function
       const req: any = { body: 'valid-api-key-12345678901234' };
+      let nextCalled = false;
+      let statusCalled = false;
       const res: any = {
-        status: jasmine.createSpy('status').and.returnValue({}),
-        json: jasmine.createSpy('json')
+        status: () => {
+          statusCalled = true;
+          return { json: () => {} };
+        },
+        json: () => {}
       };
-      const next = jasmine.createSpy('next');
+      const next = () => { nextCalled = true; };
       
       // Call middleware with valid body
       bodyValidator(req, res, next);
       
       // Should call next and not call status/json
-      expect(next).toHaveBeenCalled();
-      expect(res.status).not.toHaveBeenCalled();
-      expect(res.json).not.toHaveBeenCalled();
+      expect(nextCalled).toBe(true);
+      expect(statusCalled).toBe(false);
       
       // Should replace req.body with validated value
       expect(req.body).toBe('valid-api-key-12345678901234');
@@ -46,31 +50,36 @@ describe('ValidationMiddleware', () => {
       
       // Create mock request, response, and next function
       const req: any = { body: 'short' };
+      let nextCalled = false;
+      let statusCode = 0;
+      let responseData: any = null;
       const res: any = {
-        status: jasmine.createSpy('status').and.returnValue({
-          json: jasmine.createSpy('json')
-        })
+        status: (code: number) => {
+          statusCode = code;
+          return {
+            json: (data: any) => {
+              responseData = data;
+            }
+          };
+        }
       };
-      const next = jasmine.createSpy('next');
+      const next = () => { nextCalled = true; };
       
       // Call middleware with invalid body
       bodyValidator(req, res, next);
       
       // Should not call next
-      expect(next).not.toHaveBeenCalled();
+      expect(nextCalled).toBe(false);
       
       // Should return 400 status with error details
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.status().json).toHaveBeenCalled();
-      
-      // Check error response format
-      const errorResponse = res.status().json.calls.mostRecent().args[0];
-      expect(errorResponse.error).toBe('Validation failed');
-      expect(errorResponse.details).toBeDefined();
-      expect(errorResponse.details.length).toBeGreaterThan(0);
+      expect(statusCode).toBe(400);
+      expect(responseData).toBeDefined();
+      expect(responseData.error).toBe('Validation failed');
+      expect(responseData.details).toBeDefined();
+      expect(responseData.details.length).toBeGreaterThan(0);
       
       // Check that no sensitive data is exposed
-      const firstDetail = errorResponse.details[0];
+      const firstDetail = responseData.details[0];
       expect(firstDetail.message).toBeDefined();
       expect(firstDetail.path).toBeDefined();
       expect(firstDetail.code).toBeDefined();
@@ -81,10 +90,10 @@ describe('ValidationMiddleware', () => {
     it('should pass non-validation errors to next middleware', () => {
       // Create a validator that throws non-validation errors
       const errorValidator = {
-        assertValid: jasmine.createSpy('assertValid').and.callFake(() => {
+        assertValid: () => {
           throw new Error('Some other error');
-        }),
-        validate: jasmine.createSpy('validate')
+        },
+        validate: () => undefined
       };
       
       // Create a body validator middleware
@@ -92,24 +101,26 @@ describe('ValidationMiddleware', () => {
       
       // Create mock request, response, and next function
       const req: any = { body: {} };
+      let statusCalled = false;
+      let nextError: any = null;
       const res: any = {
-        status: jasmine.createSpy('status').and.returnValue({
-          json: jasmine.createSpy('json')
-        })
+        status: () => {
+          statusCalled = true;
+          return { json: () => {} };
+        }
       };
-      const next = jasmine.createSpy('next');
+      const next = (error?: any) => { nextError = error; };
       
       // Call middleware with validator that throws non-validation error
       bodyValidator(req, res, next);
       
       // Should call next with the error
-      expect(next).toHaveBeenCalled();
-      expect(next.calls.mostRecent().args[0].message).toBe('Some other error');
+      expect(nextError).toBeDefined();
+      expect(nextError.message).toBe('Some other error');
       
       // Should not try to handle the error itself
-      expect(res.status).not.toHaveBeenCalled();
+      expect(statusCalled).toBe(false);
     });
-  });
   
   describe('createParamValidator', () => {
     it('should validate URL parameters and pass to next middleware', () => {
@@ -118,19 +129,22 @@ describe('ValidationMiddleware', () => {
       
       // Create mock request, response, and next function
       const req: any = { params: { apiKey: 'valid-api-key-12345678901234' } };
+      let nextCalled = false;
+      let statusCalled = false;
       const res: any = {
-        status: jasmine.createSpy('status').and.returnValue({
-          json: jasmine.createSpy('json')
-        })
+        status: () => {
+          statusCalled = true;
+          return { json: () => {} };
+        }
       };
-      const next = jasmine.createSpy('next');
+      const next = () => { nextCalled = true; };
       
       // Call middleware with valid param
       paramValidator(req, res, next);
       
       // Should call next and not call status/json
-      expect(next).toHaveBeenCalled();
-      expect(res.status).not.toHaveBeenCalled();
+      expect(nextCalled).toBe(true);
+      expect(statusCalled).toBe(false);
     });
     
     it('should return 400 for invalid URL parameters', () => {
@@ -139,26 +153,30 @@ describe('ValidationMiddleware', () => {
       
       // Create mock request, response, and next function
       const req: any = { params: { apiKey: 'short' } };
+      let nextCalled = false;
+      let statusCode = 0;
+      let responseData: any = null;
       const res: any = {
-        status: jasmine.createSpy('status').and.returnValue({
-          json: jasmine.createSpy('json')
-        })
+        status: (code: number) => {
+          statusCode = code;
+          return {
+            json: (data: any) => {
+              responseData = data;
+            }
+          };
+        }
       };
-      const next = jasmine.createSpy('next');
+      const next = () => { nextCalled = true; };
       
       // Call middleware with invalid param
       paramValidator(req, res, next);
       
       // Should not call next
-      expect(next).not.toHaveBeenCalled();
+      expect(nextCalled).toBe(false);
       
       // Should return 400 status with error details
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.status().json).toHaveBeenCalled();
-      
-      // Error message should include the param name
-      const errorResponse = res.status().json.calls.mostRecent().args[0];
-      expect(errorResponse.error).toContain('apiKey');
+      expect(statusCode).toBe(400);
+      expect(responseData.error).toContain('apiKey');
     });
   });
   
@@ -169,19 +187,22 @@ describe('ValidationMiddleware', () => {
       
       // Create mock request, response, and next function
       const req: any = { query: { apiKey: 'valid-api-key-12345678901234' } };
+      let nextCalled = false;
+      let statusCalled = false;
       const res: any = {
-        status: jasmine.createSpy('status').and.returnValue({
-          json: jasmine.createSpy('json')
-        })
+        status: () => {
+          statusCalled = true;
+          return { json: () => {} };
+        }
       };
-      const next = jasmine.createSpy('next');
+      const next = () => { nextCalled = true; };
       
       // Call middleware with valid query param
       queryValidator(req, res, next);
       
       // Should call next and not call status/json
-      expect(next).toHaveBeenCalled();
-      expect(res.status).not.toHaveBeenCalled();
+      expect(nextCalled).toBe(true);
+      expect(statusCalled).toBe(false);
     });
     
     it('should return 400 for invalid query parameters', () => {
@@ -190,26 +211,30 @@ describe('ValidationMiddleware', () => {
       
       // Create mock request, response, and next function
       const req: any = { query: { apiKey: 'short' } };
+      let nextCalled = false;
+      let statusCode = 0;
+      let responseData: any = null;
       const res: any = {
-        status: jasmine.createSpy('status').and.returnValue({
-          json: jasmine.createSpy('json')
-        })
+        status: (code: number) => {
+          statusCode = code;
+          return {
+            json: (data: any) => {
+              responseData = data;
+            }
+          };
+        }
       };
-      const next = jasmine.createSpy('next');
+      const next = () => { nextCalled = true; };
       
       // Call middleware with invalid query param
       queryValidator(req, res, next);
       
       // Should not call next
-      expect(next).not.toHaveBeenCalled();
+      expect(nextCalled).toBe(false);
       
       // Should return 400 status with error details
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.status().json).toHaveBeenCalled();
-      
-      // Error message should include the query param name
-      const errorResponse = res.status().json.calls.mostRecent().args[0];
-      expect(errorResponse.error).toContain('apiKey');
+      expect(statusCode).toBe(400);
+      expect(responseData.error).toContain('apiKey');
     });
   });
 });

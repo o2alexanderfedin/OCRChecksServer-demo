@@ -4,12 +4,12 @@
  * Processes OCR text to extract structured receipt data according to the receipt schema.
  */
 
-import { Receipt } from '../schemas/receipt';
-import { JsonExtractor, JsonSchema } from '../types';
+import { Receipt } from '../schemas/receipt.ts';
+import { JsonExtractor, JsonSchema } from '../types.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
-import { ReceiptExtractor as IReceiptExtractor } from './types';
+import { ReceiptExtractor as IReceiptExtractor } from './types.ts';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../../types/di-types';
+import { TYPES } from '../../types/di-types.ts';
 
 /**
  * Class for extracting receipt data from OCR text

@@ -5,7 +5,7 @@
  * enabling runtime selection between different JsonExtractor implementations.
  */
 
-import type { JsonExtractor } from '../types';
+import type { JsonExtractor } from '../types.ts';
 
 /**
  * Available JSON extractor types

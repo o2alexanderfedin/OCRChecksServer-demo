@@ -3,7 +3,7 @@ import Jasmine from 'jasmine';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { spawn } from 'child_process';
-import { addDevVarsToEnv } from './load-dev-vars.js';
+import { addDevVarsToEnv } from './load-dev-vars.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

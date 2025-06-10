@@ -1,7 +1,8 @@
+import '../../../../test-setup.ts';
 import { CheckExtractor } from '../../../../src/json/extractors/check-extractor';
-import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types';
+import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types.ts';
 import { CheckExtractor as ICheckExtractor } from '../../../../src/json/extractors/types';
-import { Check, CheckType, BankAccountType } from '../../../../src/json/schemas/check';
+import { Check, CheckType, BankAccountType } from '../../../../src/json/schemas/check.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 
 // Mock implementations

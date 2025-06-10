@@ -1,4 +1,4 @@
-// Using global describe, it, and expect functions provided by jasmine
+import '../../../test-setup.ts';
 
 // Import the function we're testing - since it's private, we'll test through the exported method
 // This is a bit of a hack to test a private function

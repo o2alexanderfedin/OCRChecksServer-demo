@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve as pathResolve, join } from 'path';
 import { setTimeout } from 'timers/promises';
 import fs from 'fs/promises';
-import { addDevVarsToEnv } from './load-dev-vars.js';
+import { addDevVarsToEnv } from './load-dev-vars.ts';
 
 /**
  * This script starts the development server and waits until it's ready,

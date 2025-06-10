@@ -20,7 +20,7 @@ import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import { globSync } from 'glob';
 import { promisify } from 'util';
-import { addDevVarsToEnv } from './load-dev-vars.js';
+import { addDevVarsToEnv } from './load-dev-vars.ts';
 import { exit } from 'process';
 
 // Get directory info
@@ -33,7 +33,8 @@ await addDevVarsToEnv();
 
 // Parse command line arguments
 const testType = process.argv[2]?.toLowerCase() || 'all';
-const testFilter = process.argv[3]; // Get the third argument if provided (e.g., "simple")
+// Get the third argument if provided, but skip flags
+const testFilter = process.argv[3] && !process.argv[3].startsWith('--') ? process.argv[3] : undefined;
 const watch = process.argv.includes('--watch');
 const dryRun = process.argv.includes('--dry-run');
 
@@ -170,7 +171,7 @@ if (config.requiresServer) {
     console.log(`API Key first 4 chars: ${serverEnv.MISTRAL_API_KEY?.substring(0, 4) || 'undefined'}****`);
     
     // Start the server with the complete environment
-    serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
+    serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.ts')], {
       stdio: ['inherit', 'pipe', 'inherit'],
       detached: false,
       env: serverEnv
@@ -181,7 +182,7 @@ if (config.requiresServer) {
       const output = data.toString();
       process.stdout.write(output);
       
-      // Check for the server URL message from start-server.js
+      // Check for the server URL message from start-server.ts
       const match = output.match(/Found server URL: (http:\/\/localhost:\d+)/);
       if (match && match[1]) {
         process.env.OCR_API_URL = match[1];
@@ -214,7 +215,7 @@ if (config.requiresServer) {
     console.log('Waiting for server to be fully ready...');
     
     // Wait longer for server startup
-    const serverStartupTimeout = 15000; // 15 seconds
+    const serverStartupTimeout = 5000; // 5 seconds - realistic timeout
     console.log(`Giving server ${serverStartupTimeout/1000} seconds to start up...`);
     await new Promise(resolve => setTimeout(resolve, serverStartupTimeout));
     
@@ -472,7 +473,7 @@ process.on('SIGINT', () => cleanupAndExit('SIGINT'));  // Ctrl+C
 process.on('SIGTERM', () => cleanupAndExit('SIGTERM')); // Kill command
 
 // Execute tests with timeout protection
-const timeoutMs = config.timeoutInterval * 2; // Normal timeout is 2x the interval
+const timeoutMs = 30000; // Force 30-second timeout for ALL tests
 
 // If dry run, just log tests that would be executed
 if (dryRun) {

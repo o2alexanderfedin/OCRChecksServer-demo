@@ -1,7 +1,7 @@
 /**
  * Scanner validation types
  */
-import { IDomainValidator } from '../types';
+import { IDomainValidator } from '../types.ts';
 
 /**
  * Scanner options type

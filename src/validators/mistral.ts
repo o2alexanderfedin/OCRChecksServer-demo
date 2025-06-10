@@ -3,8 +3,8 @@
  */
 import { z } from 'zod';
 import { injectable, inject } from 'inversify';
-import { AbstractValidator, StringValidator, NumberValidator } from './base';
-import { IDomainValidator, ApiKey, Url, TYPES, ValidationConfig } from './types';
+import { AbstractValidator, StringValidator, NumberValidator } from './base.ts';
+import { IDomainValidator, ApiKey, Url, TYPES, ValidationConfig } from './types.ts';
 
 /**
  * Interface for API key validators

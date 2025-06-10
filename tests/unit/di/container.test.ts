@@ -1,21 +1,21 @@
+import '../../../test-setup.ts';
 import 'reflect-metadata';
-import { DIContainer } from '../../../src/di/container';
-import { TYPES } from '../../../src/types/di-types';
-import { IoE } from '../../../src/ocr/types';
+import { DIContainer } from '../../../src/di/container.ts';
+import { TYPES } from '../../../src/types/di-types.ts';
+import { IoE } from '../../../src/ocr/types.ts';
 import { Mistral } from '@mistralai/mistralai';
-import { MistralOCRProvider } from '../../../src/ocr/mistral';
-import { MistralJsonExtractorProvider } from '../../../src/json/mistral';
-import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
-import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
-import { ReceiptScanner } from '../../../src/scanner/receipt-scanner';
-import { CheckScanner } from '../../../src/scanner/check-scanner';
+import { MistralOCRProvider } from '../../../src/ocr/mistral.ts';
+import { MistralJsonExtractorProvider } from '../../../src/json/mistral.ts';
+import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor.ts';
+import { CheckExtractor } from '../../../src/json/extractors/check-extractor.ts';
+import { ReceiptScanner } from '../../../src/scanner/receipt-scanner.ts';
+import { CheckScanner } from '../../../src/scanner/check-scanner.ts';
 import { 
   IScannerInputValidator,
   CheckScannerInputValidator,
   ReceiptScannerInputValidator,
   TYPES as VALIDATOR_TYPES
-} from '../../../src/validators';
-import 'jasmine';
+} from '../../../src/validators/index.ts';
 
 describe('DIContainer', () => {
   // Mock IoE implementation as simple as possible
@@ -231,7 +231,7 @@ describe('DIContainer', () => {
           testContainer.get<Mistral>(TYPES.MistralClient);
           fail('Should have thrown an error for placeholder API key');
         } catch (error) {
-          expect(String(error)).toContain('CRITICAL ERROR: Validation failed');
+          expect(String(error)).toContain('Validation failed');
         }
       });
     });

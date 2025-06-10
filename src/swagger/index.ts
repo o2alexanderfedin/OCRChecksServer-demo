@@ -1,6 +1,6 @@
 import { swaggerUI } from '@hono/swagger-ui';
 import pkg from '../../package.json';
-import openApiSpec from './openapi-spec';
+import openApiSpec from './openapi-spec.ts';
 
 /**
  * Creates a Swagger UI middleware with the current OpenAPI specification

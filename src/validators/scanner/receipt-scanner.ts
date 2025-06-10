@@ -3,9 +3,9 @@
  */
 import { z } from 'zod';
 import { injectable, inject } from 'inversify';
-import { AbstractValidator } from '../base';
-import { TYPES, ValidationError } from '../types';
-import { IScannerInputValidator, ScannerInput, ScannerOptions } from './types';
+import { AbstractValidator } from '../base.ts';
+import { TYPES, ValidationError } from '../types.ts';
+import { IScannerInputValidator, ScannerInput, ScannerOptions } from './types.ts';
 
 /**
  * Interface for File validators

@@ -1,11 +1,11 @@
-import { OCRProvider, Document } from '../ocr/types';
-import { DocumentScanner, ProcessingResult } from './types';
+import { OCRProvider, Document } from '../ocr/types.ts';
+import { DocumentScanner, ProcessingResult } from './types.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types';
 import { injectable, inject, named } from 'inversify';
 import { TYPES as VALIDATOR_TYPES, IScannerInputValidator, ScannerInput } from '../validators';
-import { TYPES } from '../types/di-types';
-import { ReceiptHallucinationDetector } from '../json/utils/receipt-hallucination-detector';
+import { TYPES } from '../types/di-types.ts';
+import { ReceiptHallucinationDetector } from '../json/utils/receipt-hallucination-detector.ts';
 
 /**
  * ReceiptScanner - Encapsulates OCR and JSON extraction in a single process

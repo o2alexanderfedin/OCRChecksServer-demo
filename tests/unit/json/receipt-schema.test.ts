@@ -1,3 +1,4 @@
+import '../../../test-setup.ts';
 import { 
   receiptSchema, 
   Receipt, 
@@ -5,7 +6,7 @@ import {
   PaymentMethod, 
   CardType, 
   ReceiptFormat 
-} from '../../../src/json/schemas/receipt';
+} from '../../../src/json/schemas/receipt.ts';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 

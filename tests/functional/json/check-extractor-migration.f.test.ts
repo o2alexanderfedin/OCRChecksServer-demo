@@ -3,8 +3,8 @@
  * to modern implementation
  */
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
-import { Check, CheckType, BankAccountType } from '../../../src/json/schemas/check';
-import { JsonExtractor, JsonSchema } from '../../../src/json/types';
+import { Check, CheckType, BankAccountType } from '../../../src/json/schemas/check.ts';
+import { JsonExtractor, JsonSchema } from '../../../src/json/types.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 
 // Mock JSON extractor for testing

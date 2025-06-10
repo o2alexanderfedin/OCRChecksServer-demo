@@ -1,5 +1,5 @@
 // A simple script to test the Mistral API directly with image inputs
-import { Mistral } from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

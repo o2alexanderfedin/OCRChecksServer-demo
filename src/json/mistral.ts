@@ -1,11 +1,11 @@
-import type { Result } from 'functionalscript/types/result/module.f.js'
+import type { Result } from 'functionalscript/types/result/module.f'
 import { Mistral } from '@mistralai/mistralai'
 import type { IoE } from '../ocr/types'
 import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './types'
 import { injectable, inject } from 'inversify';
 import { TYPES as VALIDATOR_TYPES } from '../validators';
-import { TYPES } from '../types/di-types';
-import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculator';
+import { TYPES } from '../types/di-types.ts';
+import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculator.ts';
 
 /**
  * Mistral JSON extractor implementation

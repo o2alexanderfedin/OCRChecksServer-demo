@@ -3,9 +3,9 @@
  * Validates receipt-specific hallucination detection following SOLID principles
  */
 
-// Using Jasmine global expect
-import { ReceiptHallucinationDetector } from '../../../../src/json/utils/receipt-hallucination-detector';
-import { Receipt } from '../../../../src/json/schemas/receipt';
+import '../../../../test-setup.ts';
+import { ReceiptHallucinationDetector } from '../../../../src/json/utils/receipt-hallucination-detector.ts';
+import { Receipt } from '../../../../src/json/schemas/receipt.ts';
 
 describe('ReceiptHallucinationDetector', () => {
   let detector: ReceiptHallucinationDetector;

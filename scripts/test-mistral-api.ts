@@ -1,9 +1,9 @@
 // A simple script to test the Mistral API directly with image inputs
-import { Mistral } from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { addDevVarsToEnv } from './load-dev-vars.js';
+import { addDevVarsToEnv } from './load-dev-vars.ts';
 
 // Get directory info for ES modules
 const __filename = fileURLToPath(import.meta.url);

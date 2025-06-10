@@ -1,5 +1,5 @@
 // Export the interfaces
-export * from './types';
+export * from './types.ts';
 
 // Export the implementations
 export * from './receipt-extractor';

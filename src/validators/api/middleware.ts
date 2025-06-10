@@ -3,7 +3,7 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import { injectable } from 'inversify';
-import { IDomainValidator, ValidationError } from '../types';
+import { IDomainValidator, ValidationError } from '../types.ts';
 
 /**
  * Middleware that validates request bodies

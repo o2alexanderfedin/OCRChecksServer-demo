@@ -3,32 +3,32 @@
  */
 import { Container } from 'inversify';
 import { z } from 'zod';
-import { StringValidator, NumberValidator } from './base';
+import { StringValidator, NumberValidator } from './base.ts';
 import { 
   ApiKeyValidator, 
   UrlValidator, 
   MistralConfigValidator,
   IApiKeyValidator,
   IMistralConfigValidator
-} from './mistral';
+} from './mistral.ts';
 import { 
   CheckScannerInputValidator, 
   IFileValidator, 
   IScannerOptionsValidator 
-} from './scanner/check-scanner';
-import { ReceiptScannerInputValidator } from './scanner/receipt-scanner';
+} from './scanner/check-scanner.ts';
+import { ReceiptScannerInputValidator } from './scanner/receipt-scanner.ts';
 import { 
   IDomainValidator, 
   ValidationConfig, 
   TYPES, 
   Url,
   ApiKey
-} from './types';
+} from './types.ts';
 import { 
   IScannerInputValidator, 
   ScannerOptions 
-} from './scanner/types';
-import { ValidationMiddleware } from './api/middleware';
+} from './scanner/types.ts';
+import { ValidationMiddleware } from './api/middleware.ts';
 
 /**
  * File validator implementation
@@ -102,13 +102,13 @@ export function registerValidators(container: Container): void {
 }
 
 // Export all validators
-export * from './base';
-export * from './mistral';
-export { CheckScannerInputValidator } from './scanner/check-scanner';
-export { ReceiptScannerInputValidator } from './scanner/receipt-scanner';
-export * from './scanner/types';
-export * from './types';
-export * from './api/index';
+export * from './base.ts';
+export * from './mistral.ts';
+export { CheckScannerInputValidator } from './scanner/check-scanner.ts';
+export { ReceiptScannerInputValidator } from './scanner/receipt-scanner.ts';
+export * from './scanner/types.ts';
+export * from './types.ts';
+export * from './api';
 
 // Factory functions for creating validators
 export function createApiKeyValidator(config: ValidationConfig): IApiKeyValidator {

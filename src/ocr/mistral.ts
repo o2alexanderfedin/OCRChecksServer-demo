@@ -1,4 +1,4 @@
-import type { Result } from 'functionalscript/types/result/module.f.js'
+import type { Result } from 'functionalscript/types/result/module.f'
 import { OCRProvider, OCRResult, Document, OCRProviderConfig, IoE, DocumentType } from './types'
 import { Mistral } from '@mistralai/mistralai'
 import type { 
@@ -10,10 +10,10 @@ import type {
 } from '@mistralai/mistralai/models/components'
 import { injectable, inject } from 'inversify';
 import { TYPES as VALIDATOR_TYPES } from '../validators';
-import { TYPES } from '../types/di-types';
+import { TYPES } from '../types/di-types.ts';
 
 // Import our cross-platform base64 utilities
-import { arrayBufferToBase64, contentToArrayBuffer, getContentByteLength } from './base64';
+import { arrayBufferToBase64, contentToArrayBuffer, getContentByteLength } from './base64.ts';
 
 /**
  * Mistral OCR provider implementation
@@ -161,7 +161,12 @@ export class MistralOCRProvider implements OCRProvider {
                     : ('documentUrl' in document && typeof document.documentUrl === 'string' ? document.documentUrl.length : 0)
             });
             
-            // Call the OCR API
+            // Call the OCR API - THIS IS THE MOST CRITICAL POINT WHERE HANGS OCCUR
+            console.log(`[OCR] ===== MISTRAL API CALL START =====`);
+            console.log(`[OCR] Starting API request at: ${new Date().toISOString()}`);
+            console.log(`[OCR] Document type: ${document.type}, size: ${document.type === 'image_url' ? 'image data' : 'document data'}`);
+            console.log(`[OCR] About to call this.client.ocr.process() - CRITICAL HANG POINT`);
+            
             this.io.debug(`Starting API request at: ${new Date().toISOString()}`);
             this.io.debug('Making OCR API call with mistral-ocr-latest model...');
             
@@ -169,10 +174,13 @@ export class MistralOCRProvider implements OCRProvider {
             
             // Process the document with Mistral OCR API
             try {
+                console.log(`[OCR] CALLING MISTRAL API NOW at ${new Date().toISOString()}`);
                 const response = await this.client.ocr.process({
                     model: 'mistral-ocr-latest',
                     document: document
                 });
+                console.log(`[OCR] MISTRAL API RESPONSE RECEIVED at ${new Date().toISOString()}`);
+                console.log(`[OCR] API call duration: ${Date.now() - apiStartTime}ms`);
                 
                 const apiDuration = Date.now() - apiStartTime;
                 this.io.debug(`Response received at: ${new Date().toISOString()}`);

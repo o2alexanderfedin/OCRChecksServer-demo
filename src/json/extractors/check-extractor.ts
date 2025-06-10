@@ -4,12 +4,12 @@
  * Processes OCR text to extract structured check data according to the check schema.
  */
 
-import { Check, BankAccountType, CheckType } from '../schemas/check';
-import { JsonExtractor, JsonSchema } from '../types';
+import { Check, BankAccountType, CheckType } from '../schemas/check.ts';
+import { JsonExtractor, JsonSchema } from '../types.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
-import { CheckExtractor as ICheckExtractor } from './types';
+import { CheckExtractor as ICheckExtractor } from './types.ts';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../../types/di-types';
+import { TYPES } from '../../types/di-types.ts';
 
 /**
  * Class for extracting check data from OCR text

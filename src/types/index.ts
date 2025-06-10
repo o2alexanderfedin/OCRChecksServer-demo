@@ -3,4 +3,4 @@
  */
 
 // Export API response types
-export * from './api-responses';
+export * from './api-responses.ts';

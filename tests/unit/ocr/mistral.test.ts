@@ -1,8 +1,8 @@
+import '../../../test-setup.ts';
 import { DocumentType, type IoE } from '../../../src/ocr/types'
 import { MistralOCRProvider } from '../../../src/ocr/mistral'
 import { Mistral } from '@mistralai/mistralai'
 import type { OCRResponse } from '@mistralai/mistralai/models/components'
-import 'jasmine'
 
 // Create our own simplified mock function since jasmine.createSpy might not be available
 interface MockFunction {

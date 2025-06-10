@@ -26,7 +26,7 @@ console.log('Running ReceiptScanner integration test...');
 
 // Start server
 console.log('Starting server for integration tests...');
-const serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
+const serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.ts')], {
   stdio: 'inherit',
   detached: false,
   env: { 

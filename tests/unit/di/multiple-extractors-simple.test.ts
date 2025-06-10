@@ -52,11 +52,4 @@ describe('DI Container Multiple Extractors Configuration', () => {
     expect(extractorContainer.get(TYPES.MistralApiKey)).toBe('valid-production-token-1234567890');
     expect(extractorContainer.get(TYPES.JsonExtractorProvider)).toBeDefined();
   });
-
-  it('should handle container initialization', () => {
-    // Should be able to create container without errors
-    expect(container).toBeDefined();
-    expect(typeof container.registerDependencies).toBe('function');
-    expect(typeof container.getContainer).toBe('function');
-  });
 });

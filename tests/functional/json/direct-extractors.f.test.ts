@@ -12,13 +12,13 @@ import {
   ReceiptType, 
   PaymentMethod, 
   CardType
-} from '../../../src/json/schemas/receipt';
+} from '../../../src/json/schemas/receipt.ts';
 import { 
   Check,
   CheckType,
   BankAccountType
-} from '../../../src/json/schemas/check';
-import { JsonExtractor, JsonSchema } from '../../../src/json/types';
+} from '../../../src/json/schemas/check.ts';
+import { JsonExtractor, JsonSchema } from '../../../src/json/types.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 
 const __filename = fileURLToPath(import.meta.url);

@@ -4,9 +4,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { HealthResponse } from '../../src/types/api-responses';
-import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
-import { setupServerCleanup } from '../helpers/server-cleanup.js';
+import { HealthResponse } from '../../src/types/api-responses.ts';
+import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

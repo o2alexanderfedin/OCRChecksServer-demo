@@ -2,9 +2,9 @@
 // This version uses direct HTTPS requests to have more control over the connection
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
+import https from 'https.js';
 import { fileURLToPath } from 'url';
-import { addDevVarsToEnv } from './load-dev-vars.js';
+import { addDevVarsToEnv } from './load-dev-vars.ts';
 
 // Load variables from .dev.vars
 await addDevVarsToEnv();

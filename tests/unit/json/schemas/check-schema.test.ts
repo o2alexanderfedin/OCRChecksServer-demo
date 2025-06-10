@@ -1,11 +1,12 @@
+import '../../../../test-setup.ts';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import { checkSchema } from '../../../../src/json/schemas/check';
+import { checkSchema } from '../../../../src/json/schemas/check.ts';
 import { 
   Check, 
   CheckType,
   BankAccountType
-} from '../../../../src/json/schemas/check';
+} from '../../../../src/json/schemas/check.ts';
 
 describe('Check Schema Validation', () => {
   let ajv: Ajv;

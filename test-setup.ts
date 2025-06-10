@@ -110,6 +110,27 @@ class Expectation {
     return this;
   }
   
+  toBeLessThan(expected: number) {
+    if (this.actual >= expected) {
+      throw new Error(`Expected ${this.actual} to be less than ${expected}`);
+    }
+    return this;
+  }
+  
+  toBeGreaterThanOrEqual(expected: number) {
+    if (this.actual < expected) {
+      throw new Error(`Expected ${this.actual} to be greater than or equal to ${expected}`);
+    }
+    return this;
+  }
+  
+  toBeLessThanOrEqual(expected: number) {
+    if (this.actual > expected) {
+      throw new Error(`Expected ${this.actual} to be less than or equal to ${expected}`);
+    }
+    return this;
+  }
+  
   toBeTruthy() {
     if (!this.actual) {
       throw new Error(`Expected ${this.actual} to be truthy`);
@@ -210,6 +231,23 @@ class Expectation {
     return this;
   }
   
+  toMatch(pattern: RegExp | string) {
+    if (typeof this.actual !== 'string') {
+      throw new Error(`Expected value to be a string, but got ${typeof this.actual}`);
+    }
+    
+    if (pattern instanceof RegExp) {
+      if (!pattern.test(this.actual)) {
+        throw new Error(`Expected "${this.actual}" to match pattern ${pattern}`);
+      }
+    } else {
+      if (!this.actual.includes(pattern)) {
+        throw new Error(`Expected "${this.actual}" to match "${pattern}"`);
+      }
+    }
+    return this;
+  }
+  
   get not() {
     return new NotExpectation(this.actual);
   }
@@ -232,6 +270,30 @@ class NotExpectation {
   toBeUndefined() {
     if (this.actual === undefined) {
       throw new Error(`Expected ${this.actual} not to be undefined`);
+    }
+    return this;
+  }
+  
+  toMatch(pattern: RegExp | string) {
+    if (typeof this.actual !== 'string') {
+      throw new Error(`Expected value to be a string, but got ${typeof this.actual}`);
+    }
+    
+    if (pattern instanceof RegExp) {
+      if (pattern.test(this.actual)) {
+        throw new Error(`Expected "${this.actual}" not to match pattern ${pattern}`);
+      }
+    } else {
+      if (this.actual.includes(pattern)) {
+        throw new Error(`Expected "${this.actual}" not to match "${pattern}"`);
+      }
+    }
+    return this;
+  }
+  
+  toBeNull() {
+    if (this.actual === null) {
+      throw new Error(`Expected ${this.actual} not to be null`);
     }
     return this;
   }

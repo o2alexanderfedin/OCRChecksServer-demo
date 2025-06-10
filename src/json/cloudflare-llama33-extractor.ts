@@ -136,10 +136,10 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
           
           if (typeof response === 'string') {
             responseText = response;
-          } else if (response && typeof response.response === 'string') {
-            responseText = response.response;
-          } else if (response && typeof response.result === 'string') {
-            responseText = response.result;
+          } else if (response && typeof (response as Record<string, unknown>).response === 'string') {
+            responseText = (response as Record<string, unknown>).response as string;
+          } else if (response && typeof (response as Record<string, unknown>).result === 'string') {
+            responseText = (response as Record<string, unknown>).result as string;
           } else {
             console.log('- WARNING: Unexpected response format, attempting to stringify');
             responseText = JSON.stringify(response);

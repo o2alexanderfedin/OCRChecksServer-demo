@@ -252,6 +252,7 @@ When processing a check through the API, the response will have the following fo
     "signature": true,
     "confidence": 0.95
   },
+  "markdown": "Check Number: 12345\nDate: 01/15/2023\nPay to the Order of: John Smith\nPay Exactly: One Thousand Two Hundred Thirty-Four Dollars and 56/100\n$1,234.56\nMemo: Services rendered\nFirst National Bank\n123456789 9876543210 12345",
   "confidence": {
     "ocr": 0.98,
     "extraction": 0.92,
@@ -259,6 +260,12 @@ When processing a check through the API, the response will have the following fo
   }
 }
 ```
+
+### Response Fields
+
+- **`data`**: The structured check data extracted using the check schema
+- **`markdown`**: Raw OCR text extracted from the check image before JSON processing
+- **`confidence`**: Confidence scores for OCR, extraction, and overall processing
 
 ## Complete Example JSON
 

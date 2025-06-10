@@ -100,8 +100,8 @@ sequenceDiagram
     Extractor-->>Scanner: Return Extraction Result
     
     Scanner->>Scanner: Calculate Confidence Scores
-    Scanner-->>API: Return Processing Result
-    API-->>Client: Return JSON Response
+    Scanner-->>API: Return Processing Result with OCR Text
+    API-->>Client: Return JSON Response with Data and Markdown
 ```
 
 1. **Request Reception**
@@ -115,8 +115,8 @@ sequenceDiagram
 
 3. **Result Processing**
    - Confidence scores are calculated for extraction accuracy
-   - Results are formatted according to API schema
-   - Response is returned to client
+   - Results are formatted according to API schema, including raw OCR text
+   - Response is returned to client with both structured data and markdown
 
 ### Universal Document Processing
 
@@ -141,8 +141,8 @@ sequenceDiagram
     Processing-->>Scanner: Return Processing Result
     Scanner-->>API: Return Scanning Result
     
-    API->>API: Format Response with Type
-    API-->>Client: Return JSON Response
+    API->>API: Format Response with Type and Markdown
+    API-->>Client: Return JSON Response with Data and OCR Text
 ```
 
 The universal endpoint provides flexibility by:
@@ -454,6 +454,7 @@ app.post('/check', async (c) => {
     // Return successful response
     return new Response(JSON.stringify({
       data: result[1].json,
+      markdown: result[1].rawText,
       confidence: {
         ocr: result[1].ocrConfidence,
         extraction: result[1].extractionConfidence,
@@ -521,11 +522,13 @@ Each request maintains its own isolated state:
 
 2. **Processing Context**
    - OCR results
-   - Extracted data
+   - Raw OCR text (markdown)
+   - Extracted structured data
    - Confidence scores
 
 3. **Response Context**
-   - Formatted JSON data
+   - Formatted structured JSON data
+   - Raw OCR text (markdown field)
    - Error information if applicable
    - Response headers
 

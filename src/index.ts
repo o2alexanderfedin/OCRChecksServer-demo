@@ -150,6 +150,7 @@ app.post('/process', async (c) => {
     // Return processing result
     return new Response(JSON.stringify({
       data: result[1].json,
+      markdown: result[1].rawText,
       documentType: contentTypeParam,
       confidence: {
         ocr: result[1].ocrConfidence,
@@ -241,6 +242,7 @@ app.post('/check', async (c) => {
     // Return processing result
     return new Response(JSON.stringify({
       data: result[1].json,
+      markdown: result[1].rawText,
       confidence: {
         ocr: result[1].ocrConfidence,
         extraction: result[1].extractionConfidence,
@@ -306,6 +308,7 @@ app.post('/receipt', async (c) => {
     // Return processing result
     return new Response(JSON.stringify({
       data: result[1].json,
+      markdown: result[1].rawText,
       confidence: {
         ocr: result[1].ocrConfidence,
         extraction: result[1].extractionConfidence,

@@ -21,6 +21,7 @@ export const TYPES = {
   CloudflareAI: Symbol.for('CloudflareAI'),
   JsonExtractorFactory: Symbol.for('JsonExtractorFactory'),
   CheckHallucinationDetector: Symbol.for('CheckHallucinationDetector'),
-  ReceiptHallucinationDetector: Symbol.for('ReceiptHallucinationDetector')
+  ReceiptHallucinationDetector: Symbol.for('ReceiptHallucinationDetector'),
+  ExtractorType: Symbol.for('ExtractorType')
   // HallucinationDetectorFactory: Symbol.for('HallucinationDetectorFactory') // REMOVED - no longer needed with scanner-based detection
 };

@@ -10,7 +10,7 @@
     "start-local": "bash scripts/start-local.sh",
     "deploy": "wrangler deploy",
     "deploy:with-secrets": "bash scripts/deploy-with-secrets.sh",
-    "test": "node --experimental-strip-types scripts/run-tests.ts all",
+    "test": "node --loader ts-node/esm --experimental-specifier-resolution=node scripts/run-tests.ts all",
     "test:all": "bash scripts/run-all-tests.sh",
     "test:unit": "node --experimental-strip-types scripts/run-unit-tests.ts",
     "test:functional": "node --experimental-strip-types scripts/run-functional-tests.ts",

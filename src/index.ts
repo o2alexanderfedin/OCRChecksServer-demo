@@ -1,7 +1,7 @@
 import 'reflect-metadata';
-import { Hono } from 'hono.js';
-import { cors } from 'hono/cors.js';
-import { serveStatic } from 'hono/cloudflare-workers.js';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { serveStatic } from 'hono/cloudflare-workers';
 import { workerIoE } from './io.ts';
 import { ScannerFactory } from './scanner/factory.ts';
 import { Document, DocumentType } from './ocr/types.ts';

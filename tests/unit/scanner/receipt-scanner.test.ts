@@ -6,7 +6,7 @@ import { ReceiptExtractor as IReceiptExtractor } from '../../../src/json/extract
 import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
 import { ReceiptHallucinationDetector } from '../../../src/json/utils/receipt-hallucination-detector.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
-import { IScannerInputValidator, ScannerInput } from '../../../src/validators.ts';
+import { IScannerInputValidator, ScannerInput } from '../../../src/validators/index.ts';
 
 // Mock implementations
 class MockOCRProvider implements OCRProvider {

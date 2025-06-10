@@ -1,5 +1,5 @@
-import Ajv from 'ajv.js';
-import addFormats from 'ajv-formats.js';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 import { checkSchema } from '../../../../src/json/schemas/check.ts';
 import { 
   Check, 

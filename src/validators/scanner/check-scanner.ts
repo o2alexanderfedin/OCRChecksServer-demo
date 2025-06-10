@@ -1,7 +1,7 @@
 /**
  * Check scanner validators
  */
-import { z } from 'zod.js';
+import { z } from 'zod';
 import { injectable, inject } from 'inversify';
 import { AbstractValidator } from '../base.ts';
 import { TYPES, ValidationError } from '../types.ts';

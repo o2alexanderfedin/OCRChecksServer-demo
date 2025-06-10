@@ -15,8 +15,8 @@ import { CheckHallucinationDetector } from '../json/utils/check-hallucination-de
 import { ReceiptHallucinationDetector } from '../json/utils/receipt-hallucination-detector.ts';
 import { ReceiptScanner } from '../scanner/receipt-scanner.ts';
 import { CheckScanner } from '../scanner/check-scanner.ts';
-import { Mistral } from '@mistralai/mistralai.js';
-import { RetryConfig } from '@mistralai/mistralai/lib/retries.js';
+import { Mistral } from '@mistralai/mistralai';
+import { RetryConfig } from '@mistralai/mistralai/lib/retries';
 import { 
   registerValidators,
   validateApiKey,
@@ -26,7 +26,7 @@ import {
   ValidationMiddleware,
   TYPES as VALIDATOR_TYPES,
   IScannerInputValidator
-} from '../validators.ts';
+} from '../validators';
 // Import config as a static file
 // Optimized retry strategy based on AWS best practices for distributed systems
 const mistralClientConfig = {

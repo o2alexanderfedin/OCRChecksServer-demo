@@ -6,7 +6,7 @@ import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
 import { CheckHallucinationDetector } from '../../../src/json/utils/check-hallucination-detector.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import type { Check } from '../../../src/json/schemas/check.ts';
-import { IScannerInputValidator, ScannerInput } from '../../../src/validators.ts';
+import { IScannerInputValidator, ScannerInput } from '../../../src/validators/index.ts';
 import 'reflect-metadata';
 
 // Mock implementations

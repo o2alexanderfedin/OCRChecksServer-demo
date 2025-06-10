@@ -2,7 +2,7 @@
  * Validators module index
  */
 import { Container } from 'inversify';
-import { z } from 'zod.js';
+import { z } from 'zod';
 import { StringValidator, NumberValidator } from './base.ts';
 import { 
   ApiKeyValidator, 
@@ -108,7 +108,7 @@ export { CheckScannerInputValidator } from './scanner/check-scanner.ts';
 export { ReceiptScannerInputValidator } from './scanner/receipt-scanner.ts';
 export * from './scanner/types.ts';
 export * from './types.ts';
-export * from './api/index';
+export * from './api';
 
 // Factory functions for creating validators
 export function createApiKeyValidator(config: ValidationConfig): IApiKeyValidator {

@@ -162,8 +162,9 @@ describe('MistralConfigValidator', () => {
       timeout: 30000
     };
     
-    expect(() => validator.assertValid(config)).toThrow(jasmine.any(ValidationError));
-    expect(mockApiKeyValidator.assertValid).toHaveBeenCalledWith('short-key');
+    expect(() => validator.assertValid(config)).toThrowError(ValidationError);
+    expect(mockApiKeyValidator.assertValid.calls.count).toBe(1);
+    expect(mockApiKeyValidator.assertValid.calls.args[0][0]).toBe('short-key');
   });
   
   it('should reject configurations with invalid URLs', () => {
@@ -173,9 +174,11 @@ describe('MistralConfigValidator', () => {
       timeout: 30000
     };
     
-    expect(() => validator.assertValid(config)).toThrow(jasmine.any(ValidationError));
-    expect(mockApiKeyValidator.assertValid).toHaveBeenCalledWith('valid-api-key-12345678901234');
-    expect(mockUrlValidator.assertValid).toHaveBeenCalledWith('not-a-url');
+    expect(() => validator.assertValid(config)).toThrowError(ValidationError);
+    expect(mockApiKeyValidator.assertValid.calls.count).toBe(1);
+    expect(mockApiKeyValidator.assertValid.calls.args[0][0]).toBe('valid-api-key-12345678901234');
+    expect(mockUrlValidator.assertValid.calls.count).toBe(1);
+    expect(mockUrlValidator.assertValid.calls.args[0][0]).toBe('not-a-url');
   });
   
   it('should reject configurations with invalid timeout values', () => {
@@ -185,10 +188,13 @@ describe('MistralConfigValidator', () => {
       timeout: -1000
     };
     
-    expect(() => validator.assertValid(config)).toThrow(jasmine.any(ValidationError));
-    expect(mockApiKeyValidator.assertValid).toHaveBeenCalledWith('valid-api-key-12345678901234');
-    expect(mockUrlValidator.assertValid).toHaveBeenCalledWith('https://api.mistral.ai');
-    expect(mockNumberValidator.assertValid).toHaveBeenCalledWith(-1000);
+    expect(() => validator.assertValid(config)).toThrowError(ValidationError);
+    expect(mockApiKeyValidator.assertValid.calls.count).toBe(1);
+    expect(mockApiKeyValidator.assertValid.calls.args[0][0]).toBe('valid-api-key-12345678901234');
+    expect(mockUrlValidator.assertValid.calls.count).toBe(1);
+    expect(mockUrlValidator.assertValid.calls.args[0][0]).toBe('https://api.mistral.ai');
+    expect(mockNumberValidator.assertValid.calls.count).toBe(1);
+    expect(mockNumberValidator.assertValid.calls.args[0][0]).toBe(-1000);
   });
   
   it('should reject configurations with invalid retry configs', () => {
@@ -201,8 +207,9 @@ describe('MistralConfigValidator', () => {
       }
     };
     
-    expect(() => validator.assertValid(config)).toThrow(jasmine.any(ValidationError));
-    expect(mockApiKeyValidator.assertValid).toHaveBeenCalledWith('valid-api-key-12345678901234');
+    expect(() => validator.assertValid(config)).toThrowError(ValidationError);
+    expect(mockApiKeyValidator.assertValid.calls.count).toBe(1);
+    expect(mockApiKeyValidator.assertValid.calls.args[0][0]).toBe('valid-api-key-12345678901234');
   });
   
   it('should propagate nested validation errors with detailed messages', () => {
@@ -223,9 +230,9 @@ describe('MistralConfigValidator', () => {
         expect(errorMessage).toContain('Invalid API key');
         
         // All of the mocks should have been called
-        expect(mockApiKeyValidator.assertValid).toHaveBeenCalled();
-        expect(mockUrlValidator.assertValid).toHaveBeenCalled(); // Validator validates all fields
-        expect(mockNumberValidator.assertValid).toHaveBeenCalled(); // Validator validates all fields
+        expect(mockApiKeyValidator.assertValid.calls.count).toBeGreaterThan(0);
+        expect(mockUrlValidator.assertValid.calls.count).toBeGreaterThan(0); // Validator validates all fields
+        expect(mockNumberValidator.assertValid.calls.count).toBeGreaterThan(0); // Validator validates all fields
       }
     }
   });

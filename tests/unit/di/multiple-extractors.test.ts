@@ -12,30 +12,36 @@ import { CloudflareLlama33JsonExtractor, CloudflareAI } from '../../../src/json/
 
 describe('DI Container Multiple Extractors Configuration', () => {
   let container: DIContainer;
+  const mockIoE = {
+    log: () => {},
+    debug: () => {},
+    warn: () => {},
+    error: () => {},
+    trace: () => {},
+    fetch: async () => new Response(),
+    atob: () => '',
+    console: { log: () => {}, error: () => {} },
+    fs: { writeFileSync: () => {}, readFileSync: () => '', existsSync: () => false, promises: {} },
+    process: { argv: [], env: {}, exit: () => {}, cwd: () => '' },
+    asyncImport: async () => ({ default: {} }),
+    performance: { now: () => 0 },
+    tryCatch: (fn: any) => { try { return ['ok', fn()]; } catch (e) { return ['error', e]; } },
+    asyncTryCatch: async (fn: any) => { try { return ['ok', await fn()]; } catch (e) { return ['error', e]; } }
+  } as any;
 
   beforeEach(() => {
-    // Set environment variable to control extractor selection
-    process.env.JSON_EXTRACTOR_TYPE = 'mistral'; // default
     container = new DIContainer();
   });
 
-  afterEach(() => {
-    // Clean up environment variable
-    delete process.env.JSON_EXTRACTOR_TYPE;
+  it('should bind MistralJsonExtractorProvider by default', () => {
+    // Register dependencies with a valid API key
+    container.registerDependencies(mockIoE, 'valid-production-token-1234567890');
+    const extractorContainer = container.getContainer();
+    
+    const extractor = extractorContainer.get<JsonExtractor>(TYPES.JsonExtractorProvider);
+    
+    expect(extractor).toBeInstanceOf(MistralJsonExtractorProvider);
   });
-
-  describe('extractor selection based on environment', () => {
-    it('should bind MistralJsonExtractorProvider when JSON_EXTRACTOR_TYPE is mistral', () => {
-      // Red phase: This test should fail initially
-      process.env.JSON_EXTRACTOR_TYPE = 'mistral';
-      
-      container.register();
-      const extractorContainer = container.getContainer();
-      
-      const extractor = extractorContainer.get<JsonExtractor>(TYPES.JsonExtractorProvider);
-      
-      expect(extractor).toBeInstanceOf(MistralJsonExtractorProvider);
-    });
 
     it('should bind CloudflareLlama33JsonExtractor when JSON_EXTRACTOR_TYPE is cloudflare', () => {
       process.env.JSON_EXTRACTOR_TYPE = 'cloudflare';

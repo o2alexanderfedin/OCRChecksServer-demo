@@ -12,12 +12,11 @@ describe('ValidationMiddleware', () => {
     middleware = new ValidationMiddleware();
     apiKeyValidator = new ApiKeyValidator({
       apiKeyMinLength: 20,
-      forbiddenPatterns: ['test', 'placeholder']
+      forbiddenPatterns: ['valid-production-token-placeholder']
     });
   });
   
-  describe('createBodyValidator', () => {
-    it('should pass valid requests to the next middleware', () => {
+  it('should pass valid requests to the next middleware', () => {
       // Create a body validator middleware
       const bodyValidator = middleware.createBodyValidator(apiKeyValidator);
       

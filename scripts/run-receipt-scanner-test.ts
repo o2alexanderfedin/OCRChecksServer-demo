@@ -20,7 +20,7 @@ const jasmine = new Jasmine();
 global.jasmine = jasmine;
 
 // Set timeout interval (much longer for integration tests with external APIs)
-const timeoutInterval = 180000; // 3 minutes
+const timeoutInterval = 300000; // 5 minutes for real image processing with Mistral API
 jasmine.jasmine.DEFAULT_TIMEOUT_INTERVAL = timeoutInterval;
 
 console.log('Running ReceiptScanner integration test...');

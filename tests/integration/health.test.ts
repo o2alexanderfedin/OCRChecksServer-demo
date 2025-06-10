@@ -26,7 +26,7 @@ setupThrottledFetch({
 
 describe('Health Check Endpoint', function() {
   // Set a longer timeout for API calls
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000; // 30 seconds
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000; // 2 minutes for integration tests
   
   it('should return correct health information', async function() {
     // Skip this test if running in an environment without fetch

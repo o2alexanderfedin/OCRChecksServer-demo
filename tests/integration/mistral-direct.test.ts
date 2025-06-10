@@ -14,7 +14,7 @@ const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
 describe('Mistral Direct API Test', function() {
   // Set timeout for API calls
-  jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000; // 60 seconds
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 180000; // 3 minutes for Mistral API integration tests
   
   // Skip tests if API key is not available
   beforeAll(function() {

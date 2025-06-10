@@ -18,11 +18,13 @@ export class ScannerFactory {
    * @param caller - caller of the method
    * @returns A DIContainer instance
    */
-  public static createDIContainer(io: IoE, apiKey: string, caller?: string): DIContainer {
+  public static createDIContainer(io: IoE, apiKey: string, caller?: string, extractorType?: string, aiBinding?: any): DIContainer {
     console.log(`[ScannerFactory::${caller ?? "createDIContainer"}] Mistral API key: ${apiKey ? apiKey.substring(0, 4) + '...' : 'undefined'}`);
+    console.log(`[ScannerFactory::${caller ?? "createDIContainer"}] Extractor type: ${extractorType || 'mistral (default)'}`);
+    console.log(`[ScannerFactory::${caller ?? "createDIContainer"}] AI binding: ${aiBinding ? 'Available' : 'Not provided'}`);
 
     // Create DI container with all dependencies registered
-    const container = new DIContainer().registerDependencies(io, apiKey, caller ?? 'createDIContainer');
+    const container = new DIContainer().registerDependencies(io, apiKey, caller ?? 'createDIContainer', extractorType, aiBinding);
     
     // Get and return a fully configured DIContainer
     return container;
@@ -35,9 +37,9 @@ export class ScannerFactory {
    * @param apiKey - Mistral API key
    * @returns A ReceiptScanner instance
    */
-  public static createMistralReceiptScanner(io: IoE, apiKey: string): ReceiptScanner {
+  public static createMistralReceiptScanner(io: IoE, apiKey: string, extractorType?: string, aiBinding?: any): ReceiptScanner {
     // Create DI container with all dependencies registered
-    const container = this.createDIContainer(io, apiKey, "createMistralReceiptScanner");
+    const container = this.createDIContainer(io, apiKey, "createMistralReceiptScanner", extractorType, aiBinding);
     
     // Get and return a fully configured ReceiptScanner
     return container.get<ReceiptScanner>(TYPES.ReceiptScanner);
@@ -50,9 +52,9 @@ export class ScannerFactory {
    * @param apiKey - Mistral API key
    * @returns A CheckScanner instance
    */
-  public static createMistralCheckScanner(io: IoE, apiKey: string): CheckScanner {
+  public static createMistralCheckScanner(io: IoE, apiKey: string, extractorType?: string, aiBinding?: any): CheckScanner {
     // Create DI container with all dependencies registered
-    const container = this.createDIContainer(io, apiKey, "createMistralCheckScanner");
+    const container = this.createDIContainer(io, apiKey, "createMistralCheckScanner", extractorType, aiBinding);
     
     // Get and return a fully configured CheckScanner
     return container.get<CheckScanner>(TYPES.CheckScanner);
@@ -66,11 +68,11 @@ export class ScannerFactory {
    * @param documentType - The type of document to process ('check' or 'receipt')
    * @returns A DocumentScanner instance
    */
-  public static createScannerByType(io: IoE, apiKey: string, documentType: 'check' | 'receipt'): DocumentScanner {
+  public static createScannerByType(io: IoE, apiKey: string, documentType: 'check' | 'receipt', extractorType?: string, aiBinding?: any): DocumentScanner {
     if (documentType === 'check') {
-      return this.createMistralCheckScanner(io, apiKey);
+      return this.createMistralCheckScanner(io, apiKey, extractorType, aiBinding);
     } else {
-      return this.createMistralReceiptScanner(io, apiKey);
+      return this.createMistralReceiptScanner(io, apiKey, extractorType, aiBinding);
     }
   }
 }

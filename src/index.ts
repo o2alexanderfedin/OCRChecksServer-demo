@@ -12,6 +12,8 @@ import pkg from '../package.json' with { type: 'json' };
 interface Env {
   MISTRAL_API_KEY: string;
   CLOUDFLARE_API_TOKEN: string;
+  JSON_EXTRACTOR_TYPE?: string;
+  AI: any; // Cloudflare Workers AI binding
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -110,7 +112,9 @@ app.post('/process', async (c) => {
     const scanner = ScannerFactory.createScannerByType(
       workerIoE, 
       c.env.MISTRAL_API_KEY, 
-      contentTypeParam as 'check' | 'receipt'
+      contentTypeParam as 'check' | 'receipt',
+      c.env.JSON_EXTRACTOR_TYPE,
+      c.env.AI
     );
     console.log(`[${requestId}] Scanner created successfully`);
 
@@ -202,7 +206,7 @@ app.post('/check', async (c) => {
 
     console.log(`[${requestId}] Step 4: Creating check scanner`);
     // Create check scanner
-    const scanner = ScannerFactory.createMistralCheckScanner(workerIoE, c.env.MISTRAL_API_KEY);
+    const scanner = ScannerFactory.createMistralCheckScanner(workerIoE, c.env.MISTRAL_API_KEY, c.env.JSON_EXTRACTOR_TYPE, c.env.AI);
     console.log(`[${requestId}] Check scanner created successfully`);
 
     console.log(`[${requestId}] Step 5: Creating document object`);
@@ -277,7 +281,7 @@ app.post('/receipt', async (c) => {
     const imageBuffer = await c.req.arrayBuffer();
 
     // Create receipt scanner
-    const scanner = ScannerFactory.createMistralReceiptScanner(workerIoE, c.env.MISTRAL_API_KEY);
+    const scanner = ScannerFactory.createMistralReceiptScanner(workerIoE, c.env.MISTRAL_API_KEY, c.env.JSON_EXTRACTOR_TYPE, c.env.AI);
 
     // Create document
     const document: Document = {
@@ -326,13 +330,13 @@ app.post('/receipt', async (c) => {
 app.get('/health', (c) => {
   try {
     // Validate DI
-    const diContainer = ScannerFactory.createDIContainer(workerIoE, c.env.MISTRAL_API_KEY);
+    const diContainer = ScannerFactory.createDIContainer(workerIoE, c.env.MISTRAL_API_KEY, 'healthCheck', c.env.JSON_EXTRACTOR_TYPE, c.env.AI);
 
-    ScannerFactory.createMistralCheckScanner(workerIoE, c.env.MISTRAL_API_KEY);
-    ScannerFactory.createScannerByType(workerIoE, c.env.MISTRAL_API_KEY, 'check');
+    ScannerFactory.createMistralCheckScanner(workerIoE, c.env.MISTRAL_API_KEY, c.env.JSON_EXTRACTOR_TYPE, c.env.AI);
+    ScannerFactory.createScannerByType(workerIoE, c.env.MISTRAL_API_KEY, 'check', c.env.JSON_EXTRACTOR_TYPE, c.env.AI);
 
-    ScannerFactory.createMistralReceiptScanner(workerIoE, c.env.MISTRAL_API_KEY);
-    ScannerFactory.createScannerByType(workerIoE, c.env.MISTRAL_API_KEY, 'receipt');
+    ScannerFactory.createMistralReceiptScanner(workerIoE, c.env.MISTRAL_API_KEY, c.env.JSON_EXTRACTOR_TYPE, c.env.AI);
+    ScannerFactory.createScannerByType(workerIoE, c.env.MISTRAL_API_KEY, 'receipt', c.env.JSON_EXTRACTOR_TYPE, c.env.AI);
 
     const apiKey = diContainer.getMistralApiKey();
 

@@ -66,7 +66,7 @@ export class DIContainer {
    * @returns The container instance for method chaining
    * @throws Error if io or apiKey is not provided
    */
-  registerDependencies(io: IoE, apiKey: string, caller?: string): DIContainer {
+  registerDependencies(io: IoE, apiKey: string, caller?: string, extractorType?: string, aiBinding?: any): DIContainer {
     // Validate required parameters
     if (!io) {
       throw new Error(`[DIContainer.${caller ?? 'registerDependencies'}] CRITICAL ERROR: IO interface is missing or undefined`);
@@ -85,6 +85,15 @@ export class DIContainer {
     // Register basic dependencies
     this.container.bind(TYPES.IoE).toConstantValue(io);
     this.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
+    
+    // Store extractor type for JSON extractor selection
+    const selectedExtractorType = extractorType || 'mistral';
+    this.container.bind(TYPES.ExtractorType).toConstantValue(selectedExtractorType);
+    
+    // Store AI binding for Cloudflare Workers AI
+    if (aiBinding) {
+      this.container.bind(TYPES.CloudflareAI).toConstantValue(aiBinding);
+    }
 
     // Register all validators
     registerValidators(this.container);
@@ -200,19 +209,24 @@ export class DIContainer {
    * @protected
    */
   protected registerCloudflareAI(): void {
-    this.container.bind(TYPES.CloudflareAI).toDynamicValue(() => {
-      // Check if we're in Cloudflare Workers environment
-      if (typeof globalThis !== 'undefined' && (globalThis as unknown as { AI: unknown }).AI) {
-        return (globalThis as unknown as { AI: CloudflareAI }).AI;
-      }
-      
-      // Provide mock implementation for non-Cloudflare environments
-      return {
-        run: async (_model: string, _inputs: unknown): Promise<unknown> => {
-          throw new Error('CloudflareAI is not available in this environment. Please run in Cloudflare Workers or configure a mock.');
+    // CloudflareAI binding is now registered directly in registerDependencies()
+    // when aiBinding is provided. This method provides fallback for cases
+    // where no binding was provided.
+    if (!this.container.isBound(TYPES.CloudflareAI)) {
+      this.container.bind(TYPES.CloudflareAI).toDynamicValue(() => {
+        // Check if we're in Cloudflare Workers environment
+        if (typeof globalThis !== 'undefined' && (globalThis as unknown as { AI: unknown }).AI) {
+          return (globalThis as unknown as { AI: CloudflareAI }).AI;
         }
-      };
-    }).inSingletonScope();
+        
+        // Provide mock implementation for non-Cloudflare environments
+        return {
+          run: async (_model: string, _inputs: unknown): Promise<unknown> => {
+            throw new Error('CloudflareAI is not available in this environment. Please run in Cloudflare Workers or configure a mock.');
+          }
+        };
+      }).inSingletonScope();
+    }
   }
 
   /**
@@ -221,19 +235,23 @@ export class DIContainer {
    */
   protected registerJsonExtractor(): void {
     this.container.bind(TYPES.JsonExtractorProvider).toDynamicValue((context) => {
-      const extractorType = (typeof process !== 'undefined' ? process.env.JSON_EXTRACTOR_TYPE : undefined) || 'mistral';
+      const extractorType = context.get<string>(TYPES.ExtractorType);
       const io = context.get<IoE>(TYPES.IoE);
       // Legacy AntiHallucinationDetector removed - Mistral extractor works without it
       const confidenceCalculator = context.get<JsonExtractionConfidenceCalculator>(TYPES.JsonExtractionConfidenceCalculator);
       
+      console.log(`[DIContainer::registerJsonExtractor] Using extractor type: ${extractorType}`);
+      
       switch (extractorType.toLowerCase()) {
         case 'cloudflare': {
+          console.log('[DIContainer::registerJsonExtractor] Creating CloudflareLlama33JsonExtractor');
           const cloudflareAI = context.get<CloudflareAI>(TYPES.CloudflareAI);
           return new CloudflareLlama33JsonExtractor(io, cloudflareAI, confidenceCalculator);
         }
           
         case 'mistral':
         default: {
+          console.log('[DIContainer::registerJsonExtractor] Creating MistralJsonExtractorProvider');
           const mistralClient = context.get<Mistral>(TYPES.MistralClient);
           return new MistralJsonExtractorProvider(io, mistralClient, confidenceCalculator);
         }

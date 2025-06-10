@@ -41,7 +41,8 @@ duration_ms = 60000  # Increased to 60 seconds for complex OCR + JSON extraction
 name = "ocr-checks-worker"
 workers_dev = true
 # IMPORTANT: Do not store API keys here, use secrets instead
-vars = { ENVIRONMENT = "production", MISTRAL_DEBUG = false }
+vars = { ENVIRONMENT = "production", MISTRAL_DEBUG = false, JSON_EXTRACTOR_TYPE = "cloudflare" }
+ai = { binding = "AI" }
 
 # Production environment limits
 [env.production.limits]

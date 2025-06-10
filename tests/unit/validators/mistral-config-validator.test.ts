@@ -9,7 +9,7 @@ import {
   ValidationError,
   ApiKey,
   Url
-} from '../../../src/validators.ts';
+} from '../../../src/validators/index.ts';
 
 describe('MistralConfigValidator', () => {
   let validator: MistralConfigValidator;

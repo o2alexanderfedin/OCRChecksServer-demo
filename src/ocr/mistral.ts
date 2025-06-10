@@ -9,7 +9,7 @@ import type {
     OCRRequest
 } from '@mistralai/mistralai/models/components'
 import { injectable, inject } from 'inversify';
-import { TYPES as VALIDATOR_TYPES } from '../validators.ts';
+import { TYPES as VALIDATOR_TYPES } from '../validators';
 import { TYPES } from '../types/di-types.ts';
 
 // Import our cross-platform base64 utilities

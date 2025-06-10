@@ -6,8 +6,8 @@ import {
   CardType, 
   ReceiptFormat 
 } from '../../../src/json/schemas/receipt.ts';
-import Ajv from 'ajv.js';
-import addFormats from 'ajv-formats.js';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 
 describe('Receipt Schema Validation', () => {
   let ajv: Ajv;

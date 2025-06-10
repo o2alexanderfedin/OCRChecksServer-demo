@@ -3,7 +3,7 @@ import { DocumentScanner, ProcessingResult } from './types.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { ReceiptExtractor as IReceiptExtractor } from '../json/extractors/types';
 import { injectable, inject, named } from 'inversify';
-import { TYPES as VALIDATOR_TYPES, IScannerInputValidator, ScannerInput } from '../validators.ts';
+import { TYPES as VALIDATOR_TYPES, IScannerInputValidator, ScannerInput } from '../validators';
 import { TYPES } from '../types/di-types.ts';
 import { ReceiptHallucinationDetector } from '../json/utils/receipt-hallucination-detector.ts';
 

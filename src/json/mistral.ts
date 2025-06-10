@@ -3,7 +3,7 @@ import { Mistral } from '@mistralai/mistralai'
 import type { IoE } from '../ocr/types'
 import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './types'
 import { injectable, inject } from 'inversify';
-import { TYPES as VALIDATOR_TYPES } from '../validators.ts';
+import { TYPES as VALIDATOR_TYPES } from '../validators';
 import { TYPES } from '../types/di-types.ts';
 import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculator.ts';
 

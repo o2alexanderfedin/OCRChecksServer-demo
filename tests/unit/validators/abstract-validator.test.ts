@@ -1,8 +1,8 @@
 /**
  * Unit tests for AbstractValidator class
  */
-import { z } from 'zod.js';
-import { AbstractValidator, ValidationError } from '../../../src/validators.ts';
+import { z } from 'zod';
+import { AbstractValidator, ValidationError } from '../../../src/validators/index.ts';
 
 // Create a concrete implementation of AbstractValidator for testing
 class TestValidator extends AbstractValidator<string> {

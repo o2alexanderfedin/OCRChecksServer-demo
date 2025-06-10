@@ -33,7 +33,8 @@ await addDevVarsToEnv();
 
 // Parse command line arguments
 const testType = process.argv[2]?.toLowerCase() || 'all';
-const testFilter = process.argv[3]; // Get the third argument if provided (e.g., "simple")
+// Get the third argument if provided, but skip flags
+const testFilter = process.argv[3] && !process.argv[3].startsWith('--') ? process.argv[3] : undefined;
 const watch = process.argv.includes('--watch');
 const dryRun = process.argv.includes('--dry-run');
 

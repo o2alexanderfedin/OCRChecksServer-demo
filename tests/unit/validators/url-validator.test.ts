@@ -29,7 +29,7 @@ describe('UrlValidator', () => {
     ];
     
     for (const url of invalidUrls) {
-      expect(() => validator.assertValid(url)).toThrow(jasmine.any(ValidationError));
+      expect(() => validator.assertValid(url)).toThrowError(ValidationError);
     }
   });
   
@@ -43,7 +43,7 @@ describe('UrlValidator', () => {
       
       // HTTP URL should be rejected in production
       const httpUrl = 'http://api.mistral.ai';
-      expect(() => validator.assertValid(httpUrl)).toThrow(jasmine.any(ValidationError));
+      expect(() => validator.assertValid(httpUrl)).toThrowError(ValidationError);
       
       // HTTPS URL should be accepted
       const httpsUrl = 'https://api.mistral.ai';

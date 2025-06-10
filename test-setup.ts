@@ -3,7 +3,8 @@
 
 interface TestResult {
   description: string;
-  status: 'passed' | 'failed';
+  fn: () => void | Promise<void>;
+  status?: 'passed' | 'failed';
   error?: Error;
 }
 
@@ -11,13 +12,13 @@ interface SuiteResult {
   description: string;
   tests: TestResult[];
   suites: SuiteResult[];
+  beforeEach?: () => void;
+  afterEach?: () => void;
 }
 
 let currentSuite: SuiteResult | null = null;
 const rootSuite: SuiteResult = { description: 'Root', tests: [], suites: [] };
 const suiteStack: SuiteResult[] = [rootSuite];
-let beforeEachFn: (() => void) | null = null;
-let afterEachFn: (() => void) | null = null;
 
 // Global describe function
 global.describe = function(description: string, fn: () => void) {
@@ -27,17 +28,7 @@ global.describe = function(description: string, fn: () => void) {
   suiteStack.push(suite);
   currentSuite = suite;
   
-  // Reset before/after for this suite
-  const prevBeforeEach = beforeEachFn;
-  const prevAfterEach = afterEachFn;
-  beforeEachFn = null;
-  afterEachFn = null;
-  
   fn();
-  
-  // Restore previous before/after
-  beforeEachFn = prevBeforeEach;
-  afterEachFn = prevAfterEach;
   
   suiteStack.pop();
   currentSuite = suiteStack.length > 1 ? suiteStack[suiteStack.length - 1] : null;
@@ -45,42 +36,21 @@ global.describe = function(description: string, fn: () => void) {
 
 // Global it function
 global.it = function(description: string, fn: () => void | Promise<void>) {
-  const test: TestResult = { description, status: 'passed' };
+  const test: TestResult = { description, fn };
   const suite = suiteStack[suiteStack.length - 1];
   suite.tests.push(test);
-  
-  try {
-    if (beforeEachFn) beforeEachFn();
-    
-    const result = fn();
-    if (result instanceof Promise) {
-      return result.then(() => {
-        if (afterEachFn) afterEachFn();
-        test.status = 'passed';
-      }).catch((error) => {
-        if (afterEachFn) afterEachFn();
-        test.status = 'failed';
-        test.error = error;
-      });
-    } else {
-      if (afterEachFn) afterEachFn();
-      test.status = 'passed';
-    }
-  } catch (error) {
-    if (afterEachFn) afterEachFn();
-    test.status = 'failed';
-    test.error = error as Error;
-  }
 };
 
 // Global beforeEach function
 global.beforeEach = function(fn: () => void) {
-  beforeEachFn = fn;
+  const suite = suiteStack[suiteStack.length - 1];
+  suite.beforeEach = fn;
 };
 
 // Global afterEach function
 global.afterEach = function(fn: () => void) {
-  afterEachFn = fn;
+  const suite = suiteStack[suiteStack.length - 1];
+  suite.afterEach = fn;
 };
 
 // Global fail function
@@ -298,12 +268,12 @@ declare global {
 
 // Auto-run tests when imported
 if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test-setup-only') {
-  process.nextTick(() => {
-    runTestSuite(rootSuite);
+  process.nextTick(async () => {
+    await runTestSuite(rootSuite);
   });
 }
 
-function runTestSuite(suite: SuiteResult, depth = 0) {
+async function runTestSuite(suite: SuiteResult, depth = 0): Promise<{ passed: number; failed: number }> {
   const indent = '  '.repeat(depth);
   
   if (depth > 0) {
@@ -315,21 +285,31 @@ function runTestSuite(suite: SuiteResult, depth = 0) {
   
   // Run tests
   for (const test of suite.tests) {
-    if (test.status === 'passed') {
+    try {
+      // Run beforeEach from current suite
+      if (suite.beforeEach) suite.beforeEach();
+      
+      const result = test.fn();
+      if (result instanceof Promise) {
+        await result;
+      }
+      
+      if (suite.afterEach) suite.afterEach();
+      
       console.log(`${indent}  ✓ ${test.description}`);
       passed++;
-    } else {
+    } catch (error) {
+      if (suite.afterEach) suite.afterEach();
+      
       console.log(`${indent}  ✗ ${test.description}`);
-      if (test.error) {
-        console.log(`${indent}    ${test.error.message}`);
-      }
+      console.log(`${indent}    ${error.message}`);
       failed++;
     }
   }
   
   // Run nested suites
   for (const nestedSuite of suite.suites) {
-    const results = runTestSuite(nestedSuite, depth + 1);
+    const results = await runTestSuite(nestedSuite, depth + 1);
     passed += results.passed;
     failed += results.failed;
   }

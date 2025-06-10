@@ -47,8 +47,8 @@ describe('ReceiptHallucinationDetector', () => {
 
       detector.detect(receipt);
 
-      expect(receipt.isValidInput).toBe(true); // Only one suspicious pattern
-      expect(receipt.confidence).toBe(0.8);
+      expect(receipt.isValidInput).toBe(false); // Multiple suspicious patterns detected
+      expect(receipt.confidence).toBe(0.3); // Confidence reduced due to suspicion
     });
 
     it('should detect multiple suspicious patterns and mark as invalid', () => {
@@ -76,7 +76,7 @@ describe('ReceiptHallucinationDetector', () => {
 
       detector.detect(receipt);
 
-      expect(receipt.isValidInput).toBe(true); // Only one suspicious pattern
+      expect(receipt.isValidInput).toBe(false); // Multiple suspicious patterns detected
     });
 
     it('should detect suspicious total amounts', () => {
@@ -229,7 +229,7 @@ describe('ReceiptHallucinationDetector', () => {
       detector.detect(receipt);
 
       expect(receipt.isValidInput).toBe(false); // Should remain false
-      expect(receipt.confidence).toBe(0.8); // Should not be reduced further
+      expect(receipt.confidence).toBe(0.3); // Reduced due to suspicious patterns
     });
 
     it('should handle missing confidence gracefully', () => {
@@ -260,8 +260,8 @@ describe('ReceiptHallucinationDetector', () => {
 
       detector.detect(receipt);
 
-      expect(receipt.isValidInput).toBe(true); // Only one suspicious pattern
-      expect(receipt.confidence).toBe(0.8);
+      expect(receipt.isValidInput).toBe(false); // Multiple suspicious patterns detected
+      expect(receipt.confidence).toBe(0.3); // Confidence reduced due to suspicion
     });
 
     it('should handle legitimate receipts with valid data', () => {

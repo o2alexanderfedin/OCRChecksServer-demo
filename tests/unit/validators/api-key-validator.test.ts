@@ -1,6 +1,7 @@
 /**
  * Unit tests for API Key validator
  */
+import '../../../test-setup.ts';
 import { ApiKeyValidator, ValidationError } from '../../../src/validators/index.ts';
 
 describe('ApiKeyValidator', () => {
@@ -20,12 +21,12 @@ describe('ApiKeyValidator', () => {
   
   it('should reject keys that are too short', () => {
     const key = 'short-key';
-    expect(() => validator.assertValid(key)).toThrow(jasmine.any(ValidationError));
+    expect(() => validator.assertValid(key)).toThrowError(ValidationError);
   });
   
   it('should reject keys containing forbidden patterns', () => {
     const key = 'this-is-a-test-api-key-123456789';
-    expect(() => validator.assertValid(key)).toThrow(jasmine.any(ValidationError));
+    expect(() => validator.assertValid(key)).toThrowError(ValidationError);
   });
   
   it('should return a strongly-typed validation error with details', () => {

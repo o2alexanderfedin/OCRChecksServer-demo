@@ -1,3 +1,4 @@
+import '../../../test-setup.ts';
 import { CheckScanner } from '../../../src/scanner/check-scanner.ts';
 import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr/types.ts';
 import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types.ts';

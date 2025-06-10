@@ -1,3 +1,4 @@
+import '../../../test-setup.ts';
 import 'reflect-metadata';
 import { DIContainer } from '../../../src/di/container.ts';
 import { TYPES } from '../../../src/types/di-types.ts';
@@ -15,7 +16,6 @@ import {
   ReceiptScannerInputValidator,
   TYPES as VALIDATOR_TYPES
 } from '../../../src/validators/index.ts';
-import 'jasmine';
 
 describe('DIContainer', () => {
   // Mock IoE implementation as simple as possible

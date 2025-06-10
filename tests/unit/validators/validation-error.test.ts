@@ -1,6 +1,7 @@
 /**
  * Unit tests for ValidationError class
  */
+import '../../../test-setup.ts';
 import { ValidationError } from '../../../src/validators/index.ts';
 
 describe('ValidationError', () => {

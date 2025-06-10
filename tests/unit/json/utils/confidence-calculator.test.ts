@@ -2,6 +2,7 @@
  * Unit tests for JsonExtractionConfidenceCalculator utility
  */
 
+import '../../../../test-setup.ts';
 import { JsonExtractionConfidenceCalculator } from '../../../../src/json/utils/confidence-calculator.ts';
 
 describe('JsonExtractionConfidenceCalculator', () => {

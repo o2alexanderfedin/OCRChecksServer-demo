@@ -3,6 +3,7 @@
  * Tests factory pattern implementation for runtime extractor selection
  */
 
+import '../../../../test-setup.ts';
 import { JsonExtractorFactory } from '../../../../src/json/factory/json-extractor-factory';
 import { JsonExtractorType, JsonExtractorFactoryConfig, ExtractorAvailabilityResult } from '../../../../src/json/factory/types.ts';
 import { JsonExtractor } from '../../../../src/json/types.ts';

@@ -17,10 +17,17 @@ describe('ReceiptHallucinationDetector', () => {
   describe('detect', () => {
     it('should mark receipt as valid when no suspicious patterns found', () => {
       const receipt: Receipt = {
-        merchant: { name: 'Target Corporation' },
+        merchant: { 
+          name: 'Target Corporation',
+          address: '1234 Commerce Street, Anytown, ST 12345'
+        },
         totals: { total: '45.67' },
         timestamp: new Date('2024-03-15T14:30:00Z'),
         receiptNumber: 'TXN789012',
+        items: [
+          { description: 'Organic Bananas', quantity: '2', price: '3.98' },
+          { description: 'Bread Loaf', quantity: '1', price: '2.49' }
+        ],
         confidence: 0.9
       };
 
@@ -240,7 +247,7 @@ describe('ReceiptHallucinationDetector', () => {
       detector.detect(receipt);
 
       expect(receipt.isValidInput).toBe(false);
-      expect(receipt.confidence).toBe(0.3); // Should use Math.min with 0
+      expect(receipt.confidence).toBe(0); // Should use Math.min(0, 0.3) = 0
     });
 
     it('should handle partial suspicious patterns in merchant name', () => {

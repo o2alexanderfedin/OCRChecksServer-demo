@@ -17,7 +17,7 @@ import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculato
  * This represents the AI binding provided by Cloudflare Workers runtime
  */
 export interface CloudflareAI {
-  run(model: string, inputs: any): Promise<any>;
+  run(model: string, inputs: Record<string, unknown>): Promise<unknown>;
 }
 
 /**
@@ -69,7 +69,10 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
       if (request.schema) {
         console.log('- Schema type:', typeof request.schema);
         if (typeof request.schema === 'object' && request.schema !== null) {
-          console.log('- Schema properties:', Object.keys((request.schema as any).schemaDefinition?.properties || {}).join(', '));
+          const schema = request.schema as Record<string, unknown>;
+          const schemaDefinition = schema.schemaDefinition as Record<string, unknown> | undefined;
+          const properties = (schemaDefinition?.properties as Record<string, unknown>) || {};
+          console.log('- Schema properties:', Object.keys(properties).join(', '));
         }
       }
 

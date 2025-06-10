@@ -238,6 +238,131 @@ This allows for consistent mocking across test files without external dependenci
    - Balance between different test types
    - Prioritize testing business logic and error handling
 
+## Deployment Verification Testing
+
+### Version Testing and URL Discovery
+
+The system includes comprehensive deployment verification through dynamic URL discovery and version testing.
+
+#### Dynamic URL Discovery
+Automatically discovers actual Cloudflare Worker URLs from configuration:
+
+```bash
+# Discover all environment URLs
+npx tsx scripts/get-cloudflare-urls.ts
+
+# Test version across all discovered environments
+npm run test:version:dynamic
+```
+
+**Discovery Methods:**
+- **Wrangler CLI**: Uses `wrangler` commands to query deployment information
+- **Cloudflare API**: Direct API queries using `CLOUDFLARE_API_TOKEN`
+- **Pattern Testing**: Tests known URL patterns for accessibility
+
+#### Version Verification Tests
+Ensures deployed applications match source code version:
+
+**Static URL Testing:**
+```bash
+npm run test:version:production    # Test with predefined URLs
+npm run test:version:staging
+npm run test:version:dev
+```
+
+**Dynamic URL Testing:**
+```bash
+npm run test:version:dynamic              # Auto-discover and test all environments
+npm run test:version:dynamic:production   # Test specific environment with auto-discovery
+```
+
+**Features:**
+- **Source Comparison**: Compares `/health` endpoint version with `package.json`
+- **Multi-Environment**: Tests local, dev, staging, and production simultaneously
+- **Health Verification**: Checks service health status and API key configuration
+- **Error Analysis**: Provides detailed troubleshooting guidance for failures
+
+#### Integration with Smoke Tests
+Version testing integrates with existing smoke test infrastructure:
+
+```bash
+# Enhanced smoke tests with dynamic version checking
+bash scripts/smoke-test.sh              # Uses package.json for version comparison
+
+# Comprehensive verification workflow
+npm run test:version:dynamic && npm run test:smoke
+```
+
+**Enhanced Features:**
+- **Dynamic Version Reading**: Shell scripts now read expected version from `package.json`
+- **Deployment Analysis**: Provides actionable recommendations for version mismatches
+- **API Key Status**: Monitors Mistral API key configuration across environments
+
+### URL Discovery Tools
+
+#### Available Scripts
+
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `get-cloudflare-urls.ts` | Comprehensive URL discovery | `npx tsx scripts/get-cloudflare-urls.ts` |
+| `simple-url-discovery.ts` | Lightweight pattern testing | `npx tsx scripts/simple-url-discovery.ts` |
+| `dynamic-version-smoke-test.ts` | Auto-discovering version test | `npm run test:version:dynamic` |
+| `version-smoke-test.ts` | Static URL version test | `npm run test:version` |
+
+#### Output Formats
+
+**Human-Readable:**
+```
+Environment URLs:
+  production  : https://ocr-checks-worker.af-4a0.workers.dev
+  dev         : https://ocr-checks-worker-dev.af-4a0.workers.dev
+  staging     : https://ocr-checks-worker-staging.af-4a0.workers.dev
+  local       : http://localhost:8787
+```
+
+**JSON:**
+```json
+{
+  "production": "https://ocr-checks-worker.af-4a0.workers.dev",
+  "dev": "https://ocr-checks-worker-dev.af-4a0.workers.dev",
+  "staging": "https://ocr-checks-worker-staging.af-4a0.workers.dev",
+  "local": "http://localhost:8787"
+}
+```
+
+**Environment Variables:**
+```bash
+export OCR_API_URL_PRODUCTION="https://ocr-checks-worker.af-4a0.workers.dev"
+export OCR_API_URL_DEV="https://ocr-checks-worker-dev.af-4a0.workers.dev"
+export OCR_API_URL_STAGING="https://ocr-checks-worker-staging.af-4a0.workers.dev"
+export OCR_API_URL_LOCAL="http://localhost:8787"
+```
+
 ## Continuous Integration
 
 The project is ready for CI integration, with scripts structured to support automated testing in a CI pipeline.
+
+### CI/CD Integration Examples
+
+**GitHub Actions Integration:**
+```yaml
+- name: Verify Deployment Versions
+  run: npm run test:version:dynamic
+  env:
+    CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+- name: Run Smoke Tests
+  run: npm run test:smoke
+```
+
+**Pre-Deployment Verification:**
+```bash
+# Verify current state before deployment
+npm run test:version:dynamic
+
+# Deploy to environment
+npm run deploy:production
+
+# Verify deployment success
+npm run test:version:dynamic:production
+```

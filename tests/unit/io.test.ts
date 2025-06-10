@@ -3,6 +3,65 @@
  */
 import { workerIo, workerIoE } from '../../src/io.ts';
 
+// Create our own simplified mock function since jasmine.createSpy might not be available
+interface MockFunction {
+    (...args: any[]): any;
+    calls: {
+        count: number;
+        args: any[][];
+        reset(): void;
+    };
+    mockReturnValue(val: any): MockFunction;
+    mockImplementation(fn: Function): MockFunction;
+    and: {
+        callFake(fn: Function): MockFunction;
+        returnValue(val: any): MockFunction;
+    };
+}
+
+function createSpy(name: string): MockFunction {
+    const fn = function(...args: any[]) {
+        fn.calls.count++;
+        fn.calls.args.push(args);
+        if (fn._implementation) {
+            return fn._implementation(...args);
+        }
+        return fn._returnValue;
+    } as MockFunction & { _implementation?: Function; _returnValue?: any; };
+    
+    fn.calls = {
+        count: 0,
+        args: [],
+        reset() {
+            this.count = 0;
+            this.args = [];
+        }
+    };
+    
+    fn.mockReturnValue = function(val: any) {
+        fn._returnValue = val;
+        return fn;
+    };
+    
+    fn.mockImplementation = function(impl: Function) {
+        fn._implementation = impl;
+        return fn;
+    };
+    
+    fn.and = {
+        callFake(impl: Function) {
+            fn._implementation = impl;
+            return fn;
+        },
+        returnValue(val: any) {
+            fn._returnValue = val;
+            return fn;
+        }
+    };
+    
+    return fn;
+}
+
 describe('IO Utilities', () => {
   describe('workerIo', () => {
     describe('asyncTryCatch', () => {
@@ -16,8 +75,8 @@ describe('IO Utilities', () => {
         originalConsoleError = console.error;
         
         // Mock console methods to suppress output during tests
-        console.log = jasmine.createSpy('console.log');
-        console.error = jasmine.createSpy('console.error');
+        console.log = createSpy('console.log') as any;
+        console.error = createSpy('console.error') as any;
       });
       
       afterEach(() => {
@@ -79,8 +138,8 @@ describe('IO Utilities', () => {
         const originalConsoleLog = console.log;
         
         // Create a spy replacement for console.log
-        const consoleSpy = jasmine.createSpy('console.log');
-        console.log = consoleSpy;
+        const consoleSpy = createSpy('console.log');
+        console.log = consoleSpy as any;
         
         try {
           // Call the log function
@@ -88,9 +147,9 @@ describe('IO Utilities', () => {
           workerIo.log(testMessage);
           
           // Assert it was called correctly
-          expect(consoleSpy).toHaveBeenCalled();
+          expect(consoleSpy.calls.count).toBeGreaterThan(0);
           // Check that the formatted message contains our test message (not an exact match due to formatting)
-          expect(consoleSpy.calls.argsFor(0)[0]).toContain(testMessage);
+          expect(consoleSpy.calls.args[0][0]).toContain(testMessage);
         } finally {
           // Restore original console.log
           console.log = originalConsoleLog;

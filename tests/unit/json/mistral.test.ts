@@ -148,7 +148,7 @@ describe('MistralJsonExtractor', () => {
         });
         
         // Create a container with our mocked Mistral implementation
-        const container = TestDIContainer.createForTests(mockIo, 'test_valid_api_key', {
+        const container = TestDIContainer.createForTests(mockIo, 'test_valid_api_key_12345', {
             chatComplete: completeMock
         });
         
@@ -220,7 +220,7 @@ describe('MistralJsonExtractor', () => {
         };
         
         // Create a container with our mocked Mistral implementation
-        const container = TestDIContainer.createForTests(mockIo, 'test_valid_api_key', {
+        const container = TestDIContainer.createForTests(mockIo, 'test_valid_api_key_12345', {
             chatComplete: completeMock
         });
         
@@ -261,7 +261,7 @@ describe('MistralJsonExtractor', () => {
         });
         
         // Create a container with our mocked Mistral implementation
-        const container = TestDIContainer.createForTests(mockIo, 'test_valid_api_key', {
+        const container = TestDIContainer.createForTests(mockIo, 'test_valid_api_key_12345', {
             chatComplete: completeMock
         });
         
@@ -304,7 +304,7 @@ describe('MistralJsonExtractor', () => {
         });
         
         // Create a container with our mocked Mistral implementation
-        const container = TestDIContainer.createForTests(mockIo, 'test_valid_api_key', {
+        const container = TestDIContainer.createForTests(mockIo, 'test_valid_api_key_12345', {
             chatComplete: completeMock
         });
         

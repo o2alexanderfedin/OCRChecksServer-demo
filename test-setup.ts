@@ -335,7 +335,7 @@ if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test-setup-only'
   });
 }
 
-async function runTestSuite(suite: SuiteResult, depth = 0): Promise<{ passed: number; failed: number }> {
+async function runTestSuite(suite: SuiteResult, depth = 0, parentBeforeEach?: () => void): Promise<{ passed: number; failed: number }> {
   const indent = '  '.repeat(depth);
   
   if (depth > 0) {
@@ -348,7 +348,8 @@ async function runTestSuite(suite: SuiteResult, depth = 0): Promise<{ passed: nu
   // Run tests
   for (const test of suite.tests) {
     try {
-      // Run beforeEach from current suite
+      // Run parent beforeEach first, then current suite beforeEach
+      if (parentBeforeEach) parentBeforeEach();
       if (suite.beforeEach) suite.beforeEach();
       
       const result = test.fn();
@@ -369,9 +370,17 @@ async function runTestSuite(suite: SuiteResult, depth = 0): Promise<{ passed: nu
     }
   }
   
-  // Run nested suites
+  // Run nested suites  
   for (const nestedSuite of suite.suites) {
-    const results = await runTestSuite(nestedSuite, depth + 1);
+    // Pass current suite's beforeEach to nested suites
+    const currentBeforeEach = suite.beforeEach ? 
+      (parentBeforeEach ? 
+        () => { parentBeforeEach(); suite.beforeEach!(); } :
+        suite.beforeEach
+      ) : 
+      parentBeforeEach;
+      
+    const results = await runTestSuite(nestedSuite, depth + 1, currentBeforeEach);
     passed += results.passed;
     failed += results.failed;
   }

@@ -3,11 +3,11 @@
  */
 
 import { Container } from 'inversify';
-import { DIContainer } from '../../../src/di/container.js';
-import { TYPES } from '../../../src/types/di-types.js';
-import { JsonExtractor } from '../../../src/json/types.js';
-import { MistralJsonExtractorProvider } from '../../../src/json/mistral.js';
-import { CloudflareLlama33JsonExtractor, CloudflareAI } from '../../../src/json/cloudflare-llama33-extractor.js';
+import { DIContainer } from '../../../src/di/container.ts';
+import { TYPES } from '../../../src/types/di-types.ts';
+import { JsonExtractor } from '../../../src/json/types.ts';
+import { MistralJsonExtractorProvider } from '../../../src/json/mistral.ts';
+import { CloudflareLlama33JsonExtractor, CloudflareAI } from '../../../src/json/cloudflare-llama33-extractor';
 
 describe('DI Container Multiple Extractors Configuration', () => {
   let container: DIContainer;

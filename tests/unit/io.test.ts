@@ -1,7 +1,7 @@
 /**
  * Unit tests for the IO utilities
  */
-import { workerIo, workerIoE } from '../../src/io';
+import { workerIo, workerIoE } from '../../src/io.ts';
 
 describe('IO Utilities', () => {
   describe('workerIo', () => {

@@ -1,8 +1,8 @@
-import { Mistral } from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createMockMistral } from '../../src/di/test-container';
+import { createMockMistral } from '../../src/di/test-container.ts';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
@@ -13,7 +13,7 @@ const projectRoot = path.resolve(__dirname, '../../');
 const testImagePath = path.join(projectRoot, 'tests', 'fixtures', 'images', 'rental-bill.jpg');
 
 // Import types and create a proper IoE implementation
-import type { IoE } from '../../src/ocr/types';
+import type { IoE } from '../../src/ocr/types.ts';
 
 // Create a minimal IO interface for testing
 const testIo: IoE = {

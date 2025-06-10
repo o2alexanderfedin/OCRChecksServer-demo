@@ -7,10 +7,10 @@
 
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../types/di-types';
-import type { IoE } from '../ocr/types';
-import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './types';
-import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculator';
+import { TYPES } from '../types/di-types.ts';
+import type { IoE } from '../ocr/types.ts';
+import { JsonExtractor, JsonExtractionRequest, JsonExtractionResult } from './types.ts';
+import { JsonExtractionConfidenceCalculator } from './utils/confidence-calculator.ts';
 
 /**
  * Cloudflare Workers AI binding interface

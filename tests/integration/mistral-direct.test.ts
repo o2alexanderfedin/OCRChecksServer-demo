@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Mistral } from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai.js';
 import { fileURLToPath } from 'url';
 
 // Get directory info

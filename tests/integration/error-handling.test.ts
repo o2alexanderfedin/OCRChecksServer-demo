@@ -4,8 +4,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { ErrorResponse } from '../../src/types/api-responses.js';
-import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.js';
+import { ErrorResponse } from '../../src/types/api-responses.ts';
+import { throttledFetch, setupThrottledFetch } from '../helpers/throttled-fetch.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

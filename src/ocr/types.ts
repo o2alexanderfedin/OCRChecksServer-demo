@@ -1,5 +1,5 @@
-import type { Io } from 'functionalscript/io/module.f.js'
-import type { Result } from 'functionalscript/types/result/module.f.js'
+import type { Io } from 'functionalscript/io/module.f'
+import type { Result } from 'functionalscript/types/result/module.f'
 
 /** Extended Io type with additional methods */
 export type IoE = Io & {

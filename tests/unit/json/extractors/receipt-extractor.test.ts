@@ -1,5 +1,5 @@
 import { ReceiptExtractor } from '../../../../src/json/extractors/receipt-extractor';
-import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types';
+import { JsonExtractor, JsonExtractionRequest } from '../../../../src/json/types.ts';
 import { ReceiptExtractor as IReceiptExtractor } from '../../../../src/json/extractors/types';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 

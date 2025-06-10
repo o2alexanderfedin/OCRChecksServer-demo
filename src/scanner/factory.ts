@@ -1,9 +1,9 @@
-import { IoE } from '../ocr/types';
-import { ReceiptScanner } from './receipt-scanner';
-import { CheckScanner } from './check-scanner';
-import { DIContainer } from '../di/container';
-import { TYPES } from '../types/di-types';
-import { DocumentScanner } from './types';
+import { IoE } from '../ocr/types.ts';
+import { ReceiptScanner } from './receipt-scanner.ts';
+import { CheckScanner } from './check-scanner.ts';
+import { DIContainer } from '../di/container.ts';
+import { TYPES } from '../types/di-types.ts';
+import { DocumentScanner } from './types.ts';
 
 /**
  * Factory for creating document scanner instances

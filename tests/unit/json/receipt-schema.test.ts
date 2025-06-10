@@ -5,9 +5,9 @@ import {
   PaymentMethod, 
   CardType, 
   ReceiptFormat 
-} from '../../../src/json/schemas/receipt';
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
+} from '../../../src/json/schemas/receipt.ts';
+import Ajv from 'ajv.js';
+import addFormats from 'ajv-formats.js';
 
 describe('Receipt Schema Validation', () => {
   let ajv: Ajv;

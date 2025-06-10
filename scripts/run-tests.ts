@@ -20,7 +20,7 @@ import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import { globSync } from 'glob';
 import { promisify } from 'util';
-import { addDevVarsToEnv } from './load-dev-vars.js';
+import { addDevVarsToEnv } from './load-dev-vars.ts';
 import { exit } from 'process';
 
 // Get directory info
@@ -170,7 +170,7 @@ if (config.requiresServer) {
     console.log(`API Key first 4 chars: ${serverEnv.MISTRAL_API_KEY?.substring(0, 4) || 'undefined'}****`);
     
     // Start the server with the complete environment
-    serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.js')], {
+    serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.ts')], {
       stdio: ['inherit', 'pipe', 'inherit'],
       detached: false,
       env: serverEnv
@@ -181,7 +181,7 @@ if (config.requiresServer) {
       const output = data.toString();
       process.stdout.write(output);
       
-      // Check for the server URL message from start-server.js
+      // Check for the server URL message from start-server.ts
       const match = output.match(/Found server URL: (http:\/\/localhost:\d+)/);
       if (match && match[1]) {
         process.env.OCR_API_URL = match[1];

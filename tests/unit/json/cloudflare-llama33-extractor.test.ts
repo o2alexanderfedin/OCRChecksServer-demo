@@ -2,10 +2,10 @@
  * Unit tests for CloudflareLlama33JsonExtractor
  */
 
-import { CloudflareLlama33JsonExtractor } from '../../../src/json/cloudflare-llama33-extractor.js';
-import { JsonExtractionRequest } from '../../../src/json/types.js';
-import { JsonExtractionConfidenceCalculator } from '../../../src/json/utils/confidence-calculator.js';
-import type { IoE } from '../../../src/ocr/types.js';
+import { CloudflareLlama33JsonExtractor } from '../../../src/json/cloudflare-llama33-extractor';
+import { JsonExtractionRequest } from '../../../src/json/types.ts';
+import { JsonExtractionConfidenceCalculator } from '../../../src/json/utils/confidence-calculator.ts';
+import type { IoE } from '../../../src/ocr/types.ts';
 
 // Mock implementations
 const mockIoE: IoE = {

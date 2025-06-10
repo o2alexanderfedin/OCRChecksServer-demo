@@ -5,7 +5,7 @@
  * Runs outside of the test framework for direct debugging
  */
 
-import { Mistral } from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

@@ -1,7 +1,7 @@
 /**
  * Core validation types
  */
-import { z } from 'zod';
+import { z } from 'zod.js';
 
 /**
  * Detailed validation issue information

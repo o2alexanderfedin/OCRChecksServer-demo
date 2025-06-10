@@ -6,8 +6,8 @@
  */
 
 import { injectable } from 'inversify';
-import { Check } from '../schemas/check';
-import { HallucinationDetector } from './hallucination-detector';
+import { Check } from '../schemas/check.ts';
+import { HallucinationDetector } from './hallucination-detector.ts';
 
 /**
  * Service for detecting potential hallucinations specifically in check data

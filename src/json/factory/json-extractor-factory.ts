@@ -7,20 +7,20 @@
 
 import { injectable, inject } from 'inversify';
 import { Container } from 'inversify';
-import { IoE } from '../../ocr/types';
-import { TYPES } from '../../types/di-types';
-import { JsonExtractor } from '../types';
+import { IoE } from '../../ocr/types.ts';
+import { TYPES } from '../../types/di-types.ts';
+import { JsonExtractor } from '../types.ts';
 import { 
   JsonExtractorFactory as IJsonExtractorFactory,
   JsonExtractorType, 
   JsonExtractorFactoryConfig, 
   ExtractorAvailabilityResult,
   JsonExtractorFactoryOptions
-} from './types';
-import { MistralJsonExtractorProvider } from '../mistral';
+} from './types.ts';
+import { MistralJsonExtractorProvider } from '../mistral.ts';
 import { CloudflareLlama33JsonExtractor } from '../cloudflare-llama33-extractor';
-import { JsonExtractionConfidenceCalculator } from '../utils/confidence-calculator';
-import { Mistral } from '@mistralai/mistralai';
+import { JsonExtractionConfidenceCalculator } from '../utils/confidence-calculator.ts';
+import { Mistral } from '@mistralai/mistralai.js';
 import { CloudflareAI } from '../cloudflare-llama33-extractor';
 
 /**

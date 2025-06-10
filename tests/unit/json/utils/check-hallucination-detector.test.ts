@@ -4,8 +4,8 @@
  */
 
 // Using Jasmine global expect
-import { CheckHallucinationDetector } from '../../../../src/json/utils/check-hallucination-detector';
-import { Check } from '../../../../src/json/schemas/check';
+import { CheckHallucinationDetector } from '../../../../src/json/utils/check-hallucination-detector.ts';
+import { Check } from '../../../../src/json/schemas/check.ts';
 
 describe('CheckHallucinationDetector', () => {
   let detector: CheckHallucinationDetector;

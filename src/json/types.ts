@@ -1,4 +1,4 @@
-import type { Result } from 'functionalscript/types/result/module.f.js'
+import type { Result } from 'functionalscript/types/result/module.f'
 
 /**
  * Result of JSON extraction

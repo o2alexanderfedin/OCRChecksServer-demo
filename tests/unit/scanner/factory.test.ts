@@ -1,10 +1,10 @@
 /**
  * Unit tests for ScannerFactory
  */
-import { ScannerFactory } from '../../../src/scanner/factory';
-import { IoE } from '../../../src/ocr/types';
-import { ReceiptScanner } from '../../../src/scanner/receipt-scanner';
-import { CheckScanner } from '../../../src/scanner/check-scanner';
+import { ScannerFactory } from '../../../src/scanner/factory.ts';
+import { IoE } from '../../../src/ocr/types.ts';
+import { ReceiptScanner } from '../../../src/scanner/receipt-scanner.ts';
+import { CheckScanner } from '../../../src/scanner/check-scanner.ts';
 import { Container } from 'inversify';
 
 // We'll skip testing with the actual DIContainer since it's complex to mock

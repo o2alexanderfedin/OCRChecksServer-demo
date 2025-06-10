@@ -1,4 +1,4 @@
-import type { Result } from 'functionalscript/types/result/module.f.js'
+import type { Result } from 'functionalscript/types/result/module.f'
 import { OCRProvider, OCRResult, Document, OCRProviderConfig, IoE, DocumentType } from './types'
 import { Mistral } from '@mistralai/mistralai'
 import type { 
@@ -9,11 +9,11 @@ import type {
     OCRRequest
 } from '@mistralai/mistralai/models/components'
 import { injectable, inject } from 'inversify';
-import { TYPES as VALIDATOR_TYPES } from '../validators';
-import { TYPES } from '../types/di-types';
+import { TYPES as VALIDATOR_TYPES } from '../validators.ts';
+import { TYPES } from '../types/di-types.ts';
 
 // Import our cross-platform base64 utilities
-import { arrayBufferToBase64, contentToArrayBuffer, getContentByteLength } from './base64';
+import { arrayBufferToBase64, contentToArrayBuffer, getContentByteLength } from './base64.ts';
 
 /**
  * Mistral OCR provider implementation

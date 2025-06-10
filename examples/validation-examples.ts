@@ -12,7 +12,7 @@ import {
   ValidationError,
   MistralConfigValidator,
   ValidationMiddleware
-} from '../src/validators';
+} from '../src/validators.ts';
 
 /**
  * Example 1: Basic validation of API key and URL

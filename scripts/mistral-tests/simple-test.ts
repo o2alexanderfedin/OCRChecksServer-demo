@@ -1,5 +1,5 @@
 // Simple Mistral API test
-import { Mistral } from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai.js';
 
 // Hardcode the API key for testing
 const API_KEY = 'fake_mistral_api_key_for_demo_purposes_only';

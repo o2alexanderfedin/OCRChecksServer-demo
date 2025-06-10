@@ -1,8 +1,8 @@
-import { DIContainer } from './container';
-import { TYPES } from '../types/di-types';
-import { Mistral } from '@mistralai/mistralai';
-import { IoE } from '../ocr/types';
-import { registerValidators } from '../validators';
+import { DIContainer } from './container.ts';
+import { TYPES } from '../types/di-types.ts';
+import { Mistral } from '@mistralai/mistralai.js';
+import { IoE } from '../ocr/types.ts';
+import { registerValidators } from '../validators.ts';
 
 /**
  * Creates a mock Mistral client that passes instanceof checks

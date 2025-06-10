@@ -1,20 +1,20 @@
 import 'reflect-metadata';
-import { DIContainer } from '../../../src/di/container';
-import { TYPES } from '../../../src/types/di-types';
-import { IoE } from '../../../src/ocr/types';
-import { Mistral } from '@mistralai/mistralai';
-import { MistralOCRProvider } from '../../../src/ocr/mistral';
-import { MistralJsonExtractorProvider } from '../../../src/json/mistral';
+import { DIContainer } from '../../../src/di/container.ts';
+import { TYPES } from '../../../src/types/di-types.ts';
+import { IoE } from '../../../src/ocr/types.ts';
+import { Mistral } from '@mistralai/mistralai.js';
+import { MistralOCRProvider } from '../../../src/ocr/mistral.ts';
+import { MistralJsonExtractorProvider } from '../../../src/json/mistral.ts';
 import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
-import { ReceiptScanner } from '../../../src/scanner/receipt-scanner';
-import { CheckScanner } from '../../../src/scanner/check-scanner';
+import { ReceiptScanner } from '../../../src/scanner/receipt-scanner.ts';
+import { CheckScanner } from '../../../src/scanner/check-scanner.ts';
 import { 
   IScannerInputValidator,
   CheckScannerInputValidator,
   ReceiptScannerInputValidator,
   TYPES as VALIDATOR_TYPES
-} from '../../../src/validators';
+} from '../../../src/validators.ts';
 import 'jasmine';
 
 describe('DIContainer', () => {

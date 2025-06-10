@@ -4,7 +4,7 @@
  */
 
 import { spawn } from 'child_process';
-import { addDevVarsToEnv } from './load-dev-vars.js';
+import { addDevVarsToEnv } from './load-dev-vars.ts';
 
 console.log('Starting quick health test...');
 

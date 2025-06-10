@@ -1,19 +1,11 @@
 /**
- * Client example for using the OCR API with TypeScript
+ * Client example for using the OCR API
  * 
- * This file demonstrates how to use the API response types.
+ * This file is a browser-compatible JavaScript version of the TypeScript client.
  */
 
-import { 
-  CheckOCRResponse, 
-  ReceiptOCRResponse, 
-  ProcessDocumentResponse, 
-  ErrorResponse, 
-  HealthResponse 
-} from '../src/types/api-responses';
-
 // Get the base URL from the environment (default to local development)
-const getBaseUrl = (): string => {
+const getBaseUrl = () => {
   // If running in a browser, use the current origin
   if (typeof window !== 'undefined') {
     // If accessing the examples via our server at /examples/, we need to adjust the path
@@ -23,16 +15,16 @@ const getBaseUrl = (): string => {
     // If accessing directly from file, use localhost
     return 'http://localhost:8787';
   }
-  // Default for node environment
-  return process.env.OCR_API_URL || 'http://localhost:8787';
+  // Default for node environment (should not be reached in a browser)
+  return 'http://localhost:8787';
 };
 
 /**
  * Process a check image and extract data
- * @param imageFile Image file to process
- * @returns Extracted check data
+ * @param {File} imageFile Image file to process
+ * @returns {Promise<Object>} Extracted check data
  */
-async function processCheck(imageFile: File): Promise<CheckOCRResponse> {
+async function processCheck(imageFile) {
   const url = `${getBaseUrl()}/check`;
   
   // For image files, we need to send the raw binary data
@@ -45,20 +37,20 @@ async function processCheck(imageFile: File): Promise<CheckOCRResponse> {
   });
   
   if (!response.ok) {
-    const errorData: ErrorResponse = await response.json();
+    const errorData = await response.json();
     throw new Error(`Processing failed: ${errorData.error}`);
   }
   
-  const data: CheckOCRResponse = await response.json();
+  const data = await response.json();
   return data;
 }
 
 /**
  * Process a receipt image and extract data
- * @param imageFile Image file to process
- * @returns Extracted receipt data
+ * @param {File} imageFile Image file to process
+ * @returns {Promise<Object>} Extracted receipt data
  */
-async function processReceipt(imageFile: File): Promise<ReceiptOCRResponse> {
+async function processReceipt(imageFile) {
   const url = `${getBaseUrl()}/receipt`;
   
   // For image files, we need to send the raw binary data
@@ -71,24 +63,21 @@ async function processReceipt(imageFile: File): Promise<ReceiptOCRResponse> {
   });
   
   if (!response.ok) {
-    const errorData: ErrorResponse = await response.json();
+    const errorData = await response.json();
     throw new Error(`Processing failed: ${errorData.error}`);
   }
   
-  const data: ReceiptOCRResponse = await response.json();
+  const data = await response.json();
   return data;
 }
 
 /**
  * Process any document type (check or receipt)
- * @param imageFile Image file to process
- * @param documentType Type of document ('check' or 'receipt')
- * @returns Extracted document data
+ * @param {File} imageFile Image file to process
+ * @param {'check'|'receipt'} documentType Type of document
+ * @returns {Promise<Object>} Extracted document data
  */
-async function processDocument(
-  imageFile: File, 
-  documentType: 'check' | 'receipt'
-): Promise<ProcessDocumentResponse> {
+async function processDocument(imageFile, documentType) {
   const url = `${getBaseUrl()}/process?type=${documentType}`;
   
   // For image files, we need to send the raw binary data
@@ -101,19 +90,19 @@ async function processDocument(
   });
   
   if (!response.ok) {
-    const errorData: ErrorResponse = await response.json();
+    const errorData = await response.json();
     throw new Error(`Processing failed: ${errorData.error}`);
   }
   
-  const data: ProcessDocumentResponse = await response.json();
+  const data = await response.json();
   return data;
 }
 
 /**
  * Check service health
- * @returns Health status
+ * @returns {Promise<Object>} Health status
  */
-async function checkHealth(): Promise<HealthResponse> {
+async function checkHealth() {
   const url = `${getBaseUrl()}/health`;
   
   const response = await fetch(url);
@@ -122,54 +111,14 @@ async function checkHealth(): Promise<HealthResponse> {
     throw new Error(`Health check failed: ${response.statusText}`);
   }
   
-  const data: HealthResponse = await response.json();
+  const data = await response.json();
   return data;
 }
 
-/**
- * Example usage of the client functions
- */
-async function exampleUsage() {
-  try {
-    // Check service health
-    const healthStatus = await checkHealth();
-    console.log(`Service is ${healthStatus.status} (v${healthStatus.version})`);
-    
-    // Process a check image (assuming you have a file input)
-    const checkFileInput = document.getElementById('checkFile') as HTMLInputElement;
-    if (checkFileInput.files && checkFileInput.files.length > 0) {
-      const checkResult = await processCheck(checkFileInput.files[0]);
-      
-      // Use the structured data
-      console.log(`Check #${checkResult.data.checkNumber}`);
-      console.log(`Amount: $${checkResult.data.amount}`);
-      console.log(`Payee: ${checkResult.data.payee}`);
-      console.log(`Confidence: ${checkResult.confidence.overall * 100}%`);
-    }
-    
-    // Process a receipt image
-    const receiptFileInput = document.getElementById('receiptFile') as HTMLInputElement;
-    if (receiptFileInput.files && receiptFileInput.files.length > 0) {
-      const receiptResult = await processReceipt(receiptFileInput.files[0]);
-      
-      // Use the structured data
-      console.log(`Merchant: ${receiptResult.data.merchant.name}`);
-      console.log(`Date: ${receiptResult.data.timestamp}`);
-      console.log(`Total: $${receiptResult.data.totals.total}`);
-      console.log(`Items: ${receiptResult.data.items?.length || 0}`);
-      console.log(`Confidence: ${receiptResult.confidence.overall * 100}%`);
-    }
-    
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-// For browser environments
-if (typeof window !== 'undefined') {
-  // Add event listener to a process button
-  const processButton = document.getElementById('processButton');
-  if (processButton) {
-    processButton.addEventListener('click', exampleUsage);
-  }
-}
+// Export the functions for use in other modules
+export {
+  processCheck,
+  processReceipt,
+  processDocument,
+  checkHealth
+};

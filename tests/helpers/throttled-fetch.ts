@@ -3,7 +3,7 @@
  * Particularly useful for Mistral API which has a 6 requests/second limit
  */
 
-import { withRateLimit, configureRateLimiting, getRateLimitingStats, retry } from './retry.js';
+import { withRateLimit, configureRateLimiting, getRateLimitingStats, retry } from './retry.ts';
 
 /**
  * A fetch implementation that respects rate limits

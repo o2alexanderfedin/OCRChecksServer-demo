@@ -1,7 +1,7 @@
 /**
  * Unit tests for API Key validator
  */
-import { ApiKeyValidator, ValidationError } from '../../../src/validators';
+import { ApiKeyValidator, ValidationError } from '../../../src/validators.ts';
 
 describe('ApiKeyValidator', () => {
   let validator: ApiKeyValidator;

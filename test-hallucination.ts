@@ -1,11 +1,11 @@
 // Test script for anti-hallucination detection with tiny-test.jpg
-import { ScannerFactory } from './src/scanner/factory.js';
-import { workerIoE } from './src/io.js';
-import { Document, DocumentType } from './src/ocr/types.js';
+import { ScannerFactory } from './src/scanner/factory.ts';
+import { workerIoE } from './src/io.ts';
+import { Document, DocumentType } from './src/ocr/types.ts';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { addDevVarsToEnv } from './scripts/load-dev-vars.js';
+import { addDevVarsToEnv } from './scripts/load-dev-vars.ts';
 
 // Load environment variables
 await addDevVarsToEnv();

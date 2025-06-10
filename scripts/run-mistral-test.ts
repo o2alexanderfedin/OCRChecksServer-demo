@@ -5,7 +5,7 @@ console.log('Running Mistral API direct test...');
 
 try {
   execSync(
-    'node --no-deprecation --import \'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("ts-node/esm", pathToFileURL("./"));\' scripts/test-mistral-api.js',
+    'node --no-deprecation --import \'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("ts-node/esm", pathToFileURL("./"));\' scripts/test-mistral-api',
     { stdio: 'inherit' }
   );
 } catch (error) {

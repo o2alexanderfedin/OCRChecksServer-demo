@@ -1,5 +1,5 @@
 // A simple script to test if the Mistral API key is valid
-import { Mistral } from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai.js';
 
 // Get the API key from environment variable
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;

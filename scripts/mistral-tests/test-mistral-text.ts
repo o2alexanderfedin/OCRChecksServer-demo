@@ -1,5 +1,5 @@
-// A simple script to test the Mistral OCR API with receipt image
-import { Mistral } from '@mistralai/mistralai';
+// A simple script to test the Mistral OCR API with receipt image for text extraction
+import { Mistral } from '@mistralai/mistralai.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,8 +30,8 @@ function arrayBufferToBase64(buffer) {
   return btoa(binary);
 }
 
-// Function to send a base64 image to Mistral API and extract text
-async function testOCR(imagePath) {
+// Function to send a base64 image to Mistral API for text extraction
+async function testOCRText(imagePath) {
   console.log(`Testing OCR with image: ${imagePath}`);
   
   try {
@@ -49,7 +49,7 @@ async function testOCR(imagePath) {
     // Send to Mistral API
     console.log('Sending OCR request to Mistral API...');
     
-    // First get the text content with OCR
+    // Get the text content with OCR
     const ocrResponse = await client.ocr.process({
       model: "mistral-ocr-latest",
       document: {
@@ -61,35 +61,32 @@ async function testOCR(imagePath) {
     console.log('OCR Success! Response:');
     console.log(JSON.stringify(ocrResponse, null, 2));
     
-    // Now let's use Mistral to extract structured data from the receipt
-    const messages = [
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `You are an expert receipt parser. Please analyze the OCR text from this receipt and extract the following information in JSON format:
-            1. Store/merchant name
-            2. Date and time
-            3. Total amount
-            4. Payment method (if available)
-            5. List of items purchased (if available)
-            
-            Here is the receipt OCR text:
-            ${JSON.stringify(ocrResponse, null, 2)}`
-          }
-        ]
+    // Check if we have text content
+    if (ocrResponse.pages && ocrResponse.pages.length > 0) {
+      for (const page of ocrResponse.pages) {
+        if (page.text) {
+          console.log('\nExtracted OCR Text:');
+          console.log(page.text);
+        } else if (page.markdown) {
+          console.log('\nMarkdown Content:');
+          console.log(page.markdown);
+        }
       }
-    ];
+    }
     
-    console.log('Asking Mistral to extract structured data...');
-    const chatResponse = await client.chat({
-      model: "mistral-large-latest",
-      messages: messages
+    // Also try to get the text through different means
+    console.log('\nGetting text content using alternative methods...');
+    const ocrText = await client.ocr.process({
+      model: "mistral-ocr-latest",
+      document: {
+        type: 'image_url',
+        imageUrl: dataUrl
+      },
+      responseFormat: 'text'
     });
     
-    console.log('\nExtracted Structured Data:');
-    console.log(chatResponse.choices[0].message.content);
+    console.log('Text response format:');
+    console.log(ocrText);
     
     return true;
   } catch (error) {
@@ -103,15 +100,15 @@ async function testOCR(imagePath) {
 
 // Main function to run tests
 async function runTests() {
-  console.log('Starting Mistral OCR Test');
+  console.log('Starting Mistral OCR Text Test');
   console.log(`Using API key: ${MISTRAL_API_KEY.substring(0, 4)}...${MISTRAL_API_KEY.substring(MISTRAL_API_KEY.length - 4)}`);
   
   // Test with a receipt image
   const imagePath = path.join(projectRoot, 'tests', 'fixtures', 'images', 'fredmeyer-receipt.jpg');
   
   // Run test with OCR
-  console.log('\n=== OCR TEST ===');
-  await testOCR(imagePath);
+  console.log('\n=== OCR TEXT TEST ===');
+  await testOCRText(imagePath);
 }
 
 // Run the tests

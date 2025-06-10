@@ -1,9 +1,9 @@
 /**
  * Abstract base validator implementation
  */
-import { z } from 'zod';
+import { z } from 'zod.js';
 import { injectable, unmanaged } from 'inversify';
-import { IDomainValidator, ValidationError } from './types';
+import { IDomainValidator, ValidationError } from './types.ts';
 
 /**
  * Abstract base class for validators

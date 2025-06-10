@@ -12,11 +12,11 @@
  */
 
 import { JsonExtractorFactory } from '../../../src/json/factory/json-extractor-factory';
-import { JsonExtractorType, JsonExtractorFactoryConfig } from '../../../src/json/factory/types';
-import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
-import { DIContainer } from '../../../src/di/container';
-import { TYPES } from '../../../src/types/di-types';
-import { IoE } from '../../../src/ocr/types';
+import { JsonExtractorType, JsonExtractorFactoryConfig } from '../../../src/json/factory/types.ts';
+import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types.ts';
+import { DIContainer } from '../../../src/di/container.ts';
+import { TYPES } from '../../../src/types/di-types.ts';
+import { IoE } from '../../../src/ocr/types.ts';
 
 // Real-world test data samples
 const E2E_TEST_SAMPLES = {

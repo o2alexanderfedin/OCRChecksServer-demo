@@ -11,4 +11,4 @@ export type {
   JsonExtractorFactoryConfig,
   ExtractorAvailabilityResult,
   JsonExtractorFactoryOptions
-} from './types';
+} from './types.ts';

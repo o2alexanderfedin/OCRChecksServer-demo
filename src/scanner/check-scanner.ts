@@ -1,11 +1,11 @@
-import { OCRProvider, Document } from '../ocr/types';
-import { DocumentScanner, ProcessingResult } from './types';
+import { OCRProvider, Document } from '../ocr/types.ts';
+import { DocumentScanner, ProcessingResult } from './types.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
 import { CheckExtractor as ICheckExtractor } from '../json/extractors/types';
 import { injectable, inject, named } from 'inversify';
-import { TYPES as VALIDATOR_TYPES, IScannerInputValidator, ScannerInput } from '../validators';
-import { TYPES } from '../types/di-types';
-import { CheckHallucinationDetector } from '../json/utils/check-hallucination-detector';
+import { TYPES as VALIDATOR_TYPES, IScannerInputValidator, ScannerInput } from '../validators.ts';
+import { TYPES } from '../types/di-types.ts';
+import { CheckHallucinationDetector } from '../json/utils/check-hallucination-detector.ts';
 
 /**
  * CheckScanner - Encapsulates OCR and JSON extraction in a single process for check documents

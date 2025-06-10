@@ -1,14 +1,14 @@
 import 'reflect-metadata';
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-import { serveStatic } from 'hono/cloudflare-workers';
-import { workerIoE } from './io';
-import { ScannerFactory } from './scanner/factory';
-import { Document, DocumentType } from './ocr/types';
+import { Hono } from 'hono.js';
+import { cors } from 'hono/cors.js';
+import { serveStatic } from 'hono/cloudflare-workers.js';
+import { workerIoE } from './io.ts';
+import { ScannerFactory } from './scanner/factory.ts';
+import { Document, DocumentType } from './ocr/types.ts';
 // Import Swagger UI middleware
-import { createSwaggerUI, getOpenAPISpecWithCurrentVersion } from './swagger';
+import { createSwaggerUI, getOpenAPISpecWithCurrentVersion } from './swagger.ts';
 // Get package version (used in health check)
-import pkg from '../package.json';
+import pkg from '../package.json.ts';
 
 interface Env {
   MISTRAL_API_KEY: string;

@@ -1,7 +1,7 @@
-import type { Document } from '../ocr/types';
+import type { Document } from '../ocr/types.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
-import type { Receipt } from '../json/schemas/receipt';
-import type { Check } from '../json/schemas/check';
+import type { Receipt } from '../json/schemas/receipt.ts';
+import type { Check } from '../json/schemas/check.ts';
 
 /**
  * Result of the unified processing

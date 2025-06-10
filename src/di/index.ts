@@ -1,2 +1,2 @@
-export * from './container';
-export * from './test-container';
+export * from './container.ts';
+export * from './test-container.ts';

@@ -6,8 +6,8 @@
  */
 
 import { injectable } from 'inversify';
-import { Receipt } from '../schemas/receipt';
-import { HallucinationDetector } from './hallucination-detector';
+import { Receipt } from '../schemas/receipt.ts';
+import { HallucinationDetector } from './hallucination-detector.ts';
 
 /**
  * Service for detecting potential hallucinations specifically in receipt data

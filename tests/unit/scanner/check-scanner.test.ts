@@ -1,12 +1,12 @@
-import { CheckScanner } from '../../../src/scanner/check-scanner';
-import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr/types';
-import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
+import { CheckScanner } from '../../../src/scanner/check-scanner.ts';
+import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr/types.ts';
+import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types.ts';
 import { CheckExtractor as ICheckExtractor } from '../../../src/json/extractors/types';
 import { CheckExtractor } from '../../../src/json/extractors/check-extractor';
-import { CheckHallucinationDetector } from '../../../src/json/utils/check-hallucination-detector';
+import { CheckHallucinationDetector } from '../../../src/json/utils/check-hallucination-detector.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
-import type { Check } from '../../../src/json/schemas/check';
-import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
+import type { Check } from '../../../src/json/schemas/check.ts';
+import { IScannerInputValidator, ScannerInput } from '../../../src/validators.ts';
 import 'reflect-metadata';
 
 // Mock implementations

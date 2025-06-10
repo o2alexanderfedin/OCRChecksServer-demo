@@ -11,7 +11,7 @@ import {
   ApiKey,
   Url,
   ValidationError
-} from '../../src/validators/index.js';
+} from '../../src/validators/index';
 
 describe('Validation System Integration', () => {
   let container: Container;

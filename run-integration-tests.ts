@@ -10,7 +10,7 @@ import { spawn, exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs';
-import { setTimeout } from 'timers/promises';
+import { setTimeout } from 'timers/promises.js';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);

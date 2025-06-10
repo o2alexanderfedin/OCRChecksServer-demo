@@ -4,8 +4,8 @@
  * This file defines TypeScript types for the OCR API responses.
  */
 
-import type { Check } from '../json/schemas/check';
-import type { Receipt } from '../json/schemas/receipt';
+import type { Check } from '../json/schemas/check.ts';
+import type { Receipt } from '../json/schemas/receipt.ts';
 
 /**
  * Common confidence scores included in all OCR responses

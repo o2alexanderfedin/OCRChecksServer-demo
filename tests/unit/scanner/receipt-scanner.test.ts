@@ -1,12 +1,12 @@
-import { ReceiptScanner } from '../../../src/scanner/receipt-scanner';
+import { ReceiptScanner } from '../../../src/scanner/receipt-scanner.ts';
 import 'reflect-metadata';
-import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr/types';
-import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types';
+import { OCRProvider, Document, DocumentType, OCRResult } from '../../../src/ocr/types.ts';
+import { JsonExtractor, JsonExtractionRequest } from '../../../src/json/types.ts';
 import { ReceiptExtractor as IReceiptExtractor } from '../../../src/json/extractors/types';
 import { ReceiptExtractor } from '../../../src/json/extractors/receipt-extractor';
-import { ReceiptHallucinationDetector } from '../../../src/json/utils/receipt-hallucination-detector';
+import { ReceiptHallucinationDetector } from '../../../src/json/utils/receipt-hallucination-detector.ts';
 import type { Result } from 'functionalscript/types/result/module.f.js';
-import { IScannerInputValidator, ScannerInput } from '../../../src/validators';
+import { IScannerInputValidator, ScannerInput } from '../../../src/validators.ts';
 
 // Mock implementations
 class MockOCRProvider implements OCRProvider {

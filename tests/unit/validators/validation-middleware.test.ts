@@ -1,7 +1,7 @@
 /**
  * Unit tests for ValidationMiddleware
  */
-import { ValidationMiddleware, ValidationError, ApiKeyValidator } from '../../../src/validators';
+import { ValidationMiddleware, ValidationError, ApiKeyValidator } from '../../../src/validators.ts';
 
 describe('ValidationMiddleware', () => {
   let middleware: ValidationMiddleware;

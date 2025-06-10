@@ -71,6 +71,7 @@
    - Example: [Kanban Execution Flow](./.claude/rules/kanban-execution-flow.md) defines task selection criteria, status transitions, and work-in-progress management for efficient project execution
    - Example: [Project Status Management](./.claude/rules/project-status-management.md) ensures correct hierarchical status management to prevent parent issues being marked "Done" while child dependencies remain incomplete
    - Example: [GitFlow Release Management](./.claude/rules/gitflow-release-management.md) establishes comprehensive release process including version management, tagging, documentation, and GitHub project integration
+   - Example: [Defensive Problem Solving](./.claude/rules/defensive-problem-solving.md) prevents reactive changes to working code by requiring evidence-based analysis before making modifications in response to user frustration
 
 10. **Maintain Accurate Project Status**
    - Before marking any issue as "Done", verify ALL child dependencies are complete

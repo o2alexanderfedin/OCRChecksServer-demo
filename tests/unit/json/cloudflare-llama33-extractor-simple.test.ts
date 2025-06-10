@@ -92,12 +92,12 @@ describe('CloudflareLlama33JsonExtractor', () => {
   });
 
   it('should create instance with working AI', () => {
-    extractor = new CloudflareLlama33JsonExtractor(workingAI as any, mockConfidenceCalculator, mockIoE);
+    extractor = new CloudflareLlama33JsonExtractor(mockIoE, workingAI as any, mockConfidenceCalculator);
     expect(extractor).toBeInstanceOf(CloudflareLlama33JsonExtractor);
   });
 
   it('should handle AI execution failures gracefully', async () => {
-    extractor = new CloudflareLlama33JsonExtractor(failingAI as any, mockConfidenceCalculator, mockIoE);
+    extractor = new CloudflareLlama33JsonExtractor(mockIoE, failingAI as any, mockConfidenceCalculator);
     
     const request: JsonExtractionRequest = {
       markdown: 'Some text',
@@ -106,12 +106,14 @@ describe('CloudflareLlama33JsonExtractor', () => {
 
     const result = await extractor.extract(request);
     
-    expect(result.status).toBe('error');
-    expect(result.error).toContain('AI model execution failed');
+    expect(result[0]).toBe('error');
+    if (result[0] === 'error') {
+      expect(result[1].message).toContain('AI model execution failed');
+    }
   });
 
   it('should extract JSON data successfully with working AI', async () => {
-    extractor = new CloudflareLlama33JsonExtractor(workingAI as any, mockConfidenceCalculator, mockIoE);
+    extractor = new CloudflareLlama33JsonExtractor(mockIoE, workingAI as any, mockConfidenceCalculator);
     
     const request: JsonExtractionRequest = {
       markdown: 'Some text',
@@ -120,10 +122,10 @@ describe('CloudflareLlama33JsonExtractor', () => {
 
     const result = await extractor.extract(request);
     
-    expect(result.status).toBe('success');
-    if (result.status === 'success') {
-      expect(result.extractedJson).toBeDefined();
-      expect(result.confidence).toBeGreaterThan(0);
+    expect(result[0]).toBe('ok');
+    if (result[0] === 'ok') {
+      expect(result[1].json).toBeDefined();
+      expect(result[1].confidence).toBeGreaterThan(0);
     }
   });
 });

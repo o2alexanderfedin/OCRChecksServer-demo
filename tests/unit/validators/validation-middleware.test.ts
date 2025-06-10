@@ -121,7 +121,6 @@ describe('ValidationMiddleware', () => {
       // Should not try to handle the error itself
       expect(statusCalled).toBe(false);
     });
-  });
   
   describe('createParamValidator', () => {
     it('should validate URL parameters and pass to next middleware', () => {

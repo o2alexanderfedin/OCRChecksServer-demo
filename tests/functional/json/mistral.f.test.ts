@@ -1,10 +1,10 @@
-import type { IoE } from '../../../src/ocr/types'
-import { JsonExtractionRequest } from '../../../src/json/types'
-import { MistralJsonExtractorProvider } from '../../../src/json/mistral'
+import type { IoE } from '../../../src/ocr/types.ts'
+import { JsonExtractionRequest } from '../../../src/json/types.ts'
+import { MistralJsonExtractorProvider } from '../../../src/json/mistral.ts'
 import 'jasmine'
 import { Mistral } from '@mistralai/mistralai'
-import { TestDIContainer } from '../../../src/di/index'
-import { TYPES } from '../../../src/types/di-types'
+import { TestDIContainer } from '../../../src/di/index.ts'
+import { TYPES } from '../../../src/types/di-types.ts'
 
 // Create our own simplified mock function since jasmine.createSpy might not be available
 interface MockFunction {

@@ -6,9 +6,9 @@ import { workerIoE } from './io.ts';
 import { ScannerFactory } from './scanner/factory.ts';
 import { Document, DocumentType } from './ocr/types.ts';
 // Import Swagger UI middleware
-import { createSwaggerUI, getOpenAPISpecWithCurrentVersion } from './swagger.ts';
+import { createSwaggerUI, getOpenAPISpecWithCurrentVersion } from './swagger/index.ts';
 // Get package version (used in health check)
-import pkg from '../package.json.ts';
+import pkg from '../package.json' with { type: 'json' };
 
 interface Env {
   MISTRAL_API_KEY: string;

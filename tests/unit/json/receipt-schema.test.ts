@@ -131,7 +131,7 @@ describe('Receipt Schema Validation', () => {
     
     // Check that the error is about the missing confidence field
     const errorMessages = validate.errors?.map((e: any) => e.message);
-    expect(errorMessages?.some(msg => msg.includes('confidence'))).toBe(true);
+    expect(errorMessages?.some((msg: string) => msg.includes('confidence'))).toBe(true);
   });
 
   it('should validate when currency is missing (optional field)', () => {

@@ -8,6 +8,11 @@ on:
   # Allow manual deployment through GitHub UI
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
 jobs:
   deploy:
     name: Deploy to Production Environment

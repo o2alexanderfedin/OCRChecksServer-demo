@@ -11,6 +11,11 @@ on:
       - develop
       - main
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
 jobs:
   test:
     name: Test
@@ -40,7 +45,7 @@ jobs:
         
       # Semi-integration tests require API key, run only if secret is available
       - name: Run semi-integration tests
-        if: ${{ secrets.MISTRAL_API_KEY != '' }}
+        if: ${{ secrets.MISTRAL_API_KEY }}
         run: npm run test:semi
         env:
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}

@@ -5,6 +5,11 @@ on:
     branches:
       - 'release/**'
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
 jobs:
   deploy:
     name: Deploy to Staging Environment

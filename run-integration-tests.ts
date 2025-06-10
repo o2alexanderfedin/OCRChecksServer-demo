@@ -20,7 +20,7 @@ const resultsPath = join(__dirname, 'integration-test-results.json');
 // Configuration
 const API_URL = process.env.OCR_API_URL || 'http://localhost:8787';
 const SERVER_STARTUP_DELAY = 5000; // 5 seconds
-const SERVER_SHUTDOWN_TIMEOUT = 5000; // 5 seconds
+const _SERVER_SHUTDOWN_TIMEOUT = 5000; // 5 seconds
 const DRY_RUN = process.argv.includes('--dry-run');
 
 // Store server process information for cleanup
@@ -29,7 +29,7 @@ let serverPid = null;
 /**
  * Clean up any running development server processes
  */
-async function cleanupServerProcesses() {
+async function cleanupServerProcesses(): Promise<void> {
   return new Promise((resolve) => {
     console.log('Cleaning up server processes...');
     
@@ -59,14 +59,14 @@ async function cleanupServerProcesses() {
 /**
  * Set up cleanup handlers for graceful shutdown
  */
-function setupCleanupHandlers() {
+function setupCleanupHandlers(): void {
   // Handle normal exit
   process.on('exit', () => {
     try {
       if (serverPid) {
         process.kill(serverPid);
       }
-    } catch (e) {
+    } catch (_e) {
       // Ignore errors during exit
     }
   });
@@ -96,7 +96,7 @@ function setupCleanupHandlers() {
 /**
  * Main function to run integration tests
  */
-async function runIntegrationTests() {
+async function runIntegrationTests(): Promise<void> {
   console.log('\n🚀 Starting OCR Checks Server integration tests\n');
   
   // Set up cleanup handlers

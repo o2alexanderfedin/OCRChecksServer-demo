@@ -63,7 +63,7 @@ describe('Server Performance Statistics', function() {
   // Set a timeout based on the total expected runtime for all iterations
   jasmine.DEFAULT_TIMEOUT_INTERVAL = (SERVER_MAX_TIMEOUT * ITERATIONS) + 5000;
   
-  let serverProcesses: any[] = [];
+  const serverProcesses: any[] = [];
   const startupTimes: number[] = [];
   
   beforeAll(async () => {

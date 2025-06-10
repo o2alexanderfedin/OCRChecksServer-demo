@@ -150,7 +150,7 @@ export class JsonExtractorFactory implements IJsonExtractorFactory {
   /**
    * Create Mistral extractor instance
    */
-  private createMistralExtractor(config: JsonExtractorFactoryConfig): JsonExtractor {
+  private createMistralExtractor(_config: JsonExtractorFactoryConfig): JsonExtractor {
     if (!this.container) {
       throw new Error('DI Container is required for Mistral extractor creation');
     }
@@ -168,7 +168,7 @@ export class JsonExtractorFactory implements IJsonExtractorFactory {
   /**
    * Create Cloudflare extractor instance
    */
-  private createCloudflareExtractor(config: JsonExtractorFactoryConfig): JsonExtractor {
+  private createCloudflareExtractor(_config: JsonExtractorFactoryConfig): JsonExtractor {
     if (!this.container) {
       throw new Error('DI Container is required for Cloudflare extractor creation');
     }

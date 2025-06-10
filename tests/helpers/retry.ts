@@ -6,7 +6,7 @@
 // Rate limiting state
 let lastRequestTime = 0;
 const MIN_REQUEST_INTERVAL = 167; // 167ms ≈ 6 requests per second (Mistral API limit)
-let REQUEST_QUEUE: Function[] = [];
+const REQUEST_QUEUE: Function[] = [];
 let isProcessingQueue = false;
 let totalRequests = 0;
 let queuedRequests = 0;

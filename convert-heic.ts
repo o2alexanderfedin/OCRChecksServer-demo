@@ -1,9 +1,8 @@
 // Script to convert HEIC to JPEG
-const fs = require('fs');
-const path = require('path');
-const heicConvert = require('heic-convert');
+import fs from 'fs';
+import heicConvert from 'heic-convert';
 
-async function convertHEICtoJPEG(inputPath, outputPath) {
+async function convertHEICtoJPEG(inputPath: string, outputPath: string): Promise<boolean> {
   try {
     console.log(`Converting ${inputPath} to ${outputPath}...`);
     

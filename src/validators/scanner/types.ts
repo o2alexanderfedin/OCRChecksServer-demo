@@ -36,7 +36,7 @@ export interface ScannerOutput {
   text: string;
   confidence: number;
   duration: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

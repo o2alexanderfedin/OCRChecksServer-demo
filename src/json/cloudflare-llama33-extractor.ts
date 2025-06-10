@@ -89,6 +89,9 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
       console.log('======== CLOUDFLARE LLAMA33 JSON EXTRACTION REQUEST ========');
       console.log('- Model: @cf/meta/llama-3.3-70b-instruct-fp8-fast');
       console.log('- Input format: messages (chat completion)');
+      console.log('- Max tokens: 2048');
+      console.log('- Temperature: 0');
+      console.log('- Stream: false');
       
       // Start timing the request
       const requestStartTime = Date.now();
@@ -108,7 +111,9 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
             '5. For minimal or empty images, provide empty/null values and low confidence\n' +
             '6. Set isValidInput=false if the input appears to be invalid or minimal\n' +
             '7. Ensure valid JSON with balanced quotes and correct syntax\n' +
-            '8. Return ONLY the JSON object, no additional text or formatting'
+            '8. Return ONLY the JSON object, no additional text or formatting\n' +
+            '9. CRITICAL: Complete the entire JSON response - do not truncate or stop early\n' +
+            '10. Ensure all opening braces { and brackets [ have matching closing braces } and brackets ]'
         },
         {
           role: 'user',
@@ -116,10 +121,13 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
         }
       ];
 
-      // Call Cloudflare Workers AI
+      // Call Cloudflare Workers AI with extended parameters
       try {
         const response = await this.cloudflareAI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
-          messages: messages
+          messages: messages,
+          max_tokens: 2048,  // Increase max tokens to prevent truncation
+          temperature: 0,    // Completely deterministic output for consistent JSON
+          stream: false      // Ensure we get the complete response, not streaming
         });
 
         const requestDuration = Date.now() - requestStartTime;
@@ -145,16 +153,46 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
             responseText = JSON.stringify(response);
           }
 
-          console.log('- Raw response text:', responseText.substring(0, 500));
+          console.log('- Raw response text length:', responseText.length);
+          console.log('- Raw response text (first 500 chars):', responseText.substring(0, 500));
+          if (responseText.length > 500) {
+            console.log('- Raw response text (last 200 chars):', responseText.substring(responseText.length - 200));
+          }
 
-          // Clean and parse JSON
+          // Clean and parse JSON with enhanced error handling
           const cleanedResponse = this.cleanJsonResponse(responseText);
-          jsonContent = JSON.parse(cleanedResponse);
-
-          console.log('- Successfully parsed JSON with keys:', Object.keys(jsonContent).join(', '));
+          console.log('- Cleaned response length:', cleanedResponse.length);
+          console.log('- Cleaned response (first 200 chars):', cleanedResponse.substring(0, 200));
+          
+          try {
+            jsonContent = JSON.parse(cleanedResponse);
+            console.log('- Successfully parsed JSON with keys:', Object.keys(jsonContent).join(', '));
+          } catch (initialParseError) {
+            console.log('- Initial JSON parsing failed, attempting recovery...');
+            console.log('- Parse error:', initialParseError);
+            
+            // Attempt to fix common JSON issues
+            const repairedJson = this.repairJsonResponse(cleanedResponse);
+            if (repairedJson !== cleanedResponse) {
+              console.log('- Attempting to parse repaired JSON...');
+              console.log('- Repaired JSON (first 200 chars):', repairedJson.substring(0, 200));
+              try {
+                jsonContent = JSON.parse(repairedJson);
+                console.log('- Successfully parsed repaired JSON with keys:', Object.keys(jsonContent).join(', '));
+              } catch (repairParseError) {
+                console.log('- Repaired JSON parsing also failed:', repairParseError);
+                console.log('- Full cleaned response for debugging:', cleanedResponse);
+                return ['error', new Error(`Invalid JSON response after repair attempts: ${repairParseError instanceof Error ? repairParseError.message : String(repairParseError)}`)];
+              }
+            } else {
+              console.log('- No JSON repairs attempted, original error stands');
+              console.log('- Full cleaned response for debugging:', cleanedResponse);
+              return ['error', new Error(`Invalid JSON response: ${initialParseError instanceof Error ? initialParseError.message : String(initialParseError)}`)];
+            }
+          }
         } catch (parseError) {
-          console.log('- JSON parsing failed:', parseError);
-          return ['error', new Error(`Invalid JSON response: ${parseError instanceof Error ? parseError.message : String(parseError)}`)];
+          console.log('- Unexpected error during JSON processing:', parseError);
+          return ['error', new Error(`JSON processing failed: ${parseError instanceof Error ? parseError.message : String(parseError)}`)];
         }
 
         // Note: Hallucination detection is now handled by scanners for better separation of concerns
@@ -245,5 +283,67 @@ export class CloudflareLlama33JsonExtractor implements JsonExtractor {
     }
     
     return cleaned;
+  }
+
+  /**
+   * Attempts to repair common JSON parsing issues
+   * @param jsonText Potentially malformed JSON string
+   * @returns Repaired JSON string or original if no repairs made
+   */
+  private repairJsonResponse(jsonText: string): string {
+    let repaired = jsonText;
+    let wasRepaired = false;
+
+    // Common issue 1: Incomplete JSON (missing closing braces)
+    const openBraces = (repaired.match(/\{/g) || []).length;
+    const closeBraces = (repaired.match(/\}/g) || []).length;
+    
+    if (openBraces > closeBraces) {
+      const missingBraces = openBraces - closeBraces;
+      repaired += '}'.repeat(missingBraces);
+      wasRepaired = true;
+      console.log(`- Added ${missingBraces} missing closing brace(s)`);
+    }
+
+    // Common issue 2: Trailing comma before closing brace
+    repaired = repaired.replace(/,\s*}/g, '}');
+    repaired = repaired.replace(/,\s*]/g, ']');
+    
+    // Common issue 3: Missing quotes around property names
+    repaired = repaired.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+    
+    // Common issue 4: Remove trailing commas in arrays
+    repaired = repaired.replace(/,(\s*])/g, '$1');
+    
+    // Common issue 5: Incomplete string values (missing closing quotes)
+    // This is more complex and risky, so we'll only fix obvious cases
+    repaired = repaired.replace(/"([^"]*?)$/g, '"$1"');
+    
+    // Common issue 6: Truncated response - try to complete the last incomplete property
+    if (repaired.endsWith('"')) {
+      // If it ends with an incomplete property name or value, try to close it
+      repaired += ': ""';
+      wasRepaired = true;
+      console.log('- Completed incomplete property with empty string value');
+    } else if (repaired.match(/:\s*"[^"]*$/)) {
+      // If it ends with an incomplete string value, close it
+      repaired += '"';
+      wasRepaired = true;
+      console.log('- Closed incomplete string value');
+    } else if (repaired.match(/:\s*[0-9]+$/)) {
+      // Number values are usually complete, but check for context
+      // This case is usually fine as-is
+    } else if (repaired.match(/[{,]\s*"[^"]*$/)) {
+      // Incomplete property name
+      repaired += '": ""';
+      wasRepaired = true;
+      console.log('- Completed incomplete property name');
+    }
+
+    if (wasRepaired) {
+      console.log('- JSON repair attempted');
+    }
+
+    return repaired;
   }
 }

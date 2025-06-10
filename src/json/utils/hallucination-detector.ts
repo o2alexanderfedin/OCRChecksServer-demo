@@ -31,7 +31,7 @@ export class DocumentTypeDetector {
    * @param data - The extracted data to analyze
    * @returns boolean - True if data appears to be check-related
    */
-  static isCheckData(data: any): boolean {
+  static isCheckData(data: Record<string, unknown>): boolean {
     // Check for check-specific fields
     return !!(
       data.checkNumber !== undefined ||
@@ -49,7 +49,7 @@ export class DocumentTypeDetector {
    * @param data - The extracted data to analyze
    * @returns boolean - True if data appears to be receipt-related
    */
-  static isReceiptData(data: any): boolean {
+  static isReceiptData(data: Record<string, unknown>): boolean {
     // Check for receipt-specific fields
     return !!(
       data.merchant !== undefined ||
@@ -66,7 +66,7 @@ export class DocumentTypeDetector {
    * @param data - The extracted data to analyze
    * @returns string - The detected document type
    */
-  static getDocumentType(data: any): 'check' | 'receipt' | 'unknown' {
+  static getDocumentType(data: Record<string, unknown>): 'check' | 'receipt' | 'unknown' {
     if (this.isCheckData(data)) {
       return 'check';
     } else if (this.isReceiptData(data)) {

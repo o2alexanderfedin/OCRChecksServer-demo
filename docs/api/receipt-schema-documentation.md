@@ -272,6 +272,56 @@ if (\!isValid) {
 }
 ```
 
+## API Response Format
+
+When processing a receipt through the API, the response includes both structured data and raw OCR text:
+
+```json
+{
+  "data": {
+    "merchant": {
+      "name": "Grocery Store Inc.",
+      "address": "123 Main St., Anytown, CA 90210",
+      "phone": "555-123-4567"
+    },
+    "timestamp": "2025-04-15T14:30:00Z",
+    "totals": {
+      "subtotal": 7.47,
+      "tax": 0.65,
+      "total": 8.12
+    },
+    "currency": "USD",
+    "items": [
+      {
+        "description": "Organic Apples",
+        "quantity": 2,
+        "unitPrice": 1.99,
+        "totalPrice": 3.98
+      },
+      {
+        "description": "Whole Grain Bread",
+        "quantity": 1,
+        "unitPrice": 3.49,
+        "totalPrice": 3.49
+      }
+    ],
+    "confidence": 0.89
+  },
+  "markdown": "GROCERY STORE INC.\n123 Main St., Anytown, CA 90210\nPhone: (555) 123-4567\n\nDate: 04/15/2025 2:30 PM\n\nORGANIC APPLES       2x $1.99    $3.98\nWHOLE GRAIN BREAD    1x $3.49    $3.49\n\nSUBTOTAL                         $7.47\nTAX                              $0.65\nTOTAL                            $8.12\n\nThank you for shopping with us!",
+  "confidence": {
+    "ocr": 0.89,
+    "extraction": 0.82,
+    "overall": 0.73
+  }
+}
+```
+
+### Response Fields
+
+- **`data`**: The structured receipt data extracted using the receipt schema
+- **`markdown`**: Raw OCR text extracted from the receipt image before JSON processing
+- **`confidence`**: Confidence scores for OCR, extraction, and overall processing
+
 ## Integration with OCR and Extraction
 
 The Receipt Schema is integrated into the overall document processing flow:
@@ -280,7 +330,7 @@ The Receipt Schema is integrated into the overall document processing flow:
 2. The JSON extractor uses the schema to guide AI-based structured data extraction
 3. The extracted data is validated against the schema
 4. Any normalization or post-processing is applied
-5. The final validated receipt data is returned to the client
+5. The final validated receipt data and raw OCR text are returned to the client
 
 This schema-driven approach ensures consistent, reliable extraction of receipt data across different receipt formats and layouts.
 

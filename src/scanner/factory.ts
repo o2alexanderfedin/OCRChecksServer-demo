@@ -4,6 +4,7 @@ import { CheckScanner } from './check-scanner.ts';
 import { DIContainer } from '../di/container.ts';
 import { TYPES } from '../types/di-types.ts';
 import { DocumentScanner } from './types.ts';
+import { CloudflareAI } from '../json/cloudflare-llama33-extractor.ts';
 
 /**
  * Factory for creating document scanner instances
@@ -18,7 +19,7 @@ export class ScannerFactory {
    * @param caller - caller of the method
    * @returns A DIContainer instance
    */
-  public static createDIContainer(io: IoE, apiKey: string, caller?: string, extractorType?: string, aiBinding?: any): DIContainer {
+  public static createDIContainer(io: IoE, apiKey: string, caller?: string, extractorType?: string, aiBinding?: CloudflareAI): DIContainer {
     console.log(`[ScannerFactory::${caller ?? "createDIContainer"}] Mistral API key: ${apiKey ? apiKey.substring(0, 4) + '...' : 'undefined'}`);
     console.log(`[ScannerFactory::${caller ?? "createDIContainer"}] Extractor type: ${extractorType || 'mistral (default)'}`);
     console.log(`[ScannerFactory::${caller ?? "createDIContainer"}] AI binding: ${aiBinding ? 'Available' : 'Not provided'}`);
@@ -37,7 +38,7 @@ export class ScannerFactory {
    * @param apiKey - Mistral API key
    * @returns A ReceiptScanner instance
    */
-  public static createMistralReceiptScanner(io: IoE, apiKey: string, extractorType?: string, aiBinding?: any): ReceiptScanner {
+  public static createMistralReceiptScanner(io: IoE, apiKey: string, extractorType?: string, aiBinding?: CloudflareAI): ReceiptScanner {
     // Create DI container with all dependencies registered
     const container = this.createDIContainer(io, apiKey, "createMistralReceiptScanner", extractorType, aiBinding);
     
@@ -52,7 +53,7 @@ export class ScannerFactory {
    * @param apiKey - Mistral API key
    * @returns A CheckScanner instance
    */
-  public static createMistralCheckScanner(io: IoE, apiKey: string, extractorType?: string, aiBinding?: any): CheckScanner {
+  public static createMistralCheckScanner(io: IoE, apiKey: string, extractorType?: string, aiBinding?: CloudflareAI): CheckScanner {
     // Create DI container with all dependencies registered
     const container = this.createDIContainer(io, apiKey, "createMistralCheckScanner", extractorType, aiBinding);
     
@@ -68,7 +69,7 @@ export class ScannerFactory {
    * @param documentType - The type of document to process ('check' or 'receipt')
    * @returns A DocumentScanner instance
    */
-  public static createScannerByType(io: IoE, apiKey: string, documentType: 'check' | 'receipt', extractorType?: string, aiBinding?: any): DocumentScanner {
+  public static createScannerByType(io: IoE, apiKey: string, documentType: 'check' | 'receipt', extractorType?: string, aiBinding?: CloudflareAI): DocumentScanner {
     if (documentType === 'check') {
       return this.createMistralCheckScanner(io, apiKey, extractorType, aiBinding);
     } else {

@@ -59,7 +59,7 @@ export abstract class AbstractValidator<T> implements IDomainValidator<T> {
         path: issue.path || [],
         code: issue.code,
         invalidValue: issue.path ? this.getNestedProperty(value, issue.path) : undefined,
-        metadata: (issue as any).params
+        metadata: (issue as Record<string, unknown>).params as Record<string, unknown> | undefined
       })),
       value
     );
@@ -99,11 +99,13 @@ export abstract class AbstractValidator<T> implements IDomainValidator<T> {
   /**
    * Safely retrieves a nested property from an object by path
    */
-  private getNestedProperty(obj: any, path: (string | number)[]): any {
-    return path.reduce((acc, key) => 
-      acc && typeof acc === 'object' ? acc[key] : undefined, 
-      obj
-    );
+  private getNestedProperty(obj: unknown, path: (string | number)[]): unknown {
+    return path.reduce((acc, key) => {
+      if (acc && typeof acc === 'object' && acc !== null) {
+        return (acc as Record<string | number, unknown>)[key];
+      }
+      return undefined;
+    }, obj);
   }
 }
 

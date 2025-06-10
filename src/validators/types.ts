@@ -17,10 +17,10 @@ export interface ValidationIssue {
   readonly code: string;
   
   /** The specific invalid value */
-  readonly invalidValue?: any;
+  readonly invalidValue?: unknown;
   
   /** Additional metadata about the validation error */
-  readonly metadata?: Record<string, any>;
+  readonly metadata?: Record<string, unknown>;
 }
 
 /**

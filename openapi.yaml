@@ -87,6 +87,9 @@ paths:
                       - $ref: '#/components/schemas/Check'
                       - $ref: '#/components/schemas/Receipt'
                     description: Extracted document data
+                  markdown:
+                    type: string
+                    description: Raw OCR text extracted from the image before JSON processing
                   documentType:
                     type: string
                     enum: [check, receipt]
@@ -108,6 +111,15 @@ paths:
                       accountNumber: "987654321"
                       memo: "Invoice #1001"
                       confidence: 0.85
+                    markdown: |
+                      Check Number: 1234
+                      Date: 04/15/2025
+                      Pay to the Order of: John Doe
+                      Pay Exactly: Two Hundred Fifty Dollars and 00/100
+                      $250.00
+                      Memo: Invoice #1001
+                      First National Bank
+                      123456789 987654321 1234
                     documentType: "check"
                     confidence:
                       ocr: 0.92
@@ -137,6 +149,21 @@ paths:
                           unitPrice: "3.49"
                           totalPrice: "3.49"
                       confidence: 0.89
+                    markdown: |
+                      GROCERY STORE INC.
+                      123 Main St., Anytown, CA 90210
+                      Phone: (555) 123-4567
+                      
+                      Date: 04/15/2025 2:30 PM
+                      
+                      ORGANIC APPLES       2x $1.99    $3.98
+                      WHOLE GRAIN BREAD    1x $3.49    $3.49
+                      
+                      SUBTOTAL                         $7.47
+                      TAX                              $0.65
+                      TOTAL                            $8.12
+                      
+                      Thank you for shopping with us!
                     documentType: "receipt"
                     confidence:
                       ocr: 0.89
@@ -199,6 +226,9 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/Check'
+                  markdown:
+                    type: string
+                    description: Raw OCR text extracted from the image before JSON processing
                   confidence:
                     $ref: '#/components/schemas/Confidence'
               example:
@@ -213,6 +243,15 @@ paths:
                   accountNumber: "987654321"
                   memo: "Invoice #1001"
                   confidence: 0.85
+                markdown: |
+                  Check Number: 1234
+                  Date: 04/15/2025
+                  Pay to the Order of: John Doe
+                  Pay Exactly: Two Hundred Fifty Dollars and 00/100
+                  $250.00
+                  Memo: Invoice #1001
+                  First National Bank
+                  123456789 987654321 1234
                 confidence:
                   ocr: 0.92
                   extraction: 0.85
@@ -274,6 +313,9 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/Receipt'
+                  markdown:
+                    type: string
+                    description: Raw OCR text extracted from the image before JSON processing
                   confidence:
                     $ref: '#/components/schemas/Confidence'
               example:
@@ -298,6 +340,21 @@ paths:
                       unitPrice: "3.49"
                       totalPrice: "3.49"
                   confidence: 0.89
+                markdown: |
+                  GROCERY STORE INC.
+                  123 Main St., Anytown, CA 90210
+                  Phone: (555) 123-4567
+                  
+                  Date: 04/15/2025 2:30 PM
+                  
+                  ORGANIC APPLES       2x $1.99    $3.98
+                  WHOLE GRAIN BREAD    1x $3.49    $3.49
+                  
+                  SUBTOTAL                         $7.47
+                  TAX                              $0.65
+                  TOTAL                            $8.12
+                  
+                  Thank you for shopping with us!
                 confidence:
                   ocr: 0.89
                   extraction: 0.82

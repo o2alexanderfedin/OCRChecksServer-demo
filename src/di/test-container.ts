@@ -3,6 +3,7 @@ import { TYPES } from '../types/di-types.ts';
 import { Mistral } from '@mistralai/mistralai';
 import { IoE } from '../ocr/types.ts';
 import { registerValidators } from '../validators';
+import { CloudflareAI } from '../json/cloudflare-llama33-extractor.ts';
 
 /**
  * Creates a mock Mistral client that passes instanceof checks
@@ -239,35 +240,14 @@ export class TestDIContainer extends DIContainer {
    * @param io - The IO interface for network operations
    * @param apiKey - Mistral API key
    * @param caller - caller of the method
+   * @param extractorType - Optional extractor type (defaults to 'mistral' for tests)
+   * @param aiBinding - Optional AI binding (not used in tests)
    * @returns The container instance for method chaining
    * @throws Error if io or apiKey is not provided
    */
-  override registerDependencies(io: IoE, apiKey: string, caller?: string): TestDIContainer {
-    // For tests, perform basic validation but with more relaxed requirements
-    if (!io) {
-      throw new Error(`[DIContainer.${caller ?? 'registerDependencies'}] CRITICAL ERROR: IO interface is missing or undefined`);
-    }
-    
-    if (!apiKey) {
-      throw new Error(`[DIContainer.${caller ?? 'registerDependencies'}] CRITICAL ERROR: Mistral API key is missing or empty`);
-    }
-    
-    // For tests, we accept any non-empty API key
-    
-    // Register basic dependencies
-    this.container.bind(TYPES.IoE).toConstantValue(io);
-    this.container.bind(TYPES.MistralApiKey).toConstantValue(apiKey);
-
-    // Register all validators
-    registerValidators(this.container);
-    this.registerValidationMiddleware();
-    
-    // Register the standard components
-    this.registerMistralClient();
-    this.registerProviders();
-    this.registerUtilities();
-    this.registerExtractors();
-    this.registerScanners();
+  override registerDependencies(io: IoE, apiKey: string, caller?: string, extractorType?: string, aiBinding?: CloudflareAI): TestDIContainer {
+    // Call parent implementation with default extractor type for tests
+    super.registerDependencies(io, apiKey, caller, extractorType || 'mistral', aiBinding);
     
     return this;
   }

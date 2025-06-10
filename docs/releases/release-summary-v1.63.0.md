@@ -53,12 +53,16 @@ Version 1.63.0 introduces **API transparency through markdown field exposure**, 
 
 ## Root Cause Resolution
 
-### Original Issue
-- Environment variables in Cloudflare Workers accessed via `c.env`, not `process.env`
-- CloudflareAI binding required proper configuration and DI container integration
-- JSON extractor selection logic needed environment-aware implementation
+### Original Issues
+- **Mistral AI Service Instability**: Frequent timeout errors, connection failures, and unreliable responses during JSON extraction operations
+- **Production Reliability Impact**: Service interruptions affecting user experience and system reliability
+- **Technical Debt**: Complex retry logic needed to handle Mistral AI's inconsistent performance
+- **Environment Configuration**: Environment variables in Cloudflare Workers accessed via `c.env`, not `process.env`
+- **DI Integration**: CloudflareAI binding required proper configuration and DI container integration
 
 ### Solution Implemented
+- **Hybrid AI Architecture**: Migrated JSON extraction from unstable Mistral AI to reliable Cloudflare Workers AI while preserving Mistral for stable OCR processing
+- **Service Reliability**: Eliminated external service dependencies for JSON extraction using edge-native Cloudflare Workers AI
 - **Environment Variable Access**: Fixed `process.env.JSON_EXTRACTOR_TYPE` → `c.env.JSON_EXTRACTOR_TYPE`
 - **AI Binding Threading**: Passed AI binding through entire factory and DI chain
 - **Proper Binding Configuration**: Added AI binding to wrangler.toml and Env interface

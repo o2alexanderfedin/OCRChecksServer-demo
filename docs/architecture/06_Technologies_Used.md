@@ -46,6 +46,7 @@ graph TB
     
     subgraph "External Services"
         MistralAI[Mistral AI]
+        CloudflareAI[Cloudflare Workers AI]
     end
     
     TS --> V8
@@ -69,6 +70,7 @@ graph TB
     OpenAPI --> Swagger
     
     CF --> MistralAI
+    CF --> CloudflareAI
 ```
 
 ## Programming Languages
@@ -370,18 +372,43 @@ OpenAPI specification for API documentation.
 
 ### Mistral AI
 
-AI service providing OCR and structured data extraction capabilities.
+AI service providing OCR capabilities and legacy JSON extraction support.
 
 **Usage in the system**:
-- Document OCR processing
-- Structured data extraction from OCR text
+- Document OCR processing (all environments)
+- Structured data extraction from OCR text (local development only)
 - Text analysis for financial documents
+
+**Migration Note**: Due to **Mistral AI service instability issues** including frequent timeout errors and unreliable JSON extraction responses, the system migrated JSON extraction to Cloudflare Workers AI in v1.63.0 while maintaining Mistral AI for OCR processing where it demonstrates stable performance.
 
 **Integration points**:
 - REST API calls to Mistral endpoints
 - SDK usage for structured interactions
 - Error handling and retry logic
 - Authentication with API key
+
+### Cloudflare Workers AI
+
+Cloudflare's native AI service providing edge-native model execution.
+
+**Model Used**: `@cf/meta/llama-3.3-70b-instruct-fp8-fast`
+
+**Usage in the system**:
+- JSON extraction from OCR text (remote environments: dev, staging, production)
+- Structured data extraction with improved reliability
+- Edge-native processing eliminating external service dependencies
+
+**Migration Rationale**: Adopted in v1.63.0 to replace unstable Mistral AI JSON extraction due to:
+- Frequent timeout errors in Mistral AI JSON extraction service
+- Connection failures and unreliable API responses
+- Service interruptions affecting production reliability
+- Need for consistent, stable JSON extraction performance
+
+**Integration points**:
+- Native Cloudflare Workers AI binding
+- Edge-native execution without external API calls
+- Simplified error handling (no complex retry logic needed)
+- Environment-specific configuration via DI container
 
 ## Client Technologies
 
@@ -494,7 +521,8 @@ The system has the following version dependencies and constraints:
 | Technology | Risk Level | Concerns | Mitigation |
 |------------|------------|----------|------------|
 | Cloudflare Workers | Low | Service availability, vendor lock-in | Monitor status, design for portability |
-| Mistral AI | Medium | API changes, service availability | Robust error handling, abstraction layer |
+| Mistral AI | Medium | Service instability, timeout errors | Limited to OCR only, abstraction layer, hybrid AI architecture |
+| Cloudflare Workers AI | Low | Model availability, API changes | Native integration, fallback mechanisms |
 | Hono Framework | Low | Future maintenance, breaking changes | Version pinning, minimal dependencies |
 | InversifyJS | Low | TypeScript compatibility, updates | Version pinning, clear interfaces |
 | Swift Client | Low | iOS version compatibility | Backward compatibility approach |

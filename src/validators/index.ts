@@ -34,11 +34,11 @@ import { ValidationMiddleware } from './api/middleware';
  * File validator implementation
  */
 const fileValidator: IFileValidator = z.union([
-  // File is only available in browser environment
-  ...(typeof File !== 'undefined' ? [z.instanceof(File)] : []),
   z.instanceof(Buffer),
   z.instanceof(ArrayBuffer),
-  z.string().min(1, "File path cannot be empty")
+  z.string().min(1, "File path cannot be empty"),
+  // File is only available in browser environment
+  ...(typeof File !== 'undefined' ? [z.instanceof(File)] : [])
 ]);
 
 /**

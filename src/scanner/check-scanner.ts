@@ -54,7 +54,7 @@ export class CheckScanner implements DocumentScanner {
     console.log(`[${scannerRequestId}] ===== CHECK SCANNER PROCESSING START =====`);
     console.log(`[${scannerRequestId}] Scanner started at: ${new Date().toISOString()}`);
     console.log(`[${scannerRequestId}] Document type: ${document.type}, name: ${document.name}`);
-    console.log(`[${scannerRequestId}] Document content size: ${document.content.byteLength} bytes`);
+    console.log(`[${scannerRequestId}] Document content size: ${document.content instanceof ArrayBuffer ? document.content.byteLength : 'N/A'} bytes`);
     
     let ocrText: string;
     let ocrConfidence: number;

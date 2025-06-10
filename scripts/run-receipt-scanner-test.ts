@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs/promises';
 import { spawn } from 'child_process';
+import { addDevVarsToEnv } from './load-dev-vars.ts';
 
 // Get directory info
 const __filename = fileURLToPath(import.meta.url);
@@ -24,9 +25,13 @@ jasmine.jasmine.DEFAULT_TIMEOUT_INTERVAL = timeoutInterval;
 
 console.log('Running ReceiptScanner integration test...');
 
+// Load environment variables from .dev.vars
+console.log('Loading environment variables from .dev.vars file...');
+await addDevVarsToEnv();
+
 // Start server
 console.log('Starting server for integration tests...');
-const serverProcess = spawn('node', [join(projectRoot, 'scripts', 'start-server.ts')], {
+const serverProcess = spawn('npx', ['tsx', join(projectRoot, 'scripts', 'start-server.ts')], {
   stdio: 'inherit',
   detached: false,
   env: { 

@@ -36,7 +36,7 @@ jobs:
         run: npm run lint
         
       - name: Run CI Pipeline (Unit Tests)
-        run: npm run ci
+        run: bash scripts/ci-cd-pipeline.sh --ci-only --bypass-gitflow-check
   
   deploy:
     name: Deploy to Production Environment

@@ -33,7 +33,7 @@ jobs:
         run: npm run lint
         
       - name: Run CI Pipeline (Unit Tests)
-        run: npx tsx scripts/run-unit-tests-tsx.ts --bypass-gitflow-check
+        run: bash scripts/ci-cd-pipeline.sh --ci-only --bypass-gitflow-check
   
   deploy:
     name: Deploy to Dev Environment

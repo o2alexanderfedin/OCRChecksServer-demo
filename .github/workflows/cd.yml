@@ -47,7 +47,7 @@ jobs:
         run: npm ci
         
       - name: Run CI Pipeline (Unit Tests)
-        run: npm run ci
+        run: bash scripts/ci-cd-pipeline.sh --ci-only --bypass-gitflow-check
   
   cd:
     name: CD Pipeline - Deploy and Test
@@ -84,7 +84,7 @@ jobs:
         
       - name: Deploy to all environments (automatic)
         if: github.event.inputs.environment == ''
-        run: npm run cd
+        run: bash scripts/ci-cd-pipeline.sh --cd-only
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}

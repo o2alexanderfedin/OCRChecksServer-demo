@@ -11,6 +11,8 @@
 
 > **This is a demonstration version** of the OCRChecksServer project, stripped from the original production codebase. 
 > 
+> **🤝 Client Project for Nolock.social**: This project was developed as a custom solution for our partner client [Nolock.social](https://nolock.social), showcasing enterprise-grade AI development capabilities.
+> 
 > **🤖 Fully AI-Generated Project**: This entire project was developed using AI assistance, including:
 > - ✅ **Requirements Collection** - Product specifications and feature definitions
 > - ✅ **Product Development** - End-to-end feature implementation 
@@ -29,7 +31,7 @@
 
 # OCR Checks Worker
 
-A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and receipts and extract relevant information into structured data.
+A production-grade Cloudflare Worker developed for [Nolock.social](https://nolock.social) that uses Mistral AI to perform OCR on paper checks and receipts and extract relevant information into structured data.
 
 ## Features
 
@@ -558,6 +560,14 @@ This means:
 - If you use this software over a network (e.g., as a web service), you must provide access to the source code to users of the network service
 
 See the [LICENSE](./LICENSE) file for the full license text.
+
+## Project Information
+
+**Client**: [Nolock.social](https://nolock.social) - Social platform innovating document processing workflows  
+**Development Partner**: [O2.services](https://o2.services) - AI-assisted software development specialists  
+**Contact**: [sales@o2.services](mailto:sales@o2.services) for similar AI development projects
+
+This project demonstrates our capability to deliver production-grade, AI-generated solutions for enterprise clients, combining cutting-edge AI with robust engineering practices.
 
 ## Copyright
 

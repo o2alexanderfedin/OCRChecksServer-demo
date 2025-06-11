@@ -157,16 +157,19 @@ This project demonstrates a production-grade, AI-generated system architecture b
    ```
 
 3. Configure your environment:
-   - Add your Mistral API key to `wrangler.toml` (required for the application to function)
-     ```toml
-     # In wrangler.toml
-     [vars]
-     MISTRAL_API_KEY = "your-mistral-api-key-here"
+   - **API Keys are managed via Cloudflare secrets** (not in wrangler.toml for security)
+   - Set up your API keys using Wrangler secrets:
+     ```bash
+     # Set Mistral API key
+     echo "your-mistral-api-key" | npx wrangler secret put MISTRAL_API_KEY
+     
+     # Set Cloudflare API token
+     echo "your-cloudflare-token" | npx wrangler secret put CLOUDFLARE_API_TOKEN
      ```
    - You can obtain a Mistral API key from the [Mistral AI Console](https://console.mistral.ai/)
-   - Deploy using Wrangler:
+   - Deploy using the deployment script:
      ```bash
-     npx wrangler deploy
+     npm run deploy:with-secrets
      ```
    - For detailed deployment instructions, see the [Cloudflare Deployment Guide](./docs/guides/deployment/cloudflare-deployment-guide.md)
 
@@ -190,7 +193,7 @@ Send a POST request to the dedicated check endpoint with a check image:
 curl -X POST \
   -H "Content-Type: image/jpeg" \
   --data-binary @check.jpg \
-  https://your-worker.workers.dev/check
+  https://ocr-checks-worker-demo.workers.dev/check
 ```
 
 Response:
@@ -200,13 +203,14 @@ Response:
     "checkNumber": "1234",
     "date": "2023-09-15",
     "payee": "John Doe",
-    "amount": 250.00,
+    "amount": "250.00",
     "payer": "ABC Company",
     "bankName": "First National Bank",
     "routingNumber": "123456789",
     "accountNumber": "987654321",
     "memo": "Invoice #1001"
   },
+  "markdown": "Raw OCR text extracted from the check image...",
   "confidence": {
     "ocr": 0.92,
     "extraction": 0.85,
@@ -223,7 +227,7 @@ Send a POST request to the dedicated receipt endpoint with a receipt image:
 curl -X POST \
   -H "Content-Type: image/jpeg" \
   --data-binary @receipt.jpg \
-  https://your-worker.workers.dev/receipt
+  https://ocr-checks-worker-demo.workers.dev/receipt
 ```
 
 Response:
@@ -237,20 +241,21 @@ Response:
     },
     "timestamp": "2023-09-15T14:30:00Z",
     "items": [
-      { "description": "Organic Apples", "quantity": 2, "unitPrice": 1.99, "totalPrice": 3.98 },
-      { "description": "Whole Grain Bread", "quantity": 1, "unitPrice": 3.49, "totalPrice": 3.49 }
+      { "description": "Organic Apples", "quantity": "2", "unitPrice": "1.99", "totalPrice": "3.98" },
+      { "description": "Whole Grain Bread", "quantity": "1", "unitPrice": "3.49", "totalPrice": "3.49" }
     ],
     "totals": {
-      "subtotal": 7.47,
-      "tax": 0.65,
-      "tip": 0.00,
-      "total": 8.12
+      "subtotal": "7.47",
+      "tax": "0.65",
+      "tip": "0.00",
+      "total": "8.12"
     },
     "payment": {
       "method": "CREDIT_CARD",
       "cardLastFour": "1234"
     }
   },
+  "markdown": "Raw OCR text extracted from the receipt image...",
   "confidence": {
     "ocr": 0.89,
     "extraction": 0.82,
@@ -267,7 +272,7 @@ Use the unified processing endpoint with the document type parameter:
 curl -X POST \
   -H "Content-Type: image/jpeg" \
   --data-binary @check.jpg \
-  https://your-worker.workers.dev/process?type=check
+  https://ocr-checks-worker-demo.workers.dev/process?type=check
 ```
 
 The universal endpoint provides the same functionality as the dedicated endpoints but includes an additional `documentType` field in the response:
@@ -275,6 +280,7 @@ The universal endpoint provides the same functionality as the dedicated endpoint
 ```json
 {
   "data": { /* document data */ },
+  "markdown": "Raw OCR text extracted from the document...",
   "documentType": "check",
   "confidence": {
     "ocr": 0.92,
@@ -286,10 +292,10 @@ The universal endpoint provides the same functionality as the dedicated endpoint
 
 ### Health Status
 
-Check the service status and version:
+Check the service status, version, and API key configuration:
 
 ```bash
-curl https://your-worker.workers.dev/health
+curl https://ocr-checks-worker-demo.workers.dev/health
 ```
 
 Response:
@@ -297,9 +303,14 @@ Response:
 {
   "status": "ok",
   "timestamp": "2025-05-02T12:34:56.789Z",
-  "version": "1.12.2"
+  "version": "1.66.0",
+  "apiKey": "configured",
+  "mistralApiKey": "configured",
+  "cloudflareApiToken": "configured"
 }
 ```
+
+> **Note**: All API responses include a `markdown` field containing the raw OCR text extracted from the document.
 
 > **Important**: The root endpoint (`/`) has been removed in version 1.12.0. Please use the dedicated endpoints described above.
 
@@ -323,7 +334,7 @@ const checkSchema = {
       checkNumber: { type: "string" },
       date: { type: "string" },
       payee: { type: "string" },
-      amount: { type: "number" },
+      amount: { type: "string" },
       memo: { type: "string" }
     },
     required: ["checkNumber", "date", "payee", "amount"]

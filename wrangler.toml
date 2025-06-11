@@ -1,8 +1,12 @@
-name = "ocr-checks-worker"
+name = "ocr-checks-worker-demo"
 main = "src/index.ts"
 compatibility_date = "2024-04-22"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
+
+# ⚠️ DEMO VERSION - DO NOT USE FOR PRODUCTION ⚠️
+# This is a demo configuration that will NOT overwrite production workers
+# All worker names have been modified with "-demo" suffix for safety
 
 # Logging is enabled by default in Workers
 # Debug level is used for development
@@ -14,7 +18,7 @@ duration_ms = 30000  # Default maximum execution time (30 seconds)
 
 # Development environment (remote Workers deployment)
 [env.dev]
-name = "ocr-checks-worker-dev"
+name = "ocr-checks-worker-dev-demo"
 workers_dev = true
 vars = { ENVIRONMENT = "development", MISTRAL_DEBUG = true, JSON_EXTRACTOR_TYPE = "cloudflare" }
 ai = { binding = "AI" }
@@ -26,7 +30,7 @@ duration_ms = 60000  # Increased to 60 seconds for complex OCR + JSON extraction
 
 # Staging environment
 [env.staging]
-name = "ocr-checks-worker-staging"
+name = "ocr-checks-worker-staging-demo"
 # Removing custom domain route to use workers.dev subdomain only
 # route = "staging-api.nolock.social/*"
 workers_dev = true
@@ -40,7 +44,7 @@ duration_ms = 60000  # Increased to 60 seconds for complex OCR + JSON extraction
 
 # Production environment
 [env.production]
-name = "ocr-checks-worker"
+name = "ocr-checks-worker-production-demo"
 workers_dev = true
 # IMPORTANT: Do not store API keys here, use secrets instead
 vars = { ENVIRONMENT = "production", MISTRAL_DEBUG = false, JSON_EXTRACTOR_TYPE = "cloudflare" }

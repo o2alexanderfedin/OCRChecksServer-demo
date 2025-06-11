@@ -40,8 +40,8 @@ const options = {
 
 // Environment-specific configuration
 const environments = {
-  production: 'https://ocr-checks-worker-dev.af-4a0.workers.dev',
-  staging: 'https://ocr-checks-worker-dev.af-4a0.workers.dev',
+  production: 'https://ocr-checks-worker.af-4a0.workers.dev',
+  staging: 'https://ocr-checks-worker-staging.af-4a0.workers.dev',
   dev: 'https://ocr-checks-worker-dev.af-4a0.workers.dev',
   local: 'http://localhost:8787'
 };

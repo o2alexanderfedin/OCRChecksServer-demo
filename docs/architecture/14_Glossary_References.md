@@ -1,6 +1,8 @@
-# Software Architecture Document – Glossary and References
+# 📚 Software Architecture Document – Glossary and References
 
-[Home](index.md) | [Up](index.md) | [Previous](13_Architectural_Decision_Log.md)
+---
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: Decision Log](13_Architectural_Decision_Log.md)**
+---
 
 ## Terminology
 
@@ -273,5 +275,5 @@ A TypeScript-first schema validation library. The OCR Checks Server uses Zod for
 | 1.0 | 2025-05-14 | Architecture Team | Initial version |
 
 ---
-
-[Home](index.md) | [Up](index.md) | [Previous](13_Architectural_Decision_Log.md)
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: Decision Log](13_Architectural_Decision_Log.md)** | **⬆️ [Top](#-glossary-and-references)**
+---

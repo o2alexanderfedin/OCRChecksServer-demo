@@ -1,4 +1,8 @@
-# OpenAPI Specification
+# 📋 OpenAPI Specification
+
+---
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🔌 [API](index.md)** | **📋 You are here: OpenAPI Specification**
+---
 
 > Copyright © 2025 [Nolock.social](https://nolock.social). All rights reserved.  
 > Authored by: [O2.services](https://o2.services)  
@@ -99,3 +103,7 @@ Potential enhancements to the API specification:
 The OpenAPI specification should be updated whenever there are changes to the Nolock.social API endpoints, request or response formats. This ensures that the documentation stays in sync with the implementation.
 
 API documentation and client SDKs for Nolock.social are automatically generated from this specification.
+
+---
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🔌 [API](index.md)** | **📋 OpenAPI Specification** | **⬆️ [Top](#-openapi-specification)**
+---

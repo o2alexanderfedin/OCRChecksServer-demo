@@ -1,6 +1,8 @@
-# Software Architecture Document – Introduction
+# 📖 Software Architecture Document – Introduction
 
-[Home](index.md) | [Up](index.md) | [Previous](index.md) | [Next](02_Architectural_Goals.md)
+---
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **➡️ [Next: Goals & Constraints](02_Architectural_Goals.md)**
+---
 
 ## Purpose
 
@@ -92,5 +94,5 @@ This architecture document is organized into the following major sections:
 Each section focuses on a specific aspect of the architecture, providing both diagrams and textual descriptions to present a comprehensive view of the system.
 
 ---
-
-[Home](index.md) | [Up](index.md) | [Previous](index.md) | [Next](02_Architectural_Goals.md)
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **➡️ [Next: Goals & Constraints](02_Architectural_Goals.md)** | **⬆️ [Top](#-software-architecture-document--introduction)**
+---

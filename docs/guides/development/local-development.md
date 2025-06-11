@@ -1,4 +1,8 @@
-# Local Development Guide
+# 💻 Local Development Guide
+
+---
+**🏠 [Home](../../../README.md)** | **📚 [Documentation](../../README.md)** | **📖 [Guides](../index.md)** | **💻 [Development](./)**
+---
 
 This document provides instructions for setting up the OCR Checks Server for local development.
 
@@ -105,4 +109,8 @@ For production deployment, use the `deploy:with-secrets` script which handles mo
 npm run deploy:with-secrets
 ```
 
-See [Cloudflare Deployment Guide](./cloudflare-deployment-guide.md) for more details on deployment.
+See [Cloudflare Deployment Guide](../deployment/cloudflare-deployment-guide.md) for more details on deployment.
+
+---
+**🏠 [Home](../../../README.md)** | **📚 [Documentation](../../README.md)** | **📖 [Guides](../index.md)** | **💻 [Development](./)** | **⬆️ [Top](#-local-development-guide)**
+---

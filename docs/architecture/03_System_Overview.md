@@ -1,6 +1,8 @@
-# Software Architecture Document – System Overview
+# 🌐 Software Architecture Document – System Overview
 
-[Home](index.md) | [Up](index.md) | [Previous](02_Architectural_Goals.md) | [Next](04_Logical_Architecture.md)
+---
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: Goals & Constraints](02_Architectural_Goals.md)** | **➡️ [Next: Logical Architecture](04_Logical_Architecture.md)**
+---
 
 ## High-Level Description
 
@@ -182,5 +184,5 @@ Security is maintained through:
 - Proper CORS configuration to control access
 
 ---
-
-[Home](index.md) | [Up](index.md) | [Previous](02_Architectural_Goals.md) | [Next](04_Logical_Architecture.md)
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: Goals & Constraints](02_Architectural_Goals.md)** | **➡️ [Next: Logical Architecture](04_Logical_Architecture.md)** | **⬆️ [Top](#-system-overview)**
+---

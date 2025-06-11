@@ -1,4 +1,8 @@
-# Technical Architecture Design: OCR Checks Server
+# 📄 Technical Architecture Design: OCR Checks Server
+
+---
+**🏠 [Home](../../../README.md)** | **📚 [Documentation](../../README.md)** | **⚙️ [Features](../index.md)** | **📄 [Check Processing](./)**
+---
 
 ## 1. System Overview
 
@@ -285,3 +289,7 @@ The system is designed for scalability through:
 6. **Feedback Loop**: Mechanism for improving extraction quality
 7. **Multi-Page Document Support**: Enhanced handling of multi-page documents
 8. **User-Defined Schemas**: Allow customization of extraction schemas
+
+---
+**🏠 [Home](../../../README.md)** | **📚 [Documentation](../../README.md)** | **⚙️ [Features](../index.md)** | **📄 [Check Processing](./)** | **⬆️ [Top](#-technical-architecture-design-ocr-checks-server)**
+---

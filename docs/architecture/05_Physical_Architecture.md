@@ -1,6 +1,8 @@
-# Software Architecture Document – Physical Architecture
+# 🖥️ Software Architecture Document – Physical Architecture
 
-[Home](index.md) | [Up](index.md) | [Previous](04_Logical_Architecture.md) | [Next](06_Technologies_Used.md)
+---
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: Logical Architecture](04_Logical_Architecture.md)** | **➡️ [Next: Technologies Used](06_Technologies_Used.md)**
+---
 
 ## Deployment Environment
 
@@ -333,5 +335,5 @@ flowchart LR
 Deployments are performed using Wrangler, Cloudflare's CLI tool for Worker management.
 
 ---
-
-[Home](index.md) | [Up](index.md) | [Previous](04_Logical_Architecture.md) | [Next](06_Technologies_Used.md)
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: Logical Architecture](04_Logical_Architecture.md)** | **➡️ [Next: Technologies Used](06_Technologies_Used.md)** | **⬆️ [Top](#-physical-architecture)**
+---

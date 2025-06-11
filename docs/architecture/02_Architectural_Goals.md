@@ -1,6 +1,8 @@
-# Software Architecture Document – Architectural Goals and Constraints
+# 🎯 Software Architecture Document – Architectural Goals and Constraints
 
-[Home](index.md) | [Up](index.md) | [Previous](01_Introduction.md) | [Next](03_System_Overview.md)
+---
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: Introduction](01_Introduction.md)** | **➡️ [Next: System Overview](03_System_Overview.md)**
+---
 
 ## Quality Attributes
 
@@ -183,5 +185,5 @@ The architecture adheres to the following design principles:
    - Promise-based request handling
 
 ---
-
-[Home](index.md) | [Up](index.md) | [Previous](01_Introduction.md) | [Next](03_System_Overview.md)
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: Introduction](01_Introduction.md)** | **➡️ [Next: System Overview](03_System_Overview.md)** | **⬆️ [Top](#-software-architecture-document--architectural-goals-and-constraints)**
+---

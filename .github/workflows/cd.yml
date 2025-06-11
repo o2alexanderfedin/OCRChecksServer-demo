@@ -28,9 +28,31 @@ permissions:
   checks: write
 
 jobs:
+  # Ensure CI passes before deployment
+  ci:
+    name: CI - Unit Tests (Required for CD)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run CI Pipeline (Unit Tests)
+        run: npm run ci
+  
   cd:
     name: CD Pipeline - Deploy and Test
     runs-on: ubuntu-latest
+    needs: ci  # CD only runs if CI passes
     
     environment: 
       name: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production') || 'dev' }}

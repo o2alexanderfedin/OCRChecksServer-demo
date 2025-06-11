@@ -252,15 +252,17 @@ if [ "$CD_ONLY" = false ]; then
   run_ci
   if [ $? -ne 0 ]; then
     overall_success=false
-    if [ "$CI_ONLY" = true ]; then
-      echo -e "${RED}❌ CI PIPELINE FAILED${NC}"
-      exit 1
-    fi
-    echo -e "${YELLOW}⚠️ CI failed, but continuing to CD stage...${NC}"
+    echo -e "${RED}❌ CI FAILED: Unit tests failed${NC}"
+    echo -e "${RED}❌ STOPPING PIPELINE: Cannot proceed to deployment with failing tests${NC}"
+    echo -e "${MAGENTA}=======================================================${NC}"
+    echo -e "${RED}🚫 CI/CD PIPELINE FAILED${NC}"
+    echo -e "${RED}CI must pass before deployment can proceed.${NC}"
+    echo -e "${MAGENTA}=======================================================${NC}"
+    exit 1
   fi
 fi
 
-# CD Stage
+# CD Stage (only runs if CI passed or was skipped)
 if [ "$CI_ONLY" = false ]; then
   run_cd
   if [ $? -ne 0 ]; then

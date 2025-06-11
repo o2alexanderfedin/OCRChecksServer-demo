@@ -1,6 +1,8 @@
-# Software Architecture Document – Logical Architecture
+# 🧩 Software Architecture Document – Logical Architecture
 
-[Home](index.md) | [Up](index.md) | [Previous](03_System_Overview.md) | [Next](05_Physical_Architecture.md)
+---
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: System Overview](03_System_Overview.md)** | **➡️ [Next: Physical Architecture](05_Physical_Architecture.md)**
+---
 
 ## Component Structure
 
@@ -388,5 +390,5 @@ The system is organized into the following logical layers:
 Each layer has a specific responsibility and depends only on layers below it, maintaining a clean separation of concerns.
 
 ---
-
-[Home](index.md) | [Up](index.md) | [Previous](03_System_Overview.md) | [Next](05_Physical_Architecture.md)
+**🏠 [Home](../../README.md)** | **📚 [Documentation](../README.md)** | **🏗️ [Architecture](index.md)** | **⬅️ [Previous: System Overview](03_System_Overview.md)** | **➡️ [Next: Physical Architecture](05_Physical_Architecture.md)** | **⬆️ [Top](#-logical-architecture)**
+---

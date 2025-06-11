@@ -168,7 +168,7 @@ This project demonstrates a production-grade, AI-generated system architecture b
      ```bash
      npx wrangler deploy
      ```
-   - For detailed deployment instructions, see the [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md)
+   - For detailed deployment instructions, see the [Cloudflare Deployment Guide](./docs/guides/deployment/cloudflare-deployment-guide.md)
 
 ## Prerequisites
 
@@ -377,8 +377,8 @@ The following JSON schemas are available:
 - **Receipt Schema**: For extracting data from purchase receipts
 
 For detailed schema documentation, see:
-- [Check Schema Documentation](docs/check-schema-documentation.md)
-- [Receipt Schema Documentation](docs/receipt-schema-documentation.md)
+- [Check Schema Documentation](docs/api/check-schema-documentation.md)
+- [Receipt Schema Documentation](docs/api/receipt-schema-documentation.md)
 
 ### Testing Infrastructure
 
@@ -478,7 +478,7 @@ Key features of the Swift client:
 - Comprehensive error handling
 - Environment configuration (development, staging, production)
 
-For more information on working with the Swift submodule, see the [Swift Submodule Guide](./docs/swift-submodule-guide.md).
+For more information on working with the Swift submodule, see the [Swift Submodule Guide](./docs/guides/development/swift-submodule-guide.md).
 
 #### NolockCapture Package
 
@@ -491,7 +491,7 @@ Key features of NolockCapture:
 - Surface flattening to improve OCR accuracy
 - Progressive enhancement with fallbacks for non-LiDAR devices
 
-For more information on working with the NolockCapture submodule, see the [NolockCapture Guide](./docs/nolock-capture-guide.md).
+For more information on working with the NolockCapture submodule, see the [NolockCapture Guide](./docs/tools/nolock-capture-guide.md).
 
 ### Test Server Management
 
@@ -506,13 +506,13 @@ Starting from version 1.12.1, the test server is properly managed with improved 
 ### Development Guidelines
 
 For complete development guidelines, refer to:
-- [Gitflow Branch Management](./docs/gitflow-branch-management.md)
-- [Testing Framework Compatibility](./docs/test-framework-compatibility.md)
-- [Development Workflow](./docs/development-workflow.md) for detailed instructions
-- [Cloudflare Deployment Guide](./docs/cloudflare-deployment-guide.md) for step-by-step deployment instructions
-- [Git Submodule Guide](./docs/git-submodule-guide.md) for working with submodules
-- [Swift Submodule Guide](./docs/swift-submodule-guide.md) for Swift-specific submodule instructions
-- [NolockCapture Guide](./docs/nolock-capture-guide.md) for details on the document capture package
+- [Gitflow Branch Management](./.claude/rules/gitflow-branch-management.md)
+- [Testing Framework Compatibility](./.claude/rules/test-framework-compatibility.md)
+- [CLAUDE.md](./CLAUDE.md) for detailed development guidelines
+- [Cloudflare Deployment Guide](./docs/guides/deployment/cloudflare-deployment-guide.md) for step-by-step deployment instructions
+- [Git Submodule Guide](./docs/guides/development/git-submodule-guide.md) for working with submodules
+- [Swift Submodule Guide](./docs/guides/development/swift-submodule-guide.md) for Swift-specific submodule instructions
+- [NolockCapture Guide](./docs/tools/nolock-capture-guide.md) for details on the document capture package
 
 ## License
 

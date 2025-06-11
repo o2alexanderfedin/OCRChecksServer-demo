@@ -1,3 +1,23 @@
+# 🚨 DEMO REPOSITORY 🚨
+
+> **This is a demonstration version** of the OCRChecksServer project, stripped from the original production codebase. 
+> 
+> **🤖 Fully AI-Generated Project**: This entire project was developed using AI assistance, including:
+> - ✅ **Requirements Collection** - Product specifications and feature definitions
+> - ✅ **Product Development** - End-to-end feature implementation 
+> - ✅ **System Architecture** - Complete technical design and documentation
+> - ✅ **Code Implementation** - All source code, utilities, and integrations
+> - ✅ **Test Suite** - Comprehensive testing framework with 8 test types
+> - ✅ **CI/CD Pipeline** - Automated deployment and infrastructure
+> - ✅ **Documentation** - Technical specs, API docs, and guides
+> 
+> **⚠️ Demo Modifications**:
+> - API keys have been replaced with fake demo values
+> - Cloudflare Worker names include `-demo` suffix to prevent production conflicts
+> - This repository is for demonstration purposes only
+
+---
+
 # OCR Checks Worker
 
 A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and receipts and extract relevant information into structured data.
@@ -46,13 +66,83 @@ A Cloudflare Worker that uses Mistral AI to perform OCR on paper checks and rece
   - Dependency injection using InversifyJS for flexible configuration
   - Factory pattern for easy instantiation of complex object graphs
   - Functional programming patterns with Result tuples for error handling
-  - Comprehensive test coverage with four test types
+  - Comprehensive test coverage with eight test types
+
+## 🏗️ Technical Architecture Overview
+
+This project demonstrates a production-grade, AI-generated system architecture built on modern engineering principles:
+
+### 🎯 Core Design Principles
+- **SOLID Principles**: Single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion
+- **Clean Architecture**: Clear separation between business logic, data access, and external interfaces
+- **Functional Programming**: Immutable data structures, pure functions, and Result-type error handling
+- **Test-Driven Development**: Comprehensive test coverage with multiple testing strategies
+
+### 🔧 System Components
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Cloudflare Worker                        │
+├─────────────────────────────────────────────────────────────┤
+│  🌐 API Layer (REST Endpoints)                             │
+│     ├── /check - Check processing endpoint                  │
+│     ├── /receipt - Receipt processing endpoint              │
+│     ├── /process - Universal document processor             │
+│     └── /health - Service health monitoring                 │
+├─────────────────────────────────────────────────────────────┤
+│  🔍 Document Scanner Layer                                  │
+│     ├── CheckScanner - Paper check analysis                │
+│     ├── ReceiptScanner - Receipt processing                │
+│     └── ScannerFactory - Dynamic scanner instantiation     │
+├─────────────────────────────────────────────────────────────┤
+│  🤖 AI Processing Pipeline                                  │
+│     ├── Mistral Vision OCR - Document text extraction      │
+│     ├── Cloudflare Llama 3.3 - JSON structure extraction  │
+│     └── Confidence Scoring - Quality assessment            │
+├─────────────────────────────────────────────────────────────┤
+│  ✅ Validation & Quality Assurance                         │
+│     ├── Zod Schema Validation - Type-safe data validation  │
+│     ├── Hallucination Detection - AI accuracy monitoring   │
+│     └── Result Pattern - Functional error handling         │
+├─────────────────────────────────────────────────────────────┤
+│  🔧 Infrastructure Services                                │
+│     ├── Dependency Injection Container (InversifyJS)       │
+│     ├── Configuration Management - Environment handling    │
+│     └── Logging & Monitoring - Observability stack        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🚀 Key Technical Features
+
+**🔀 Dual AI Pipeline**: 
+- **Mistral Vision**: High-accuracy OCR with vision-language model
+- **Cloudflare Llama 3.3**: On-edge JSON extraction for structured data
+
+**📊 Quality Assurance**:
+- Multi-stage confidence scoring (OCR + Extraction + Overall)
+- Hallucination detection with statistical validation
+- Schema-based validation using Zod for type safety
+
+**🧪 Testing Strategy** (8 distinct test types):
+- Unit, Functional, Semi-Integration, Full Integration
+- Receipt Scanner, Swift E2E, Version Testing, Smoke Tests
+
+**⚡ Performance Optimizations**:
+- Edge computing with Cloudflare Workers
+- Efficient binary data handling for image processing
+- Optimized AI model selection per environment
+
+**🔒 Production Features**:
+- Comprehensive error handling with Result patterns
+- Environment-specific configurations (dev/staging/production)
+- API key management with Cloudflare secrets
+- CORS support for web applications
 
 ## Setup
 
 1. Clone the repository with submodules:
    ```bash
-   git clone --recurse-submodules https://github.com/o2alexanderfedin/OCRChecksServer.git
+   git clone --recurse-submodules https://github.com/o2alexanderfedin/OCRChecksServer-demo.git
    ```
    
    Or if you've already cloned the repository:

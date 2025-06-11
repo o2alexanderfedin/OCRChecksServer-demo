@@ -11,10 +11,10 @@ permissions:
   checks: write
 
 jobs:
-  deploy:
-    name: Deploy to Dev Environment
+  # Ensure CI passes before deployment
+  ci:
+    name: CI - Unit Tests (Required for Dev)
     runs-on: ubuntu-latest
-    environment: development
     
     steps:
       - name: Checkout code
@@ -32,8 +32,27 @@ jobs:
       - name: Run linting
         run: npm run lint
         
-      - name: Run unit tests
-        run: npx tsx scripts/run-unit-tests-tsx.ts --bypass-gitflow-check
+      - name: Run CI Pipeline (Unit Tests)
+        run: bash scripts/ci-cd-pipeline.sh --ci-only --bypass-gitflow-check
+  
+  deploy:
+    name: Deploy to Dev Environment
+    runs-on: ubuntu-latest
+    needs: ci  # Deployment only runs if CI passes
+    environment: development
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
       
       - name: Create .dev.vars file
         run: |

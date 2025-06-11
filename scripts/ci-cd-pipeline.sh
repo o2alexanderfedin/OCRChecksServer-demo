@@ -24,6 +24,7 @@ CI_ONLY=false
 CD_ONLY=false
 SKIP_TESTS=false
 SKIP_SMOKE=false
+BYPASS_GITFLOW=false
 ENVIRONMENTS=("dev" "staging" "production")
 HELP=false
 
@@ -44,6 +45,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-smoke)
       SKIP_SMOKE=true
+      shift
+      ;;
+    --bypass-gitflow-check)
+      BYPASS_GITFLOW=true
       shift
       ;;
     --env)
@@ -75,6 +80,7 @@ if [ "$HELP" = true ]; then
   echo -e "  ${CYAN}--cd-only${NC}           Run only CD (deployment + smoke tests)"
   echo -e "  ${CYAN}--skip-tests${NC}        Skip unit tests in CI phase"
   echo -e "  ${CYAN}--skip-smoke${NC}        Skip smoke tests in CD phase"
+  echo -e "  ${CYAN}--bypass-gitflow-check${NC}  Bypass GitFlow branch check for CI"
   echo -e "  ${CYAN}--env ENV${NC}           Deploy to single environment (dev/staging/production)"
   echo -e "  ${CYAN}--help, -h${NC}          Show this help message"
   echo -e ""
@@ -110,8 +116,8 @@ run_ci() {
   
   # Run unit tests
   cd "$PROJECT_ROOT" || exit 1
-  if [ -n "$CI" ]; then
-    # In CI environment, bypass GitFlow checks
+  if [ -n "$CI" ] || [ "$BYPASS_GITFLOW" = true ]; then
+    # In CI environment or when explicitly requested, bypass GitFlow checks
     npx tsx scripts/run-unit-tests-tsx.ts --bypass-gitflow-check
   else
     npm run test:unit
@@ -252,15 +258,17 @@ if [ "$CD_ONLY" = false ]; then
   run_ci
   if [ $? -ne 0 ]; then
     overall_success=false
-    if [ "$CI_ONLY" = true ]; then
-      echo -e "${RED}❌ CI PIPELINE FAILED${NC}"
-      exit 1
-    fi
-    echo -e "${YELLOW}⚠️ CI failed, but continuing to CD stage...${NC}"
+    echo -e "${RED}❌ CI FAILED: Unit tests failed${NC}"
+    echo -e "${RED}❌ STOPPING PIPELINE: Cannot proceed to deployment with failing tests${NC}"
+    echo -e "${MAGENTA}=======================================================${NC}"
+    echo -e "${RED}🚫 CI/CD PIPELINE FAILED${NC}"
+    echo -e "${RED}CI must pass before deployment can proceed.${NC}"
+    echo -e "${MAGENTA}=======================================================${NC}"
+    exit 1
   fi
 fi
 
-# CD Stage
+# CD Stage (only runs if CI passed or was skipped)
 if [ "$CI_ONLY" = false ]; then
   run_cd
   if [ $? -ne 0 ]; then

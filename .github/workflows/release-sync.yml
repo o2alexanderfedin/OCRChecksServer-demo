@@ -1,0 +1,134 @@
+name: Release Synchronization
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      check_only:
+        description: 'Only check sync status (do not create releases)'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  sync-github-release:
+    name: Ensure GitHub Release Exists
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tags
+        
+      - name: Get tag version (if triggered by tag)
+        id: tag_version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        
+      - name: Check if GitHub release exists for tag
+        id: check_tag_release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG="v${{ steps.tag_version.outputs.version }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "GitHub release $TAG already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "GitHub release $TAG does not exist"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Create GitHub release for new tag
+        if: startsWith(github.ref, 'refs/tags/') && steps.check_tag_release.outputs.exists == 'false' && github.event.inputs.check_only != 'true'
+        run: |
+          VERSION="${{ steps.tag_version.outputs.version }}"
+          TAG="v$VERSION"
+          NOTES_FILE="docs/releases/release-summary-v${VERSION}.md"
+          
+          echo "Creating GitHub release for $TAG..."
+          
+          if [ -f "$NOTES_FILE" ]; then
+            # Extract title from release summary
+            TITLE=$(head -1 "$NOTES_FILE" | sed 's/# Release Summary - //')
+            
+            gh release create "$TAG" \
+              --title "Release $TITLE" \
+              --notes-file "$NOTES_FILE" \
+              --latest
+            
+            echo "✅ Created GitHub release $TAG with notes from $NOTES_FILE"
+          else
+            echo "⚠️ Release notes not found: $NOTES_FILE"
+            echo "Creating basic release without detailed notes..."
+            
+            gh release create "$TAG" \
+              --title "Release $TAG" \
+              --notes "Release $TAG - See commit history for details" \
+              --latest
+            
+            echo "✅ Created basic GitHub release $TAG"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Verify release synchronization
+        id: verify_sync
+        run: |
+          echo "🔍 Running release synchronization check..."
+          
+          if bash scripts/verify-release-sync.sh; then
+            echo "sync_status=success" >> $GITHUB_OUTPUT
+            echo "✅ Release synchronization verified successfully"
+          else
+            echo "sync_status=failure" >> $GITHUB_OUTPUT
+            echo "❌ Release synchronization issues detected"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Report sync status
+        run: |
+          echo "## Release Synchronization Report" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.verify_sync.outputs.sync_status }}" = "success" ]; then
+            echo "✅ **Status**: Git tags and GitHub releases are synchronized" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Status**: Synchronization issues detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Action Required**: Some Git tags may not have corresponding GitHub releases." >> $GITHUB_STEP_SUMMARY
+            echo "Run \`bash scripts/verify-release-sync.sh\` locally for detailed information." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Add statistics
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Statistics" >> $GITHUB_STEP_SUMMARY
+          
+          TAG_COUNT=$(git tag | wc -l | tr -d ' ')
+          RELEASE_COUNT=$(gh release list --json tagName --jq '. | length' 2>/dev/null || echo "0")
+          
+          echo "- **Git Tags**: $TAG_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitHub Releases**: $RELEASE_COUNT" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$TAG_COUNT" -eq "$RELEASE_COUNT" ]; then
+            echo "- **Sync Status**: ✅ All tags have releases" >> $GITHUB_STEP_SUMMARY
+          else
+            MISSING=$((TAG_COUNT - RELEASE_COUNT))
+            echo "- **Sync Status**: ❌ Missing $MISSING releases" >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Fail workflow if sync issues detected
+        if: steps.verify_sync.outputs.sync_status == 'failure' && github.event.inputs.check_only != 'true'
+        run: |
+          echo "❌ Failing workflow due to release synchronization issues"
+          echo "Please run 'bash scripts/verify-release-sync.sh' locally and fix any issues"
+          exit 1

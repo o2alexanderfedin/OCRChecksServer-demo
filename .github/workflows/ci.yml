@@ -35,7 +35,7 @@ jobs:
         run: npm ci
         
       - name: Run CI Pipeline (Unit Tests)
-        run: npm run ci
+        run: bash scripts/ci-cd-pipeline.sh --ci-only --bypass-gitflow-check
         
       - name: Upload test results
         if: always()

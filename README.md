@@ -1,5 +1,14 @@
 # 🚨 DEMO REPOSITORY 🚨
 
+## 🌟 **LIVE API DEMO** 🌟
+### **Try it NOW**: https://ocr-checks-worker.af-4a0.workers.dev/api-docs
+
+> **🔥 INTERACTIVE SWAGGER UI** - Upload images, test OCR, see real results instantly!  
+> **📸 Upload checks or receipts** - Get structured JSON data in seconds  
+> **🤖 AI-powered OCR** - Mistral Vision + Cloudflare Llama 3.3 processing
+
+---
+
 > **This is a demonstration version** of the OCRChecksServer project, stripped from the original production codebase. 
 > 
 > **🤖 Fully AI-Generated Project**: This entire project was developed using AI assistance, including:

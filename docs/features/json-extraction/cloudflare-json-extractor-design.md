@@ -2,15 +2,16 @@
 
 ## Overview
 
-This document describes the technical architecture for implementing a `CloudflareLlama33JsonExtractor` that leverages Cloudflare Workers AI's native `@cf/meta/llama-3.3-70b-instruct-fp8-fast` model for structured JSON extraction from markdown text. This design replaces external Mistral API calls with Cloudflare's edge-native AI processing to eliminate timeout issues and improve performance.
+This document describes the technical architecture for implementing a `CloudflareLlama33JsonExtractor` that leverages Cloudflare Workers AI's native `@cf/meta/llama-3.3-70b-instruct-fp8-fast` model for structured JSON extraction from markdown text. This design replaces external Mistral AI API calls with Cloudflare's edge-native AI processing due to **Mistral AI service instability issues** that were causing frequent timeout errors and unreliable JSON extraction responses.
 
 ## Architectural Goals
 
-1. **Eliminate External Dependencies**: Replace Mistral API calls with Cloudflare's native AI models
-2. **Maintain Interface Compatibility**: Implement the existing `JsonExtractor` interface without breaking changes
-3. **Improve Performance**: Leverage edge-native processing for faster response times
-4. **Reduce Complexity**: Simplify retry logic and timeout management
-5. **Cost Optimization**: Use Cloudflare's competitive pricing model ($0.011/1K neurons)
+1. **Resolve Mistral AI Instability**: Address frequent timeout errors, connection failures, and unreliable responses from Mistral AI service
+2. **Eliminate External Dependencies**: Replace unstable Mistral API calls with reliable Cloudflare's native AI models
+3. **Maintain Interface Compatibility**: Implement the existing `JsonExtractor` interface without breaking changes
+4. **Improve Reliability**: Leverage edge-native processing for consistent, stable responses
+5. **Reduce Complexity**: Simplify retry logic and timeout management by eliminating external service calls
+6. **Cost Optimization**: Use Cloudflare's competitive pricing model ($0.011/1K neurons)
 
 ## System Architecture
 

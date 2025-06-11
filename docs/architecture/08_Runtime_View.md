@@ -147,6 +147,32 @@ sequenceDiagram
 
 The universal endpoint provides flexibility by:
 - Supporting multiple document types via a single endpoint
+
+## AI Model Architecture Decision
+
+### Mistral AI to Cloudflare Llama Migration
+
+**Issue**: The system originally used Mistral AI for both OCR processing and JSON extraction. However, **Mistral AI service demonstrated significant instability issues** including:
+- Frequent timeout errors during JSON extraction
+- Connection failures and unreliable API responses
+- Inconsistent response times affecting user experience
+- Service interruptions impacting production reliability
+
+**Solution**: Migration to hybrid AI architecture:
+- **OCR Processing**: Continue using Mistral AI (`mistral-ocr-latest`) - stable performance
+- **JSON Extraction**: Migrate to Cloudflare Workers AI (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) - edge-native reliability
+
+**Benefits of Migration**:
+- **Improved Reliability**: Edge-native processing eliminates external service dependencies for JSON extraction
+- **Consistent Performance**: Cloudflare's infrastructure provides stable, predictable response times  
+- **Reduced Complexity**: Eliminates complex retry logic needed for unstable Mistral AI JSON extraction
+- **Cost Efficiency**: Cloudflare Workers AI competitive pricing model
+- **Maintained Quality**: Preserves anti-hallucination detection and validation logic
+
+**Current Architecture** (v1.63.0+):
+- **Remote Environments** (dev, staging, production): Cloudflare Llama 3.3 for JSON extraction
+- **Local Development**: Mistral AI for JSON extraction (for development consistency)
+- **All Environments**: Mistral AI for OCR processing (stable service area)
 - Using the factory pattern to create appropriate scanners
 - Maintaining consistent response format with document type information
 

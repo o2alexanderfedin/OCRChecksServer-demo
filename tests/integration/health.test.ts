@@ -69,6 +69,14 @@ describe('Health Check Endpoint', function() {
       // Check version is in the format x.y.z
       expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
       
+      // Check version matches package.json
+      const packageJsonPath = path.resolve(projectRoot, 'package.json');
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+      const expectedVersion = packageJson.version;
+      
+      expect(body.version).toBe(expectedVersion);
+      console.log(`✓ Version matches package.json: ${body.version}`);
+      
       // Check Mistral API key status if present
       if (body.mistralApiKeyStatus) {
         expect(typeof body.mistralApiKeyStatus.configured).toBe('boolean');

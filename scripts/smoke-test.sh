@@ -66,11 +66,15 @@ if [ $HEALTH_STATUS -eq 0 ]; then
     VERSION=$(echo $HEALTH_RESPONSE | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
     echo -e "  Version: ${GREEN}${VERSION}${NC}"
     
-    # Verify version is the expected one
-    if [ "$VERSION" == "1.27.0" ]; then
-        echo -e "  ${GREEN}✓ Version is correct (1.27.0)${NC}"
+    # Get expected version from package.json
+    EXPECTED_VERSION=$(grep -o '"version":\s*"[^"]*"' package.json | cut -d'"' -f4)
+    
+    # Verify version matches package.json
+    if [ "$VERSION" == "$EXPECTED_VERSION" ]; then
+        echo -e "  ${GREEN}✓ Version matches package.json (${VERSION})${NC}"
     else
-        echo -e "  ${RED}✗ Version is incorrect. Expected 1.27.0, got ${VERSION}${NC}"
+        echo -e "  ${RED}✗ Version mismatch. Expected ${EXPECTED_VERSION} (from package.json), got ${VERSION}${NC}"
+        echo -e "    This indicates the latest code may not have been deployed."
     fi
     
     # Check for Mistral API key status in health response
@@ -341,10 +345,11 @@ fi
 # Print details about deployment issues based on test results
 echo -e "\n${YELLOW}Deployment Analysis:${NC}"
 
-# Check version match
-if [ "$VERSION" != "1.27.0" ]; then
-    echo -e "${RED}• The deployed version (${VERSION}) doesn't match the expected version (1.27.0)${NC}"
+# Check version match against package.json
+if [ "$VERSION" != "$EXPECTED_VERSION" ]; then
+    echo -e "${RED}• The deployed version (${VERSION}) doesn't match the expected version (${EXPECTED_VERSION})${NC}"
     echo -e "  This indicates that the latest code hasn't been deployed to Cloudflare Workers."
+    echo -e "  Expected version is read from package.json in the current directory."
 fi
 
 # Check API key status if reported by health endpoint

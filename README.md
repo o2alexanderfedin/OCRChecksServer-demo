@@ -181,6 +181,20 @@ This project demonstrates a production-grade, AI-generated system architecture b
 
 ## API Usage
 
+### 📖 Interactive API Documentation
+
+**Live API Documentation**: https://ocr-checks-worker.af-4a0.workers.dev/api-docs
+
+> 🌟 **Live Demo Instance**: This is a fully functional deployment where you can test the API in real-time!
+
+The interactive Swagger UI documentation provides:
+- Live API testing interface with real OCR processing
+- Complete request/response schemas  
+- Upload test images directly from the browser
+- Real-time endpoint testing with immediate results
+
+### API Endpoints
+
 The OCR Checks Worker provides three main processing endpoints and a health status endpoint:
 
 ### Dedicated Endpoints
@@ -193,7 +207,7 @@ Send a POST request to the dedicated check endpoint with a check image:
 curl -X POST \
   -H "Content-Type: image/jpeg" \
   --data-binary @check.jpg \
-  https://ocr-checks-worker-demo.workers.dev/check
+  https://ocr-checks-worker.af-4a0.workers.dev/check
 ```
 
 Response:
@@ -227,7 +241,7 @@ Send a POST request to the dedicated receipt endpoint with a receipt image:
 curl -X POST \
   -H "Content-Type: image/jpeg" \
   --data-binary @receipt.jpg \
-  https://ocr-checks-worker-demo.workers.dev/receipt
+  https://ocr-checks-worker.af-4a0.workers.dev/receipt
 ```
 
 Response:
@@ -272,7 +286,7 @@ Use the unified processing endpoint with the document type parameter:
 curl -X POST \
   -H "Content-Type: image/jpeg" \
   --data-binary @check.jpg \
-  https://ocr-checks-worker-demo.workers.dev/process?type=check
+  https://ocr-checks-worker.af-4a0.workers.dev/process?type=check
 ```
 
 The universal endpoint provides the same functionality as the dedicated endpoints but includes an additional `documentType` field in the response:
@@ -295,7 +309,7 @@ The universal endpoint provides the same functionality as the dedicated endpoint
 Check the service status, version, and API key configuration:
 
 ```bash
-curl https://ocr-checks-worker-demo.workers.dev/health
+curl https://ocr-checks-worker.af-4a0.workers.dev/health
 ```
 
 Response:
